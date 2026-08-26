@@ -83,7 +83,7 @@ Prototype quality and verification:
 - [x] Add native-feeling sheets.
 - [x] Use realistic synthetic Orlando data without personal information or live payment identifiers.
 - [x] Show exact compensation, deadline, locality, deliverables, disclosure, and rights before Creator application confirmation.
-- [ ] Finish the smallest/standard/max iPhone, dark mode, large text, empty/long/loading/error/offline verification matrix.
+- [x] Finish the smallest/standard/max iPhone, dark mode, large text, empty/long/loading/error/offline verification matrix.
 - [x] Verify the current standard-size iPhone 17 Pro in light mode with standard text and save native screenshots.
 - [x] Verify representative Creator and Business routes on iPhone 17 Pro in Dark appearance and save native screenshots.
 - [x] Inspect Business funding/review on iPhone SE at Accessibility Large and repair the observed critical horizontal clipping.
@@ -3875,3 +3875,13 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Decisions: M1 now passes because a clean checkout reaches green `pnpm verify` and both native-mobile and responsive-dashboard shells render. External account provisioning, Azure resources, Stripe/Entra connectivity, signing/distribution, live money, and messages remain later approval gates.
 - Blockers: M2 still lacks actual VoiceOver gesture/focus proof because iOS 26.5 Simulator does not expose VoiceOver, and actual Maestro execution because its CLI is unavailable. Unrecorded device/appearance/text combinations remain unchecked.
 - Next exact task: Continue the M2 device/appearance/text matrix with the remaining locally testable combinations; keep actual VoiceOver and Maestro boxes open until compatible tooling is available.
+
+### 2026-08-26 — Twelve-cell native display and semantic-state matrix passed
+
+- Milestone: M2 display/accessibility verification in progress
+- Completed: Formalized and completed the 12-cell matrix across iPhone SE, iPhone 17 Pro, and iPhone 17 Pro Max in Light and Dark at standard `large` and `accessibility-large` text. Retained seven screenshots for the previously missing cells. The first iPhone 17 Pro Light/Accessibility Large run split `experiences` mid-word; added word-aware iOS line breaking and bounded headline/body scaling, then recaptured the repaired route.
+- Verification: Simulator `ui` queries confirmed each exact appearance/content-size setting. Native accessibility trees retained every critical role, sign-in, setup, dashboard, and continuation control; visual inspection found no critical horizontal clipping, and oversized content remained vertically scrollable. The already-complete Creator and Business sheets cover success, warning, error, pending, locked, empty, loading, and offline from top to bottom in both appearances at Accessibility Large. The complete eight-package `pnpm verify` gate passed with 26 mobile tests; the fallback scanner passed 219 text files; Gitleaks found no leaks in approximately 4.54 MB; and static Maestro validation passed two flows with 31 source-backed test IDs.
+- Evidence: `docs/evidence/M02/device-matrix.md`, `docs/evidence/M02/summary.md`, and the seven new exact-cell captures under `docs/evidence/M02/screenshots/ios/`.
+- Decisions: The display/state matrix is complete and checked independently. This does not represent actual VoiceOver gestures or actual Maestro execution.
+- Blockers: Actual VoiceOver remains unavailable in the iOS 26.5 Simulator, and the Maestro CLI remains unavailable. Those M2 boxes stay open.
+- Next exact task: Preserve the M2 checkpoint while leaving actual VoiceOver and actual Maestro execution open for compatible tooling; do not represent static checks as those missing native runs.

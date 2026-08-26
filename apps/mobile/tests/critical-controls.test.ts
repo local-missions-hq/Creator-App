@@ -156,6 +156,37 @@ function decorativeIconAccessibilityContract() {
   return contract;
 }
 
+function welcomeHeadlineLargeTextContract() {
+  const file = join(mobileRoot, 'app', 'index.tsx');
+  const sourceText = readFileSync(file, 'utf8');
+  const source = ts.createSourceFile(
+    file,
+    sourceText,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const contract: Record<string, string> = {};
+
+  const visit = (node: ts.Node) => {
+    if (
+      ts.isJsxElement(node) &&
+      node.openingElement.tagName.getText(source) === 'Text' &&
+      node.getText(source).includes('Turn local experiences into paid missions.')
+    ) {
+      for (const attribute of node.openingElement.attributes.properties.filter(ts.isJsxAttribute)) {
+        const name = attribute.name.getText(source);
+        contract[name] = attribute.initializer?.getText(source) ?? 'true';
+      }
+    }
+
+    ts.forEachChild(node, visit);
+  };
+
+  visit(source);
+  return contract;
+}
+
 describe('critical mobile controls', () => {
   it('gives every Pressable a stable test ID and accessibility label', () => {
     expect(missingCriticalControlAttributes()).toEqual([]);
@@ -172,6 +203,13 @@ describe('critical mobile controls', () => {
       accessibilityElementsHidden: 'true',
       accessible: '{false}',
       importantForAccessibility: '"no-hide-descendants"',
+    });
+  });
+
+  it('keeps the welcome headline word-safe at accessibility text sizes', () => {
+    expect(welcomeHeadlineLargeTextContract()).toMatchObject({
+      lineBreakStrategyIOS: '"hangul-word"',
+      maxFontSizeMultiplier: '{1.6}',
     });
   });
 });

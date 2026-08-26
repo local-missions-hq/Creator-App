@@ -2,7 +2,7 @@
 
 Status: In progress; Creator and Business mission slices verified natively, admin/support routes verified responsively  
 Date: 2026-08-26  
-Devices: iPhone 17 Pro and iPhone SE (3rd generation) Simulators, iOS 26.5; controlled browser at 1440 px and 390 px widths
+Devices: iPhone SE (3rd generation), iPhone 17 Pro, and iPhone 17 Pro Max Simulators, iOS 26.5; controlled browser at 1440 px and 390 px widths
 
 ## Implemented in this slice
 
@@ -42,6 +42,7 @@ Devices: iPhone 17 Pro and iPhone SE (3rd generation) Simulators, iOS 26.5; cont
 - The remaining Creator lifecycle and Business creation/review pass now covers mission details, acceptance, instructions, check-in, deliverables, revision, My Missions, earnings, Business setup, mission brief, deliverables/rights, Review & publish, and Submission review on iPhone SE in Dark appearance at Accessibility Large. The pass repaired mid-word header/title breaks, a white-on-white scanner and earnings card, compact horizontal cards/actions, incomplete spoken progress/file/money phrases, misleading non-action `Replace` text, and low-contrast completed Business buttons. Native actions reached the synthetic published and approved terminal states, and Xcode Accessibility Inspector returned empty warning outlines for Creator Earnings and Business Submission review.
 - The Creator and Business semantic state sheets were then inspected from top to bottom on iPhone SE at Accessibility Large in both Light and Dark. Success, warning, error, pending, locked, empty, loading, and offline cards remain readable and vertically reachable; error/offline Retry and Business locked-state explanation actions end in an explicit `No request was sent` result. The native tree now groups each state label, title, consequence, and preservation boundary into one alert/progress phrase without swallowing its separate action. Xcode Accessibility Inspector returned an empty warning outline for the Light Business state sheet.
 - A [narrated native prototype run](./narrated-prototype-run.md) then exercised the actual labeled controls rather than direct route screenshots. The Creator journey advanced from Discover through explicit contract consent, accepted instructions, check-in, deliverables, one correction, Available, and Paid. The Business journey advanced from disconnected sign-in and profile setup through mission brief, rights, `$575` budget, synthetic approval, explicit Fund and Publish, and the disabled published terminal. Both completed in Dark appearance at Accessibility Large without critical clipping or any external action.
+- The explicit [12-cell device/appearance/text matrix](./device-matrix.md) now covers iPhone SE, iPhone 17 Pro, and iPhone 17 Pro Max in Light and Dark at both standard `large` and `accessibility-large` text. The final standard-device large-text run exposed a mid-word `experiences` split on the welcome screen; word-aware iOS breaking and a bounded `1.6` headline/body multiplier repaired it. Seven exact-cell screenshots were retained, every inspected critical action remained in the native tree, and long content remained vertically scrollable.
 
 ## Native screenshot evidence
 
@@ -123,6 +124,13 @@ Devices: iPhone 17 Pro and iPhone SE (3rd generation) Simulators, iOS 26.5; cont
 - [Business semantic states bottom — iPhone SE at Accessibility Large, Dark](./screenshots/ios/business-semantic-states-bottom-iphonese-accessibility-large-dark-fixed.png)
 - [Narrated Creator paid terminal — iPhone SE at Accessibility Large, Dark](./screenshots/ios/narrated-creator-paid-terminal-iphonese-dark-large.png)
 - [Narrated Business published terminal — iPhone SE at Accessibility Large, Dark](./screenshots/ios/narrated-business-published-terminal-iphonese-dark-large.png)
+- [Role choice — iPhone SE Light, standard text](./screenshots/ios/role-choice-iphonese-light-standard.png)
+- [Business dashboard — iPhone SE Dark, standard text](./screenshots/ios/business-dashboard-iphonese-dark-standard.png)
+- [Repaired role choice — iPhone 17 Pro Light, Accessibility Large](./screenshots/ios/role-choice-iphone17pro-light-accessibility-large-fixed.png)
+- [Business sign-in — iPhone 17 Pro Dark, Accessibility Large](./screenshots/ios/business-sign-in-iphone17pro-dark-accessibility-large.png)
+- [Business sign-in — iPhone 17 Pro Max Dark, standard text](./screenshots/ios/business-sign-in-iphone17promax-dark-standard.png)
+- [Business setup — iPhone 17 Pro Max Light, Accessibility Large](./screenshots/ios/business-setup-iphone17promax-light-accessibility-large.png)
+- [Business sign-in — iPhone 17 Pro Max Dark, Accessibility Large](./screenshots/ios/business-sign-in-iphone17promax-dark-accessibility-large.png)
 
 Standard iPhone 17 Pro Light and Dark screenshots were captured directly from the booted simulator at `1206 × 2622` pixels. The compact-device Dynamic Type screenshots are `750 × 1334` from the iPhone SE (3rd generation) at Accessibility Large. Every image was captured after the corresponding live Expo route rendered and contains synthetic Orlando-area data only. The SE captures include Expo Go's local developer-tools bubble; it is not an app control or production UI.
 
@@ -165,8 +173,8 @@ The inspected standard-size iPhone views show no horizontal overflow or clipped 
 - Creator and Business bottom tabs expose stable accessibility labels, selected state, and test IDs. Venue Staff has no broad navigation, and the iPhone app has no employee administration route.
 - The filter sheet is modal to assistive technology, has explicit non-committing dismissal controls, and applies only timing, coarse distance, and mission fit; it contains no follower or private-analytics control.
 - Semantic status never relies on color alone: each state has a visible label and icon or progress indicator. Offline and error explain preservation boundaries; the locked Business state says existing obligations continue; every synthetic action confirms that no request was sent.
-- On the compact large-text checkpoints, primary content wraps and scrolls vertically; decorative chrome uses bounded font multipliers so brand and tab labels remain operable. Creator account/payment, Business capacity/results, and Venue Staff now have representative compact-device evidence. This is not yet the complete Dynamic Type or actual VoiceOver audit.
+- Across the complete 12-cell display matrix, primary content wraps and scrolls vertically; decorative chrome and the welcome headline use bounded multipliers so brand, title, and tab labels remain operable. Creator account/payment, Business capacity/results, Venue Staff, semantic states, and the role entry points have representative exact-cell evidence. This does not claim actual VoiceOver gesture/focus proof.
 
 ## Remaining M2 work
 
-M2 is not passed yet. The semantic palette now has automated Light/Dark contrast evidence; representative smallest, standard, and max iPhone routes are proven; all pressable controls have enforced labels/test IDs and a shared 44 × 44 point minimum target; decorative icons are silent; and the highest-risk contract, payment, account, lifecycle, creation/review, results, Venue Staff, semantic-state, and narrated end-to-end paths have repaired evidence. Actual VoiceOver gesture/focus testing, any remaining unrecorded appearance/text/device combinations, and actual Maestro Simulator executions still need evidence.
+M2 is not passed yet. The semantic palette has automated Light/Dark contrast evidence; the 12-cell smallest/standard/max iPhone, appearance, and text-size matrix is complete; all success/warning/error/pending/locked/empty/loading/offline states are proven; every pressable control has an enforced label/test ID and shared 44 × 44 point minimum target; decorative icons are silent; and the highest-risk contract, payment, account, lifecycle, creation/review, results, Venue Staff, and narrated paths have repaired evidence. Actual VoiceOver gesture/focus testing and actual Maestro Simulator executions still need evidence.

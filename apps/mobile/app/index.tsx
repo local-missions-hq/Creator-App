@@ -78,8 +78,10 @@ export default function HomeScreen() {
       <ScrollView bounces={false} contentContainerStyle={styles.page}>
         <View style={styles.intro}>
           <Brand />
-          <Text style={styles.title}>Turn local experiences into paid missions.</Text>
-          <Text style={styles.body}>
+          <Text lineBreakStrategyIOS="hangul-word" maxFontSizeMultiplier={1.6} style={styles.title}>
+            Turn local experiences into paid missions.
+          </Text>
+          <Text lineBreakStrategyIOS="hangul-word" maxFontSizeMultiplier={1.6} style={styles.body}>
             Businesses fund real visits. Creators complete clear deliverables and get paid.
           </Text>
         </View>
