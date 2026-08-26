@@ -1,0 +1,75 @@
+appId: host.exp.Exponent
+name: Creator funded mission prototype
+tags:
+  - creator
+  - local-preview
+---
+- openLink: '${EXPO_URL}/--/creator/discover'
+- runFlow:
+    when:
+      visible: 'Open in "Expo Go"'
+    commands:
+      - tapOn: Open
+- assertVisible:
+    id: creator-open-featured-mission
+- tapOn:
+    id: creator-open-featured-mission
+- scrollUntilVisible:
+    element:
+      id: creator-accept-mission-terms
+    direction: DOWN
+    visibilityPercentage: 60
+- tapOn:
+    id: creator-accept-mission-terms
+- assertVisible:
+    id: creator-accept-mission-terms
+    checked: true
+- scrollUntilVisible:
+    element:
+      id: creator-submit-application
+    direction: DOWN
+    visibilityPercentage: 80
+- tapOn:
+    id: creator-submit-application
+- assertVisible: Application previewed
+- tapOn: View accepted demo
+- scrollUntilVisible:
+    element:
+      id: creator-open-instructions
+    direction: DOWN
+    visibilityPercentage: 70
+- tapOn:
+    id: creator-open-instructions
+- scrollUntilVisible:
+    element:
+      id: creator-instructions-continue
+    direction: DOWN
+    visibilityPercentage: 70
+- tapOn:
+    id: creator-instructions-continue
+- scrollUntilVisible:
+    element:
+      id: creator-complete-check-in
+    direction: DOWN
+    visibilityPercentage: 70
+- tapOn:
+    id: creator-complete-check-in
+- scrollUntilVisible:
+    element:
+      id: creator-submit-deliverables
+    direction: DOWN
+    visibilityPercentage: 70
+- tapOn:
+    id: creator-submit-deliverables
+- scrollUntilVisible:
+    element:
+      id: creator-resubmit-revision
+    direction: DOWN
+    visibilityPercentage: 70
+- tapOn:
+    id: creator-resubmit-revision
+- assertVisible:
+    id: creator-preview-paid-state
+- tapOn:
+    id: creator-preview-paid-state
+- assertVisible: Paid

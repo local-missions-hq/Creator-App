@@ -1,0 +1,37 @@
+# Dependencies and generated output
+node_modules/
+.pnpm-store/
+.turbo/
+dist/
+coverage/
+.next/
+.expo/
+expo-env.d.ts
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.local
+*.pem
+*.p12
+*.p8
+*.mobileprovision
+*.cer
+*.key
+*.tfstate
+*.tfstate.*
+.terraform/
+crash.log
+
+# Native signing/build output
+apps/mobile/android/
+apps/mobile/ios/
+apps/mobile/web-build/
+
+# Local data and editor/OS files
+.DS_Store
+.idea/
+.vscode/
+*.log

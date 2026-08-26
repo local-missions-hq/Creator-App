@@ -1,0 +1,6 @@
+appId: host.exp.Exponent
+flows:
+  - '*-flow.yaml'
+env:
+  EXPO_URL: 'exp://127.0.0.1:8081'
+testOutputDir: 'artifacts'

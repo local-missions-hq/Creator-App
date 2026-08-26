@@ -1,0 +1,16 @@
+title = "Local Missions Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated dependency and build directories already excluded from source control"
+paths = [
+  '''(^|/)node_modules/''',
+  '''(^|/)\.pnpm-store/''',
+  '''(^|/)\.turbo/''',
+  '''(^|/)\.next/''',
+  '''(^|/)\.expo/''',
+  '''(^|/)dist/''',
+  '''(^|/)coverage/''',
+]

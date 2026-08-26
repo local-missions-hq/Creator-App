@@ -1,0 +1,53 @@
+appId: host.exp.Exponent
+name: Business fund and publish prototype
+tags:
+  - business
+  - local-preview
+---
+- openLink: '${EXPO_URL}/--/business/dashboard'
+- runFlow:
+    when:
+      visible: 'Open in "Expo Go"'
+    commands:
+      - tapOn: Open
+- assertVisible:
+    id: business-create-mission
+- tapOn:
+    id: business-create-mission
+- scrollUntilVisible:
+    element:
+      id: business-brief-continue
+    direction: DOWN
+    visibilityPercentage: 70
+- tapOn:
+    id: business-brief-continue
+- scrollUntilVisible:
+    element:
+      id: business-continue-budget
+    direction: DOWN
+    visibilityPercentage: 70
+- tapOn:
+    id: business-continue-budget
+- scrollUntilVisible:
+    element:
+      id: business-continue-review
+    direction: DOWN
+    visibilityPercentage: 70
+- tapOn:
+    id: business-continue-review
+- scrollUntilVisible:
+    element:
+      id: business-review-primary-action
+    direction: DOWN
+    visibilityPercentage: 70
+- tapOn:
+    id: business-review-primary-action
+- assertVisible: Admin-approved demo · ready to fund
+- scrollUntilVisible:
+    element:
+      id: business-review-primary-action
+    direction: DOWN
+    visibilityPercentage: 70
+- tapOn:
+    id: business-review-primary-action
+- assertVisible: Demo mission published

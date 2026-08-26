@@ -1,0 +1,267 @@
+{
+  "file": "docs/business-plan/Local_Missions_Investor_Business_Plan_2026.docx",
+  "counts": {
+    "high": 0,
+    "medium": 13,
+    "low": 17
+  },
+  "findings": [
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "medium",
+      "kind": "table_no_header_row",
+      "message": "Table first row is not marked as header (w:tblHeader missing)",
+      "context": {
+        "part": "word/document.xml"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://www.iab.com/insights/2025-creator-economy-ad-spend-strategy-report/"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://advocacy.sba.gov/wp-content/uploads/2026/02/FINAL_FAQsAboutSmallBusiness_2026_012826.pdf"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://www.goldmansachs.com/insights/articles/the-creator-economy-could-approach-half-a-trillion-dollars-by-2027"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://www.visitorlando.org/media/press-releases/post/orlando-welcomed-record-767-million-visitors-in-2025-remaining-mo"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://www.orlando.gov/Our-Government/Records-and-Documents/Financial/Popular-Financial-Reports/2025-Popular-Annual-Fin"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://doi.org/10.1080/15252019.2018.1533501"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://doi.org/10.1162/154247603322493212"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://www.nber.org/papers/w11603"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://www.hbs.edu/ris/Publication%20Files/Network%20Interconnectivity%20and%20Entry%20into%20Platform%20Markets%20FINA"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://stripe.com/connect/pricing"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://www.ftc.gov/business-guidance/resources/disclosures-101-social-media-influencers"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://collabstr.com/pricing"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://insense.pro/pricing"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://investors.sproutsocial.com/news/news-details/2023/Sprout-Social-Acquires-Tagger-Media/default.aspx"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://www.sec.gov/Archives/edgar/data/1021561/000114036125000113/ef20041017_ex99-1.htm"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://www.publicisgroupe.com/sites/default/files/press-releases/2024-07/publicis-groupe-to-acquire-influential-creatin"
+      }
+    },
+    {
+      "severity": "low",
+      "kind": "hyperlink_raw_url",
+      "message": "Hyperlink display text is a raw URL (often less accessible)",
+      "context": {
+        "part": "word/document.xml",
+        "text": "https://investors.intuit.com/sec-filings/all-sec-filings/content/0001193125-21-342279/d241331d424b7.htm"
+      }
+    }
+  ]
+}

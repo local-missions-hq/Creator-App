@@ -1,0 +1,59 @@
+{
+  "name": "local-missions",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local Missions local creator marketplace",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@11.24.0",
+  "engines": {
+    "node": ">=24.19.0 <25",
+    "pnpm": ">=11.24.0 <12"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "contracts:check": "turbo run contracts:check",
+    "dev": "turbo run dev --parallel",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "turbo run lint",
+    "prerequisites:check": "node scripts/validate-external-prerequisites.mjs",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:integration": "turbo run test:integration",
+    "test:e2e:api": "turbo run test:e2e:api",
+    "test:e2e:web": "turbo run test:e2e:web",
+    "test:e2e:mobile": "turbo run test:e2e:mobile",
+    "test:gitleaks": "gitleaks dir . --redact --no-banner",
+    "test:security": "node scripts/security-check.mjs",
+    "verify": "pnpm format:check && pnpm prerequisites:check && pnpm lint && pnpm typecheck && pnpm test && pnpm contracts:check && pnpm build",
+    "local:up": "docker compose up -d",
+    "local:down": "docker compose down",
+    "local:destroy": "docker compose down --volumes --remove-orphans",
+    "prepare": "simple-git-hooks",
+    "lint-staged": "lint-staged"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.13.3",
+    "eslint": "10.0.1",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.11.0",
+    "lint-staged": "17.3.0",
+    "prettier": "3.9.6",
+    "simple-git-hooks": "2.13.1",
+    "turbo": "2.10.12",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.68.0",
+    "vitest": "4.1.11"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yaml,yml,css}": "prettier --write"
+  }
+}

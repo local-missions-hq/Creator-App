@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600">
+  <rect width="1200" height="1600" fill="#FFF7ED"/>
+  <rect x="48" y="48" width="1104" height="220" rx="36" fill="#102A43"/>
+  <circle cx="1010" cy="158" r="76" fill="#CF3F1F"/>
+  <circle cx="1070" cy="124" r="36" fill="#D97706"/>
+  <path d="M930 218 C975 150 1045 178 1118 112" fill="none" stroke="#007C83" stroke-width="28" stroke-linecap="round"/>
+  <text x="92" y="132" fill="#FFFFFF" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif" font-size="34" font-weight="600">LOCAL MISSIONS</text>
+  <text x="92" y="203" fill="#FFFFFF" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif" font-size="58" font-weight="800">Sunset + Lagoon</text>
+
+  <text x="64" y="342" fill="#102A43" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif" font-size="36" font-weight="750">Core color tokens</text>
+  <text x="64" y="386" fill="#526273" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif" font-size="24">Trustworthy payments, energetic missions, and accessible status communication.</text>
+
+  <g font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif">
+    <g transform="translate(64 430)">
+      <rect width="248" height="260" rx="24" fill="#FFFFFF"/>
+      <rect x="16" y="16" width="216" height="126" rx="18" fill="#102A43"/>
+      <text x="20" y="184" fill="#102A43" font-size="24" font-weight="700">Midnight Navy</text>
+      <text x="20" y="218" fill="#526273" font-size="22">#102A43</text>
+      <text x="20" y="248" fill="#526273" font-size="18">Trust · headings</text>
+    </g>
+    <g transform="translate(328 430)">
+      <rect width="248" height="260" rx="24" fill="#FFFFFF"/>
+      <rect x="16" y="16" width="216" height="126" rx="18" fill="#007C83"/>
+      <text x="20" y="184" fill="#102A43" font-size="24" font-weight="700">Orlando Lagoon</text>
+      <text x="20" y="218" fill="#526273" font-size="22">#007C83</text>
+      <text x="20" y="248" fill="#526273" font-size="18">Navigation · links</text>
+    </g>
+    <g transform="translate(592 430)">
+      <rect width="248" height="260" rx="24" fill="#FFFFFF"/>
+      <rect x="16" y="16" width="216" height="126" rx="18" fill="#CF3F1F"/>
+      <text x="20" y="184" fill="#102A43" font-size="24" font-weight="700">Sunset Tangerine</text>
+      <text x="20" y="218" fill="#526273" font-size="22">#CF3F1F</text>
+      <text x="20" y="248" fill="#526273" font-size="18">Primary actions</text>
+    </g>
+    <g transform="translate(856 430)">
+      <rect width="280" height="260" rx="24" fill="#FFFFFF"/>
+      <rect x="16" y="16" width="248" height="126" rx="18" fill="#FFF7ED" stroke="#E5D8C8" stroke-width="2"/>
+      <text x="20" y="184" fill="#102A43" font-size="24" font-weight="700">Warm Sand</text>
+      <text x="20" y="218" fill="#526273" font-size="22">#FFF7ED</text>
+      <text x="20" y="248" fill="#526273" font-size="18">App background</text>
+    </g>
+
+    <g transform="translate(64 714)">
+      <rect width="336" height="228" rx="24" fill="#FFFFFF"/>
+      <rect x="16" y="16" width="304" height="104" rx="18" fill="#137A50"/>
+      <text x="20" y="162" fill="#102A43" font-size="24" font-weight="700">Palm Green</text>
+      <text x="20" y="196" fill="#526273" font-size="22">#137A50 · Success / paid</text>
+    </g>
+    <g transform="translate(432 714)">
+      <rect width="336" height="228" rx="24" fill="#FFFFFF"/>
+      <rect x="16" y="16" width="304" height="104" rx="18" fill="#D97706"/>
+      <text x="20" y="162" fill="#102A43" font-size="24" font-weight="700">Golden Hour</text>
+      <text x="20" y="196" fill="#526273" font-size="22">#D97706 · Pending / warning</text>
+    </g>
+    <g transform="translate(800 714)">
+      <rect width="336" height="228" rx="24" fill="#FFFFFF"/>
+      <rect x="16" y="16" width="304" height="104" rx="18" fill="#526273"/>
+      <text x="20" y="162" fill="#102A43" font-size="24" font-weight="700">Slate</text>
+      <text x="20" y="196" fill="#526273" font-size="22">#526273 · Secondary text</text>
+    </g>
+
+    <text x="64" y="1018" fill="#102A43" font-size="36" font-weight="750">Interface examples</text>
+    <rect x="64" y="1060" width="1072" height="444" rx="32" fill="#FFFFFF"/>
+    <text x="104" y="1120" fill="#102A43" font-size="28" font-weight="700">Family Adventure Preview</text>
+    <text x="104" y="1160" fill="#526273" font-size="22">Wednesday · 2:00 PM     3 videos · 5 photos</text>
+    <rect x="104" y="1194" width="248" height="88" rx="20" fill="#CF3F1F"/>
+    <text x="228" y="1250" text-anchor="middle" fill="#FFFFFF" font-size="30" font-weight="750">$35 guaranteed</text>
+    <rect x="376" y="1194" width="720" height="88" rx="20" fill="#CF3F1F"/>
+    <text x="736" y="1250" text-anchor="middle" fill="#FFFFFF" font-size="28" font-weight="700">View mission</text>
+
+    <rect x="104" y="1322" width="286" height="72" rx="36" fill="#007C83"/>
+    <text x="247" y="1368" text-anchor="middle" fill="#FFFFFF" font-size="24" font-weight="700">Funded</text>
+    <rect x="416" y="1322" width="286" height="72" rx="36" fill="#D97706"/>
+    <text x="559" y="1368" text-anchor="middle" fill="#102A43" font-size="24" font-weight="700">Pending review</text>
+    <rect x="728" y="1322" width="286" height="72" rx="36" fill="#137A50"/>
+    <text x="871" y="1368" text-anchor="middle" fill="#FFFFFF" font-size="24" font-weight="700">Paid</text>
+
+    <text x="104" y="1460" fill="#526273" font-size="20">Status is never communicated by color alone. Every state includes a written label.</text>
+    <text x="64" y="1560" fill="#526273" font-size="19">Verified contrast: white/navy 14.64:1 · white/lagoon 4.99:1 · white/tangerine 4.79:1 · white/green 5.35:1</text>
+  </g>
+</svg>

@@ -1,0 +1,20 @@
+{
+  "name": "@local-missions/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}
