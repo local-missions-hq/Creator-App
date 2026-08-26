@@ -6,7 +6,7 @@ Primary client: Native iPhone app with Creator and Business modes
 Companion client: Responsive admin/support web dashboard and optional desktop business views
 Cloud: Microsoft Azure
 Plan status: Executing locally; external/live gates remain closed
-Current milestone: M1 gate remediation; M2 native prototype prework in progress
+Current milestone: M2 native prototype verification; actual VoiceOver and Maestro execution remain open
 Last updated: 2026-08-26
 
 ## Live execution checklist
@@ -23,7 +23,7 @@ This checklist is the current proof-based status view. The detailed milestone se
 
 ### M1 — Local foundation and reproducibility
 
-- [ ] Identify and record all external prerequisites: Apple Developer/App Store Connect, Expo organization, Azure region/cost owner/alert destination, Stripe test account, Entra External ID tenant plan, and domain/email placeholders.
+- [x] Identify and record all external prerequisites: Apple Developer/App Store Connect, Expo organization, Azure region/cost owner/alert destination, Stripe test account, Entra External ID tenant plan, and domain/email placeholders.
 - [x] Initialize the pnpm/Turborepo monorepo and all eight planned workspaces.
 - [x] Pin Node/pnpm and add shared TypeScript, ESLint, Prettier, CI, dependency, pre-commit, and pull-request policies.
 - [x] Add local PostgreSQL/Azurite services, synthetic fixtures, environment-name-only examples, and a same-day destroy path.
@@ -34,11 +34,11 @@ This checklist is the current proof-based status view. The detailed milestone se
 - [x] Run and visually verify the mobile shell in a native iPhone Simulator.
 - [x] Capture native iPhone shell screenshots under `docs/evidence/M01/` and inspect them for clipping or exposed values.
 - [x] Confirm sensitive environment/signing artifacts are ignored and pass the repository fallback secret scan.
-- [ ] Prove a clean install from a separate fresh committed checkout.
-- [ ] Prove independent hot reload for mobile, dashboard, and API sessions.
-- [ ] Run Gitleaks rather than only the repository fallback scanner.
+- [x] Prove a clean install from a separate fresh committed checkout.
+- [x] Prove independent hot reload for mobile, dashboard, and API sessions.
+- [x] Run Gitleaks rather than only the repository fallback scanner.
 - [x] Capture and inspect the dashboard shell at desktop and mobile widths.
-- [ ] Pass the complete M1 gate.
+- [x] Pass the complete M1 gate.
 
 ### M2 — Native clickable prototype
 
@@ -3865,3 +3865,13 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Decisions: This closes the narrated local prototype gate because both role journeys were executed through native controls with explicit safety outcomes. It does not substitute for actual Maestro execution or actual VoiceOver gestures, and it creates no external record.
 - Blockers: Maestro CLI is unavailable, and this Simulator does not expose VoiceOver. Those boxes remain open. M1 external/reproducibility gates and any unrecorded device/appearance/text combinations remain open.
 - Next exact task: Continue M1 reproducibility and external-service readiness work that does not create infrastructure or external records; keep all live Azure, Stripe, Entra, payment, location, and message actions behind their existing approval gates.
+
+### 2026-08-26 — M1 reproducibility and local foundation gate passed
+
+- Milestone: M1 complete; M2 verification remains active
+- Completed: Recorded and machine-validated 15 external prerequisite placeholders without provisioning providers; added a repeatable Gitleaks scan; proved independent API, dashboard, and Expo hot reload with temporary restored probes; created the first recoverable local commits; and proved the repository from a separate committed checkout with no pre-existing dependency directory.
+- Verification: Commit `6b45356` was cloned with `--no-hardlinks`; Node `24.19.0` and pnpm `11.24.0` installed 761 packages from the frozen lockfile; the complete eight-package `pnpm verify` gate passed with zero Turbo cache hits; all 25 mobile tests passed; the fallback scanner passed 217 text files; Gitleaks 8.30.1 found no leaks in approximately 4.52 MB; and static Maestro validation passed two flows with 31 source-backed test IDs. API, dashboard, and mobile probe copy was observed and then removed. Port 3001 closed after the API watcher stopped.
+- Evidence: `docs/external-prerequisites.md`, `docs/evidence/M01/prerequisites.md`, `docs/evidence/M01/gitleaks.md`, `docs/evidence/M01/hot-reload.md`, `docs/evidence/M01/mobile-hot-reload-iphone-se.png`, `docs/evidence/M01/clean-checkout.md`, and `docs/evidence/M01/summary.md`.
+- Decisions: M1 now passes because a clean checkout reaches green `pnpm verify` and both native-mobile and responsive-dashboard shells render. External account provisioning, Azure resources, Stripe/Entra connectivity, signing/distribution, live money, and messages remain later approval gates.
+- Blockers: M2 still lacks actual VoiceOver gesture/focus proof because iOS 26.5 Simulator does not expose VoiceOver, and actual Maestro execution because its CLI is unavailable. Unrecorded device/appearance/text combinations remain unchecked.
+- Next exact task: Continue the M2 device/appearance/text matrix with the remaining locally testable combinations; keep actual VoiceOver and Maestro boxes open until compatible tooling is available.
