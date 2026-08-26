@@ -1,6 +1,4 @@
-import type { ImageSourcePropType } from 'react-native';
-
 declare module '*.png' {
-  const source: ImageSourcePropType;
+  const source: import('react-native').ImageSourcePropType;
   export default source;
 }
