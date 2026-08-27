@@ -241,6 +241,34 @@ export const ledgerTransactionSourceType = pgEnum('ledger_transaction_source_typ
   'finance_adjustment',
 ]);
 export const ledgerEntryDirection = pgEnum('ledger_entry_direction', ['debit', 'credit']);
+export const localPassOfferStatus = pgEnum('local_pass_offer_status', [
+  'configured',
+  'active',
+  'claims_paused',
+  'closed',
+]);
+export const localPassLinkStatus = pgEnum('local_pass_link_status', ['active', 'revoked']);
+export const localPassClaimStatus = pgEnum('local_pass_claim_status', [
+  'active',
+  'redeemed',
+  'expired',
+]);
+export const localPassClaimTokenStatus = pgEnum('local_pass_claim_token_status', [
+  'active',
+  'consumed',
+  'expired',
+  'revoked',
+]);
+export const localPassEvidenceKind = pgEnum('local_pass_evidence_kind', [
+  'link_open',
+  'pass_claimed',
+  'verified_pass_redemption',
+]);
+export const localPassFulfillmentKind = pgEnum('local_pass_fulfillment_kind', [
+  'original_offer',
+  'preapproved_substitute',
+  'customer_accepted_substitute',
+]);
 
 export const users = pgTable(
   'users',
@@ -1567,6 +1595,358 @@ export const ledgerEntries = pgTable(
   ],
 );
 
+export const localPassOffers = pgTable(
+  'local_pass_offers',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'restrict' }),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id, { onDelete: 'restrict' }),
+    businessLocationId: uuid('business_location_id')
+      .notNull()
+      .references(() => businessLocations.id, { onDelete: 'restrict' }),
+    status: localPassOfferStatus('status').default('configured').notNull(),
+    title: text('title').notNull(),
+    offerDescription: text('offer_description').notNull(),
+    purchaseRequirement: text('purchase_requirement'),
+    exclusions: text('exclusions').notNull(),
+    statedRetailValueMinor: integer('stated_retail_value_minor').notNull(),
+    currency: text('currency').notNull(),
+    totalQuantity: integer('total_quantity').notNull(),
+    committedQuantity: integer('committed_quantity').default(0).notNull(),
+    redeemedQuantity: integer('redeemed_quantity').default(0).notNull(),
+    availableStartsAt: timestamp('available_starts_at', { withTimezone: true }).notNull(),
+    availableEndsAt: timestamp('available_ends_at', { withTimezone: true }).notNull(),
+    preapprovedSubstituteDescription: text('preapproved_substitute_description'),
+    preapprovedSubstituteValueMinor: integer('preapproved_substitute_value_minor'),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('local_pass_offers_public_id_uq').on(table.publicId),
+    uniqueIndex('local_pass_offers_campaign_uq').on(table.campaignId),
+    index('local_pass_offers_location_status_idx').on(table.businessLocationId, table.status),
+    check('local_pass_offers_title_nonempty_ck', sql`length(btrim(${table.title})) > 0`),
+    check(
+      'local_pass_offers_description_nonempty_ck',
+      sql`length(btrim(${table.offerDescription})) > 0 AND length(btrim(${table.exclusions})) > 0`,
+    ),
+    check('local_pass_offers_value_nonnegative_ck', sql`${table.statedRetailValueMinor} >= 0`),
+    check('local_pass_offers_currency_ck', sql`${table.currency} ~ '^[A-Z]{3}$'`),
+    check('local_pass_offers_quantity_ck', sql`${table.totalQuantity} BETWEEN 1 AND 500`),
+    check(
+      'local_pass_offers_inventory_ck',
+      sql`${table.committedQuantity} >= 0 AND ${table.redeemedQuantity} >= 0
+          AND ${table.redeemedQuantity} <= ${table.committedQuantity}
+          AND ${table.committedQuantity} <= ${table.totalQuantity}`,
+    ),
+    check(
+      'local_pass_offers_window_ck',
+      sql`${table.availableEndsAt} > ${table.availableStartsAt}`,
+    ),
+    check(
+      'local_pass_offers_substitute_ck',
+      sql`(${table.preapprovedSubstituteDescription} IS NULL AND ${table.preapprovedSubstituteValueMinor} IS NULL) OR
+          (length(btrim(${table.preapprovedSubstituteDescription})) > 0
+           AND ${table.preapprovedSubstituteValueMinor} >= ${table.statedRetailValueMinor})`,
+    ),
+    check('local_pass_offers_version_positive_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const localPassOfferStatusHistory = pgTable(
+  'local_pass_offer_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    localPassOfferId: uuid('local_pass_offer_id')
+      .notNull()
+      .references(() => localPassOffers.id, { onDelete: 'restrict' }),
+    fromStatus: localPassOfferStatus('from_status'),
+    toStatus: localPassOfferStatus('to_status').notNull(),
+    offerVersion: integer('offer_version').notNull(),
+    actorId: uuid('actor_id').references(() => users.id, { onDelete: 'restrict' }),
+    actorType: auditActorType('actor_type').default('user').notNull(),
+    reason: text('reason'),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('local_pass_offer_status_history_version_uq').on(
+      table.localPassOfferId,
+      table.offerVersion,
+    ),
+    index('local_pass_offer_status_history_timeline_idx').on(
+      table.localPassOfferId,
+      table.occurredAt,
+    ),
+    check('local_pass_offer_status_history_version_ck', sql`${table.offerVersion} > 0`),
+  ],
+);
+
+export const localPassLinks = pgTable(
+  'local_pass_links',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    localPassOfferId: uuid('local_pass_offer_id')
+      .notNull()
+      .references(() => localPassOffers.id, { onDelete: 'restrict' }),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'restrict' }),
+    missionAssignmentId: uuid('mission_assignment_id')
+      .notNull()
+      .references(() => missionAssignments.id, { onDelete: 'restrict' }),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    tokenHash: text('token_hash').notNull(),
+    status: localPassLinkStatus('status').default('active').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('local_pass_links_public_id_uq').on(table.publicId),
+    uniqueIndex('local_pass_links_token_hash_uq').on(table.tokenHash),
+    uniqueIndex('local_pass_links_assignment_uq').on(table.missionAssignmentId),
+    uniqueIndex('local_pass_links_campaign_creator_uq').on(table.campaignId, table.creatorUserId),
+    index('local_pass_links_offer_status_idx').on(table.localPassOfferId, table.status),
+    check('local_pass_links_token_hash_ck', sql`${table.tokenHash} ~ '^[a-f0-9]{64}$'`),
+    check(
+      'local_pass_links_revoked_shape_ck',
+      sql`(${table.status} = 'active' AND ${table.revokedAt} IS NULL) OR
+          (${table.status} = 'revoked' AND ${table.revokedAt} IS NOT NULL)`,
+    ),
+  ],
+);
+
+export const localPassClaims = pgTable(
+  'local_pass_claims',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    localPassOfferId: uuid('local_pass_offer_id')
+      .notNull()
+      .references(() => localPassOffers.id, { onDelete: 'restrict' }),
+    localPassLinkId: uuid('local_pass_link_id')
+      .notNull()
+      .references(() => localPassLinks.id, { onDelete: 'restrict' }),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'restrict' }),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    customerDedupToken: text('customer_dedup_token').notNull(),
+    tokenKeyVersion: integer('token_key_version').notNull(),
+    status: localPassClaimStatus('status').default('active').notNull(),
+    claimedAt: timestamp('claimed_at', { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    redeemedAt: timestamp('redeemed_at', { withTimezone: true }),
+    expiredAt: timestamp('expired_at', { withTimezone: true }),
+    version: integer('version').default(1).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('local_pass_claims_public_id_uq').on(table.publicId),
+    uniqueIndex('local_pass_claims_campaign_customer_uq').on(
+      table.campaignId,
+      table.customerDedupToken,
+    ),
+    index('local_pass_claims_offer_status_expiry_idx').on(
+      table.localPassOfferId,
+      table.status,
+      table.expiresAt,
+    ),
+    index('local_pass_claims_creator_status_idx').on(table.creatorUserId, table.status),
+    check(
+      'local_pass_claims_customer_token_ck',
+      sql`${table.customerDedupToken} ~ '^[a-f0-9]{64}$'`,
+    ),
+    check('local_pass_claims_key_version_ck', sql`${table.tokenKeyVersion} > 0`),
+    check(
+      'local_pass_claims_seven_day_ck',
+      sql`${table.expiresAt} = ${table.claimedAt} + interval '7 days'`,
+    ),
+    check(
+      'local_pass_claims_status_shape_ck',
+      sql`(${table.status} = 'active' AND ${table.redeemedAt} IS NULL AND ${table.expiredAt} IS NULL) OR
+          (${table.status} = 'redeemed' AND ${table.redeemedAt} IS NOT NULL AND ${table.expiredAt} IS NULL) OR
+          (${table.status} = 'expired' AND ${table.redeemedAt} IS NULL AND ${table.expiredAt} IS NOT NULL)`,
+    ),
+    check('local_pass_claims_version_positive_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const localPassClaimTokens = pgTable(
+  'local_pass_claim_tokens',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    localPassClaimId: uuid('local_pass_claim_id')
+      .notNull()
+      .references(() => localPassClaims.id, { onDelete: 'restrict' }),
+    rotation: integer('rotation').notNull(),
+    tokenHash: text('token_hash').notNull(),
+    status: localPassClaimTokenStatus('status').default('active').notNull(),
+    issuedAt: timestamp('issued_at', { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    consumedAt: timestamp('consumed_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('local_pass_claim_tokens_public_id_uq').on(table.publicId),
+    uniqueIndex('local_pass_claim_tokens_hash_uq').on(table.tokenHash),
+    uniqueIndex('local_pass_claim_tokens_claim_rotation_uq').on(
+      table.localPassClaimId,
+      table.rotation,
+    ),
+    uniqueIndex('local_pass_claim_tokens_one_active_uq')
+      .on(table.localPassClaimId)
+      .where(sql`${table.status} = 'active'`),
+    index('local_pass_claim_tokens_status_expiry_idx').on(table.status, table.expiresAt),
+    check('local_pass_claim_tokens_rotation_ck', sql`${table.rotation} > 0`),
+    check('local_pass_claim_tokens_hash_ck', sql`${table.tokenHash} ~ '^[a-f0-9]{64}$'`),
+    check(
+      'local_pass_claim_tokens_lifetime_ck',
+      sql`${table.expiresAt} > ${table.issuedAt} AND ${table.expiresAt} <= ${table.issuedAt} + interval '5 minutes'`,
+    ),
+    check(
+      'local_pass_claim_tokens_consumed_shape_ck',
+      sql`(${table.status} = 'consumed' AND ${table.consumedAt} IS NOT NULL) OR
+          (${table.status} <> 'consumed' AND ${table.consumedAt} IS NULL)`,
+    ),
+  ],
+);
+
+export const localPassClaimStatusHistory = pgTable(
+  'local_pass_claim_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    localPassClaimId: uuid('local_pass_claim_id')
+      .notNull()
+      .references(() => localPassClaims.id, { onDelete: 'restrict' }),
+    fromStatus: localPassClaimStatus('from_status'),
+    toStatus: localPassClaimStatus('to_status').notNull(),
+    claimVersion: integer('claim_version').notNull(),
+    actorId: uuid('actor_id').references(() => users.id, { onDelete: 'restrict' }),
+    actorType: auditActorType('actor_type').notNull(),
+    reason: text('reason'),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('local_pass_claim_status_history_version_uq').on(
+      table.localPassClaimId,
+      table.claimVersion,
+    ),
+    index('local_pass_claim_status_history_timeline_idx').on(
+      table.localPassClaimId,
+      table.occurredAt,
+    ),
+    check('local_pass_claim_status_history_version_ck', sql`${table.claimVersion} > 0`),
+  ],
+);
+
+export const localPassRedemptions = pgTable(
+  'local_pass_redemptions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    localPassClaimId: uuid('local_pass_claim_id')
+      .notNull()
+      .references(() => localPassClaims.id, { onDelete: 'restrict' }),
+    localPassClaimTokenId: uuid('local_pass_claim_token_id')
+      .notNull()
+      .references(() => localPassClaimTokens.id, { onDelete: 'restrict' }),
+    localPassOfferId: uuid('local_pass_offer_id')
+      .notNull()
+      .references(() => localPassOffers.id, { onDelete: 'restrict' }),
+    businessLocationId: uuid('business_location_id')
+      .notNull()
+      .references(() => businessLocations.id, { onDelete: 'restrict' }),
+    redeemedByUserId: uuid('redeemed_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    fulfillmentKind: localPassFulfillmentKind('fulfillment_kind').notNull(),
+    substituteDescription: text('substitute_description'),
+    substituteValueMinor: integer('substitute_value_minor'),
+    offerConfirmed: boolean('offer_confirmed').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('local_pass_redemptions_public_id_uq').on(table.publicId),
+    uniqueIndex('local_pass_redemptions_claim_uq').on(table.localPassClaimId),
+    uniqueIndex('local_pass_redemptions_token_uq').on(table.localPassClaimTokenId),
+    index('local_pass_redemptions_offer_occurred_idx').on(table.localPassOfferId, table.occurredAt),
+    check('local_pass_redemptions_offer_confirmed_ck', sql`${table.offerConfirmed} = true`),
+    check(
+      'local_pass_redemptions_fulfillment_ck',
+      sql`(${table.fulfillmentKind} = 'original_offer'
+           AND ${table.substituteDescription} IS NULL AND ${table.substituteValueMinor} IS NULL) OR
+          (${table.fulfillmentKind} <> 'original_offer'
+           AND length(btrim(${table.substituteDescription})) > 0
+           AND ${table.substituteValueMinor} >= 0)`,
+    ),
+  ],
+);
+
+export const localPassAttributionEvents = pgTable(
+  'local_pass_attribution_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    kind: localPassEvidenceKind('kind').notNull(),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'restrict' }),
+    localPassLinkId: uuid('local_pass_link_id')
+      .notNull()
+      .references(() => localPassLinks.id, { onDelete: 'restrict' }),
+    localPassClaimId: uuid('local_pass_claim_id').references(() => localPassClaims.id, {
+      onDelete: 'restrict',
+    }),
+    localPassRedemptionId: uuid('local_pass_redemption_id').references(
+      () => localPassRedemptions.id,
+      { onDelete: 'restrict' },
+    ),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('local_pass_attribution_events_public_id_uq').on(table.publicId),
+    uniqueIndex('local_pass_attribution_events_claim_kind_uq')
+      .on(table.localPassClaimId, table.kind)
+      .where(sql`${table.localPassClaimId} IS NOT NULL`),
+    index('local_pass_attribution_events_campaign_kind_idx').on(
+      table.campaignId,
+      table.kind,
+      table.occurredAt,
+    ),
+    index('local_pass_attribution_events_creator_kind_idx').on(
+      table.creatorUserId,
+      table.kind,
+      table.occurredAt,
+    ),
+    check(
+      'local_pass_attribution_events_shape_ck',
+      sql`(${table.kind} = 'link_open'
+           AND ${table.localPassClaimId} IS NULL AND ${table.localPassRedemptionId} IS NULL) OR
+          (${table.kind} = 'pass_claimed'
+           AND ${table.localPassClaimId} IS NOT NULL AND ${table.localPassRedemptionId} IS NULL) OR
+          (${table.kind} = 'verified_pass_redemption'
+           AND ${table.localPassClaimId} IS NOT NULL AND ${table.localPassRedemptionId} IS NOT NULL)`,
+    ),
+  ],
+);
+
 export const auditEvents = pgTable(
   'audit_events',
   {
@@ -1644,6 +2024,14 @@ export const initialSchemaTables = [
   'ledger_accounts',
   'ledger_transactions',
   'ledger_entries',
+  'local_pass_offers',
+  'local_pass_offer_status_history',
+  'local_pass_links',
+  'local_pass_claims',
+  'local_pass_claim_tokens',
+  'local_pass_claim_status_history',
+  'local_pass_redemptions',
+  'local_pass_attribution_events',
   'audit_events',
   'idempotency_records',
 ] as const;

@@ -11,6 +11,8 @@ import {
   identityProviderSchema,
   ledgerEntryDirectionSchema,
   ledgerTransactionTypeSchema,
+  localPassClaimStatusSchema,
+  localPassEvidenceKindSchema,
   paymentProviderObjectTypeSchema,
 } from './index.js';
 
@@ -133,5 +135,16 @@ describe('objective dispute and all-or-nothing outcome contracts', () => {
     expect(paymentProviderObjectTypeSchema.options).toContain('payment_intent');
     expect(ledgerTransactionTypeSchema.safeParse('partial_creator_payable').success).toBe(false);
     expect(ledgerTransactionTypeSchema.safeParse('stored_value_wallet').success).toBe(false);
+  });
+
+  it('keeps Local Pass evidence explicit and excludes purchase or lift claims', () => {
+    expect(localPassEvidenceKindSchema.options).toEqual([
+      'link_open',
+      'pass_claimed',
+      'verified_pass_redemption',
+    ]);
+    expect(localPassEvidenceKindSchema.safeParse('confirmed_purchase').success).toBe(false);
+    expect(localPassEvidenceKindSchema.safeParse('incremental_lift').success).toBe(false);
+    expect(localPassClaimStatusSchema.options).toEqual(['active', 'redeemed', 'expired']);
   });
 });

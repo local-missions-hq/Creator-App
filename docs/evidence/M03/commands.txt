@@ -276,3 +276,43 @@ PASS — no leaks found in approximately 7.29 MB.
 
 pnpm --filter @local-missions/db exec vitest run src/ledger-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/ledger-store-junit.xml
 PASS — retained nine immutable-ledger/provider-reference tests with no failures or errors; machine hostname replaced by local-development-host.
+
+M03-local-pass-008 — 2026-08-27
+
+pnpm db:generate
+PASS — generated append-only drizzle/0007_thick_sharon_ventura.sql; schema now contains 49 tables. The migration adds eight Local Pass tables, immutable evidence/history triggers, and protected offer/link/claim/token identity fields.
+
+pnpm --filter @local-missions/db exec vitest run src/local-pass-store.integration.test.ts --reporter=verbose
+PASS — all five Local Pass tests passed against real PostgreSQL, including duplicate-customer, final-inventory, and simultaneous-redemption races.
+
+pnpm test:integration
+PASS — 52 tests passed across eight campaign, identity/tenant, mission/capacity, check-in, submission/review, dispute/resolution, ledger, and Local Pass suites against real PostgreSQL.
+
+pnpm db:migrate
+PASS — migration 0007 applied to the retained local database and preserved the synthetic identity, business, draft campaign, mission contract, and prior schema.
+
+pnpm db:seed
+pnpm db:seed
+PASS — both reruns retained the deterministic identity, business, campaign, four templates, one brief, two deliverable requirements, and 10 Community Slots.
+
+pnpm db:check
+PASS — all 49 tables and the deterministic mission contract were verified.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — the eight-entry Drizzle journal and all snapshots are internally consistent.
+
+pnpm verify
+INITIAL FAIL — formatting check identified generated JSON drift in the migration journal and snapshot; no behavioral command ran after that gate.
+RESOLUTION — formatted both generated metadata files and restarted the complete verification sequence.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, tests, contracts, and all eight workspace builds passed.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 283 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 7.66 MB.
+
+pnpm --filter @local-missions/db exec vitest run src/local-pass-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/local-pass-store-junit.xml
+PASS — retained five Local Pass tests with no failures or errors; machine hostname replaced by local-development-host.

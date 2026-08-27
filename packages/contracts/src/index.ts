@@ -222,6 +222,42 @@ export const ledgerTransactionSourceTypeSchema = z.enum([
   'finance_adjustment',
 ]);
 export const ledgerEntryDirectionSchema = z.enum(['debit', 'credit']);
+export const localPassOfferStatusSchema = z.enum([
+  'configured',
+  'active',
+  'claims_paused',
+  'closed',
+]);
+export const localPassLinkStatusSchema = z.enum(['active', 'revoked']);
+export const localPassClaimStatusSchema = z.enum(['active', 'redeemed', 'expired']);
+export const localPassClaimTokenStatusSchema = z.enum(['active', 'consumed', 'expired', 'revoked']);
+export const localPassEvidenceKindSchema = z.enum([
+  'link_open',
+  'pass_claimed',
+  'verified_pass_redemption',
+]);
+export const localPassFulfillmentKindSchema = z.enum([
+  'original_offer',
+  'preapproved_substitute',
+  'customer_accepted_substitute',
+]);
+
+export const localPassConflictCodeSchema = z.enum([
+  'LOCAL_PASS_ACCESS_DENIED',
+  'LOCAL_PASS_ALREADY_CLAIMED',
+  'LOCAL_PASS_ALREADY_REDEEMED',
+  'LOCAL_PASS_ATTRIBUTION_LOCKED',
+  'LOCAL_PASS_CLAIMS_PAUSED',
+  'LOCAL_PASS_INVENTORY_FULL',
+  'LOCAL_PASS_NOT_FOUND',
+  'LOCAL_PASS_NOT_READY',
+  'LOCAL_PASS_OFFER_INVALID',
+  'LOCAL_PASS_OUTSIDE_WINDOW',
+  'LOCAL_PASS_TOKEN_EXPIRED',
+  'LOCAL_PASS_TOKEN_INVALID',
+  'LOCAL_PASS_TOKEN_REPLAYED',
+  'LOCAL_PASS_WRONG_VENUE',
+]);
 
 export const ledgerConflictCodeSchema = z.enum([
   'LEDGER_ACCESS_DENIED',
@@ -360,6 +396,13 @@ export type LedgerConflictCode = z.infer<typeof ledgerConflictCodeSchema>;
 export type LedgerEntryDirection = z.infer<typeof ledgerEntryDirectionSchema>;
 export type LedgerTransactionSourceType = z.infer<typeof ledgerTransactionSourceTypeSchema>;
 export type LedgerTransactionType = z.infer<typeof ledgerTransactionTypeSchema>;
+export type LocalPassClaimStatus = z.infer<typeof localPassClaimStatusSchema>;
+export type LocalPassClaimTokenStatus = z.infer<typeof localPassClaimTokenStatusSchema>;
+export type LocalPassConflictCode = z.infer<typeof localPassConflictCodeSchema>;
+export type LocalPassEvidenceKind = z.infer<typeof localPassEvidenceKindSchema>;
+export type LocalPassFulfillmentKind = z.infer<typeof localPassFulfillmentKindSchema>;
+export type LocalPassLinkStatus = z.infer<typeof localPassLinkStatusSchema>;
+export type LocalPassOfferStatus = z.infer<typeof localPassOfferStatusSchema>;
 export type PaymentProvider = z.infer<typeof paymentProviderSchema>;
 export type PaymentProviderObjectType = z.infer<typeof paymentProviderObjectTypeSchema>;
 export type HealthStatus = z.infer<typeof healthStatusSchema>;

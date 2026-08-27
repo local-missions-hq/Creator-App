@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="5" failures="0" errors="0" time="0.566564042">
+    <testsuite name="src/local-pass-store.integration.test.ts" timestamp="2026-08-27T16:42:47.873Z" hostname="local-development-host" tests="5" failures="0" errors="0" skipped="0" time="0.566564042">
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; migrates forward, stores only hashes, and keeps offer terms and evidence immutable" time="0.040504917">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; locks first-valid attribution under concurrent duplicate-customer claims" time="0.037790875">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; prevents final-inventory oversubscription and preserves active claims when future claims pause" time="0.054603875">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; rotates screenshot tokens and enforces exact venue and staff authorization" time="0.045175291">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; releases inventory when a seven-day claim expires unredeemed" time="0.023694333">
+        </testcase>
+    </testsuite>
+</testsuites>
