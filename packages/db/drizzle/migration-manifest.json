@@ -105,6 +105,13 @@
       "snapshotSha256": "ceb80e7648b9ab7c5362c2c3e2570cc4db8001a8a1b3c5f53be8f24223b978b6",
       "sqlSha256": "1c0b0618264adb1003c27636c988272c2972d04cdaf49b6ae2bb38183cf24355",
       "tag": "0014_serious_terror"
+    },
+    {
+      "index": 15,
+      "journalTimestamp": 1787872951732,
+      "snapshotSha256": "7afce80ab876831d14a8c49f353ef7266d97d1c7093d99cc219993cd92f4b602",
+      "sqlSha256": "c740ac28d5f171aa7a335eb3fcda5d23126f6a9a29ec085975937d3e2ea2e0b6",
+      "tag": "0015_slim_joshua_kane"
     }
   ],
   "hashAlgorithm": "sha256",

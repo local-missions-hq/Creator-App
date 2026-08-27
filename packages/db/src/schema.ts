@@ -216,6 +216,7 @@ export const financialActionIntentStatus = pgEnum('financial_action_intent_statu
 ]);
 export const paymentProvider = pgEnum('payment_provider', ['stripe']);
 export const paymentProviderObjectType = pgEnum('payment_provider_object_type', [
+  'invoice',
   'payment_intent',
   'charge',
   'transfer',
@@ -310,6 +311,26 @@ export const contentLicenseStatus = pgEnum('content_license_status', [
   'expired',
   'suspended',
   'revoked',
+]);
+export const contentLicenseRenewalStatus = pgEnum('content_license_renewal_status', [
+  'requested',
+  'accepted',
+  'declined',
+  'funding_pending',
+  'funded',
+  'funding_failed',
+  'abandoned',
+]);
+export const contentLicenseRenewalFundingStatus = pgEnum('content_license_renewal_funding_status', [
+  'pending_provider',
+  'confirmed',
+  'failed',
+  'abandoned',
+]);
+export const contentLicenseRenewalPayableStatus = pgEnum('content_license_renewal_payable_status', [
+  'pending_transfer',
+  'transfer_queued',
+  'transferred',
 ]);
 export const contentLicenseChannel = pgEnum('content_license_channel', [
   'owned_social',
@@ -2406,11 +2427,13 @@ export const contentLicenses = pgTable(
     submissionAttemptId: uuid('submission_attempt_id')
       .notNull()
       .references(() => submissionAttempts.id, { onDelete: 'restrict' }),
-    financialActionIntentId: uuid('financial_action_intent_id')
-      .notNull()
-      .references(() => financialActionIntents.id, { onDelete: 'restrict' }),
+    financialActionIntentId: uuid('financial_action_intent_id').references(
+      () => financialActionIntents.id,
+      { onDelete: 'restrict' },
+    ),
     kind: contentLicenseKind('kind').notNull(),
     status: contentLicenseStatus('status').default('active').notNull(),
+    termNumber: integer('term_number').default(1).notNull(),
     rightsVersion: integer('rights_version').notNull(),
     baseRewardMinorSnapshot: integer('base_reward_minor_snapshot').notNull(),
     compensationComponentMinor: integer('compensation_component_minor').notNull(),
@@ -2434,14 +2457,27 @@ export const contentLicenses = pgTable(
   },
   (table) => [
     uniqueIndex('content_licenses_public_id_uq').on(table.publicId),
-    uniqueIndex('content_licenses_assignment_kind_uq').on(table.missionAssignmentId, table.kind),
+    uniqueIndex('content_licenses_assignment_kind_term_uq').on(
+      table.missionAssignmentId,
+      table.kind,
+      table.termNumber,
+    ),
     index('content_licenses_status_expiry_idx').on(table.status, table.expiresAt),
     index('content_licenses_acceptance_idx').on(table.missionContractAcceptanceId),
     check('content_licenses_rights_version_ck', sql`${table.rightsVersion} > 0`),
+    check('content_licenses_term_number_ck', sql`${table.termNumber} > 0`),
+    check(
+      'content_licenses_funding_source_ck',
+      sql`(${table.termNumber} = 1 AND ${table.financialActionIntentId} IS NOT NULL) OR
+          (${table.termNumber} > 1 AND ${table.financialActionIntentId} IS NULL)`,
+    ),
     check('content_licenses_base_reward_ck', sql`${table.baseRewardMinorSnapshot} > 0`),
     check(
       'content_licenses_compensation_ck',
-      sql`(${table.kind} = 'organic_owned_social_90d' AND ${table.compensationComponentMinor} = 0) OR
+      sql`(${table.kind} = 'organic_owned_social_90d' AND ${table.termNumber} = 1
+           AND ${table.compensationComponentMinor} = 0) OR
+          (${table.kind} = 'organic_owned_social_90d' AND ${table.termNumber} > 1
+           AND ${table.compensationComponentMinor} = ((${table.baseRewardMinorSnapshot} * 25 + 50) / 100)) OR
           (${table.kind} = 'extended_owned_media_12m'
            AND ${table.compensationComponentMinor} = ((${table.baseRewardMinorSnapshot} * 50 + 50) / 100)) OR
           (${table.kind} = 'paid_advertising_30d'
@@ -2556,6 +2592,218 @@ export const contentLicenseStatusHistory = pgTable(
       table.occurredAt,
     ),
     check('content_license_status_history_version_ck', sql`${table.licenseVersion} > 0`),
+  ],
+);
+
+export const contentLicenseRenewals = pgTable(
+  'content_license_renewals',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    sourceContentLicenseId: uuid('source_content_license_id')
+      .notNull()
+      .references(() => contentLicenses.id, { onDelete: 'restrict' }),
+    missionAssignmentId: uuid('mission_assignment_id')
+      .notNull()
+      .references(() => missionAssignments.id, { onDelete: 'restrict' }),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id, { onDelete: 'restrict' }),
+    kind: contentLicenseKind('kind').notNull(),
+    status: contentLicenseRenewalStatus('status').default('requested').notNull(),
+    originalBaseRewardMinor: integer('original_base_reward_minor').notNull(),
+    creatorRewardMinor: integer('creator_reward_minor').notNull(),
+    platformFeeMinor: integer('platform_fee_minor').notNull(),
+    totalDueMinor: integer('total_due_minor').notNull(),
+    currency: text('currency').notNull(),
+    requestedByUserId: uuid('requested_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    requestedAt: timestamp('requested_at', { withTimezone: true }).defaultNow().notNull(),
+    decisionAt: timestamp('decision_at', { withTimezone: true }),
+    fundingRequestedAt: timestamp('funding_requested_at', { withTimezone: true }),
+    fundedAt: timestamp('funded_at', { withTimezone: true }),
+    terminalAt: timestamp('terminal_at', { withTimezone: true }),
+    version: integer('version').default(1).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('content_license_renewals_public_id_uq').on(table.publicId),
+    uniqueIndex('content_license_renewals_source_uq').on(table.sourceContentLicenseId),
+    index('content_license_renewals_creator_status_idx').on(table.creatorUserId, table.status),
+    index('content_license_renewals_business_status_idx').on(table.businessId, table.status),
+    check('content_license_renewals_base_ck', sql`${table.originalBaseRewardMinor} > 0`),
+    check(
+      'content_license_renewals_reward_ck',
+      sql`(${table.kind} = 'organic_owned_social_90d'
+           AND ${table.creatorRewardMinor} = ((${table.originalBaseRewardMinor} * 25 + 50) / 100)) OR
+          (${table.kind} = 'extended_owned_media_12m'
+           AND ${table.creatorRewardMinor} = ((${table.originalBaseRewardMinor} * 50 + 50) / 100)) OR
+          (${table.kind} = 'paid_advertising_30d'
+           AND ${table.creatorRewardMinor} = ${table.originalBaseRewardMinor})`,
+    ),
+    check(
+      'content_license_renewals_fee_ck',
+      sql`${table.platformFeeMinor} = ((${table.creatorRewardMinor} * 15 + 50) / 100)
+          AND ${table.totalDueMinor} = ${table.creatorRewardMinor} + ${table.platformFeeMinor}`,
+    ),
+    check('content_license_renewals_currency_ck', sql`${table.currency} ~ '^[A-Z]{3}$'`),
+    check(
+      'content_license_renewals_status_ck',
+      sql`(${table.status} = 'requested' AND ${table.decisionAt} IS NULL AND ${table.fundingRequestedAt} IS NULL
+           AND ${table.fundedAt} IS NULL AND ${table.terminalAt} IS NULL) OR
+          (${table.status} = 'accepted' AND ${table.decisionAt} IS NOT NULL AND ${table.fundingRequestedAt} IS NULL
+           AND ${table.fundedAt} IS NULL AND ${table.terminalAt} IS NULL) OR
+          (${table.status} = 'funding_pending' AND ${table.decisionAt} IS NOT NULL AND ${table.fundingRequestedAt} IS NOT NULL
+           AND ${table.fundedAt} IS NULL AND ${table.terminalAt} IS NULL) OR
+          (${table.status} = 'funded' AND ${table.decisionAt} IS NOT NULL AND ${table.fundingRequestedAt} IS NOT NULL
+           AND ${table.fundedAt} IS NOT NULL AND ${table.terminalAt} IS NULL) OR
+          (${table.status} IN ('declined','funding_failed','abandoned') AND ${table.terminalAt} IS NOT NULL
+           AND ${table.fundedAt} IS NULL)`,
+    ),
+    check('content_license_renewals_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const contentLicenseRenewalHistory = pgTable(
+  'content_license_renewal_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    contentLicenseRenewalId: uuid('content_license_renewal_id')
+      .notNull()
+      .references(() => contentLicenseRenewals.id, { onDelete: 'restrict' }),
+    fromStatus: contentLicenseRenewalStatus('from_status'),
+    toStatus: contentLicenseRenewalStatus('to_status').notNull(),
+    renewalVersion: integer('renewal_version').notNull(),
+    actorUserId: uuid('actor_user_id').references(() => users.id, { onDelete: 'restrict' }),
+    actorType: auditActorType('actor_type').notNull(),
+    reason: text('reason').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('content_license_renewal_history_version_uq').on(
+      table.contentLicenseRenewalId,
+      table.renewalVersion,
+    ),
+    check('content_license_renewal_history_reason_ck', sql`length(btrim(${table.reason})) > 0`),
+  ],
+);
+
+export const contentLicenseRenewalFundingIntents = pgTable(
+  'content_license_renewal_funding_intents',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    contentLicenseRenewalId: uuid('content_license_renewal_id')
+      .notNull()
+      .references(() => contentLicenseRenewals.id, { onDelete: 'restrict' }),
+    status: contentLicenseRenewalFundingStatus('status').default('pending_provider').notNull(),
+    creatorRewardMinor: integer('creator_reward_minor').notNull(),
+    platformFeeMinor: integer('platform_fee_minor').notNull(),
+    totalDueMinor: integer('total_due_minor').notNull(),
+    currency: text('currency').notNull(),
+    requestedByUserId: uuid('requested_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    requestedAt: timestamp('requested_at', { withTimezone: true }).defaultNow().notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    version: integer('version').default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex('content_license_renewal_funding_intents_public_id_uq').on(table.publicId),
+    uniqueIndex('content_license_renewal_funding_intents_renewal_uq').on(
+      table.contentLicenseRenewalId,
+    ),
+    check(
+      'content_license_renewal_funding_intents_amount_ck',
+      sql`${table.creatorRewardMinor} > 0 AND ${table.platformFeeMinor} > 0
+          AND ${table.totalDueMinor} = ${table.creatorRewardMinor} + ${table.platformFeeMinor}`,
+    ),
+    check(
+      'content_license_renewal_funding_intents_status_ck',
+      sql`(${table.status} = 'pending_provider' AND ${table.completedAt} IS NULL) OR
+          (${table.status} <> 'pending_provider' AND ${table.completedAt} IS NOT NULL)`,
+    ),
+  ],
+);
+
+export const contentLicenseRenewalFundingSnapshots = pgTable(
+  'content_license_renewal_funding_snapshots',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    contentLicenseRenewalFundingIntentId: uuid('content_license_renewal_funding_intent_id')
+      .notNull()
+      .references(() => contentLicenseRenewalFundingIntents.id, { onDelete: 'restrict' }),
+    invoiceProviderReferenceId: uuid('invoice_provider_reference_id')
+      .notNull()
+      .references(() => paymentProviderReferences.id, { onDelete: 'restrict' }),
+    paymentIntentProviderReferenceId: uuid('payment_intent_provider_reference_id')
+      .notNull()
+      .references(() => paymentProviderReferences.id, { onDelete: 'restrict' }),
+    activatedContentLicenseId: uuid('activated_content_license_id')
+      .notNull()
+      .references(() => contentLicenses.id, { onDelete: 'restrict' }),
+    providerEventId: text('provider_event_id').notNull(),
+    creatorRewardMinor: integer('creator_reward_minor').notNull(),
+    platformFeeMinor: integer('platform_fee_minor').notNull(),
+    totalDueMinor: integer('total_due_minor').notNull(),
+    currency: text('currency').notNull(),
+    fundedAt: timestamp('funded_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('content_license_renewal_funding_snapshots_public_id_uq').on(table.publicId),
+    uniqueIndex('content_license_renewal_funding_snapshots_intent_uq').on(
+      table.contentLicenseRenewalFundingIntentId,
+    ),
+    uniqueIndex('content_license_renewal_funding_snapshots_invoice_uq').on(
+      table.invoiceProviderReferenceId,
+    ),
+    uniqueIndex('content_license_renewal_funding_snapshots_payment_uq').on(
+      table.paymentIntentProviderReferenceId,
+    ),
+    uniqueIndex('content_license_renewal_funding_snapshots_license_uq').on(
+      table.activatedContentLicenseId,
+    ),
+    uniqueIndex('content_license_renewal_funding_snapshots_event_uq').on(table.providerEventId),
+    check(
+      'content_license_renewal_funding_snapshots_amount_ck',
+      sql`${table.creatorRewardMinor} > 0 AND ${table.platformFeeMinor} > 0
+          AND ${table.totalDueMinor} = ${table.creatorRewardMinor} + ${table.platformFeeMinor}`,
+    ),
+  ],
+);
+
+export const contentLicenseRenewalPayables = pgTable(
+  'content_license_renewal_payables',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    contentLicenseRenewalId: uuid('content_license_renewal_id')
+      .notNull()
+      .references(() => contentLicenseRenewals.id, { onDelete: 'restrict' }),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    status: contentLicenseRenewalPayableStatus('status').default('pending_transfer').notNull(),
+    amountMinor: integer('amount_minor').notNull(),
+    currency: text('currency').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    transferredAt: timestamp('transferred_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('content_license_renewal_payables_public_id_uq').on(table.publicId),
+    uniqueIndex('content_license_renewal_payables_renewal_uq').on(table.contentLicenseRenewalId),
+    check('content_license_renewal_payables_amount_ck', sql`${table.amountMinor} > 0`),
+    check(
+      'content_license_renewal_payables_status_ck',
+      sql`(${table.status} = 'transferred' AND ${table.transferredAt} IS NOT NULL) OR
+          (${table.status} <> 'transferred' AND ${table.transferredAt} IS NULL)`,
+    ),
   ],
 );
 
@@ -3228,6 +3476,11 @@ export const initialSchemaTables = [
   'content_license_assets',
   'content_license_channels',
   'content_license_status_history',
+  'content_license_renewals',
+  'content_license_renewal_history',
+  'content_license_renewal_funding_intents',
+  'content_license_renewal_funding_snapshots',
+  'content_license_renewal_payables',
   'notification_preferences',
   'notification_preference_history',
   'notification_events',

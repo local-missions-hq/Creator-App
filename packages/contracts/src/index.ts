@@ -322,6 +322,7 @@ export const financialActionIntentTypeSchema = z.enum(['creator_payable_full', '
 export const financialActionIntentStatusSchema = z.enum(['pending_ledger', 'posted']);
 export const paymentProviderSchema = z.enum(['stripe']);
 export const paymentProviderObjectTypeSchema = z.enum([
+  'invoice',
   'payment_intent',
   'charge',
   'transfer',
@@ -396,6 +397,26 @@ export const contentLicenseKindSchema = z.enum([
   'paid_advertising_30d',
 ]);
 export const contentLicenseStatusSchema = z.enum(['active', 'expired', 'suspended', 'revoked']);
+export const contentLicenseRenewalStatusSchema = z.enum([
+  'requested',
+  'accepted',
+  'declined',
+  'funding_pending',
+  'funded',
+  'funding_failed',
+  'abandoned',
+]);
+export const contentLicenseRenewalFundingStatusSchema = z.enum([
+  'pending_provider',
+  'confirmed',
+  'failed',
+  'abandoned',
+]);
+export const contentLicenseRenewalPayableStatusSchema = z.enum([
+  'pending_transfer',
+  'transfer_queued',
+  'transferred',
+]);
 export const contentLicenseChannelSchema = z.enum([
   'owned_social',
   'business_website',
@@ -412,6 +433,8 @@ export const rightsConflictCodeSchema = z.enum([
   'RIGHTS_NO_CONTENT',
   'RIGHTS_NOT_FOUND',
   'RIGHTS_OFFER_INVALID',
+  'RIGHTS_RENEWAL_NOT_READY',
+  'RIGHTS_RENEWAL_WINDOW_CLOSED',
   'RIGHTS_TRANSITION_CONFLICT',
 ]);
 export const notificationEventTypeSchema = z.enum([
@@ -787,6 +810,13 @@ export type LedgerTransactionType = z.infer<typeof ledgerTransactionTypeSchema>;
 export type ContentLicenseChannel = z.infer<typeof contentLicenseChannelSchema>;
 export type ContentLicenseKind = z.infer<typeof contentLicenseKindSchema>;
 export type ContentLicenseStatus = z.infer<typeof contentLicenseStatusSchema>;
+export type ContentLicenseRenewalStatus = z.infer<typeof contentLicenseRenewalStatusSchema>;
+export type ContentLicenseRenewalFundingStatus = z.infer<
+  typeof contentLicenseRenewalFundingStatusSchema
+>;
+export type ContentLicenseRenewalPayableStatus = z.infer<
+  typeof contentLicenseRenewalPayableStatusSchema
+>;
 export type LegalDocumentType = z.infer<typeof legalDocumentTypeSchema>;
 export type LocalPassClaimStatus = z.infer<typeof localPassClaimStatusSchema>;
 export type LocalPassClaimTokenStatus = z.infer<typeof localPassClaimTokenStatusSchema>;

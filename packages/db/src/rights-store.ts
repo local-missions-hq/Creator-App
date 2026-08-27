@@ -3,8 +3,10 @@ import { randomUUID } from 'node:crypto';
 import type {
   ContentLicenseChannel,
   ContentLicenseKind,
+  ContentLicenseRenewalStatus,
   ContentLicenseStatus,
   LegalDocumentType,
+  PaymentProvider,
   RightsConflictCode,
 } from '@local-missions/contracts';
 import type { Pool, PoolClient, QueryResultRow } from 'pg';
@@ -58,6 +60,7 @@ export type ContentLicenseRecord = {
   missionAssignmentId: string;
   publicId: string;
   status: ContentLicenseStatus;
+  termNumber: number;
   version: number;
 };
 
@@ -65,6 +68,51 @@ export type BusinessContentLicenseView = ContentLicenseRecord & {
   assetPublicIds: string[];
   channels: ContentLicenseChannel[];
   isCurrentlyUsable: boolean;
+  usagePolicy:
+    'active_usage' | 'future_term' | 'archived_organic_nonboostable' | 'remove_active_placement';
+};
+
+export type ContentLicenseRenewalRecord = {
+  businessId: string;
+  creatorRewardMinor: number;
+  creatorUserId: string;
+  currency: string;
+  id: string;
+  kind: ContentLicenseKind;
+  missionAssignmentId: string;
+  originalBaseRewardMinor: number;
+  platformFeeMinor: number;
+  publicId: string;
+  requestedAt: Date;
+  sourceContentLicenseId: string;
+  status: ContentLicenseRenewalStatus;
+  totalDueMinor: number;
+  version: number;
+};
+
+export type CreatorRenewalView = ContentLicenseRenewalRecord & {
+  assetPublicIds: string[];
+  businessName: string;
+  channels: ContentLicenseChannel[];
+  currentLicenseExpiresAt: Date;
+  term: '30 days' | '90 days' | '12 months';
+};
+
+export type RenewalFundingIntentRecord = {
+  creatorRewardMinor: number;
+  currency: string;
+  id: string;
+  platformFeeMinor: number;
+  publicId: string;
+  renewalId: string;
+  status: 'pending_provider' | 'confirmed' | 'failed' | 'abandoned';
+  totalDueMinor: number;
+};
+
+export type LicenseExpiryReminderRecord = {
+  contentLicenseId: string;
+  expiresAt: Date;
+  stage: '30_days' | '7_days' | '1_day';
 };
 
 export class RightsError extends Error {
@@ -125,6 +173,25 @@ type LicenseRow = QueryResultRow & {
   mission_assignment_id: string;
   public_id: string;
   status: ContentLicenseStatus;
+  term_number?: number;
+  version: number;
+};
+
+type RenewalRow = QueryResultRow & {
+  business_id: string;
+  creator_reward_minor: number;
+  creator_user_id: string;
+  currency: string;
+  id: string;
+  kind: ContentLicenseKind;
+  mission_assignment_id: string;
+  original_base_reward_minor: number;
+  platform_fee_minor: number;
+  public_id: string;
+  requested_at: Date;
+  source_content_license_id: string;
+  status: ContentLicenseRenewalStatus;
+  total_due_minor: number;
   version: number;
 };
 
@@ -198,6 +265,27 @@ function toLicense(row: LicenseRow): ContentLicenseRecord {
     missionAssignmentId: row.mission_assignment_id,
     publicId: row.public_id,
     status: row.status,
+    termNumber: row.term_number ?? 1,
+    version: row.version,
+  };
+}
+
+function toRenewal(row: RenewalRow): ContentLicenseRenewalRecord {
+  return {
+    businessId: row.business_id,
+    creatorRewardMinor: row.creator_reward_minor,
+    creatorUserId: row.creator_user_id,
+    currency: row.currency,
+    id: row.id,
+    kind: row.kind,
+    missionAssignmentId: row.mission_assignment_id,
+    originalBaseRewardMinor: row.original_base_reward_minor,
+    platformFeeMinor: row.platform_fee_minor,
+    publicId: row.public_id,
+    requestedAt: row.requested_at,
+    sourceContentLicenseId: row.source_content_license_id,
+    status: row.status,
+    totalDueMinor: row.total_due_minor,
     version: row.version,
   };
 }
@@ -555,8 +643,8 @@ export class RightsStore {
       if (row.paid_advertising_selected) expectedKinds.push('paid_advertising_30d');
       const existing = await client.query<LicenseRow>(
         `SELECT id, public_id, mission_assignment_id, kind, status, base_reward_minor_snapshot,
-                compensation_component_minor, currency, activated_at, expires_at, version
-           FROM content_licenses WHERE mission_assignment_id = $1 ORDER BY kind`,
+                compensation_component_minor, currency, activated_at, expires_at, term_number, version
+           FROM content_licenses WHERE mission_assignment_id = $1 AND term_number = 1 ORDER BY kind`,
         [input.missionAssignmentId],
       );
       if (existing.rows.length > 0) {
@@ -659,7 +747,7 @@ export class RightsStore {
            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12::timestamptz,$12::timestamptz + ${duration})
            RETURNING id, public_id, mission_assignment_id, kind, status,
                      base_reward_minor_snapshot, compensation_component_minor, currency,
-                     activated_at, expires_at, version`,
+                     activated_at, expires_at, term_number, version`,
           [
             idsByKind[kind],
             input.missionAssignmentId,
@@ -719,6 +807,669 @@ export class RightsStore {
     });
   }
 
+  async requestRenewal(input: {
+    actorUserId: string;
+    correlationId: string;
+    publicId: string;
+    sourceContentLicenseId: string;
+  }): Promise<ContentLicenseRenewalRecord> {
+    return this.withTransaction(async (client) => {
+      const sourceResult = await client.query<
+        LicenseRow & {
+          business_id: string;
+          creator_user_id: string;
+          server_now: Date;
+        }
+      >(
+        `SELECT l.*, assignment.creator_user_id, campaign.business_id, now() AS server_now
+           FROM content_licenses l
+           JOIN mission_assignments assignment ON assignment.id = l.mission_assignment_id
+           JOIN campaigns campaign ON campaign.id = assignment.campaign_id
+           JOIN business_memberships member ON member.business_id = campaign.business_id
+            AND member.user_id = $2 AND member.status = 'active' AND member.role IN ('owner','manager')
+          WHERE l.id = $1 FOR UPDATE OF l`,
+        [input.sourceContentLicenseId, input.actorUserId],
+      );
+      const source = sourceResult.rows[0];
+      if (!source) {
+        throw new RightsError('RIGHTS_ACCESS_DENIED', 403, 'Renewal request access denied.');
+      }
+      if (
+        source.status !== 'active' ||
+        source.expires_at <= source.server_now ||
+        source.expires_at.getTime() > source.server_now.getTime() + 30 * 86_400_000
+      ) {
+        throw new RightsError(
+          'RIGHTS_RENEWAL_WINDOW_CLOSED',
+          409,
+          'Renewals can be requested only during the final 30 days of an active license.',
+        );
+      }
+      const existing = await client.query(
+        `SELECT 1 FROM content_license_renewals WHERE source_content_license_id = $1`,
+        [source.id],
+      );
+      if (existing.rowCount) {
+        throw new RightsError(
+          'RIGHTS_TRANSITION_CONFLICT',
+          409,
+          'This license term already has a renewal decision path.',
+        );
+      }
+      const percentage =
+        source.kind === 'organic_owned_social_90d'
+          ? 25
+          : source.kind === 'extended_owned_media_12m'
+            ? 50
+            : 100;
+      const creatorRewardMinor = roundedPercent(source.base_reward_minor_snapshot, percentage);
+      const platformFeeMinor = roundedPercent(creatorRewardMinor, 15);
+      const inserted = await client.query<RenewalRow>(
+        `INSERT INTO content_license_renewals (
+           public_id, source_content_license_id, mission_assignment_id, creator_user_id,
+           business_id, kind, original_base_reward_minor, creator_reward_minor,
+           platform_fee_minor, total_due_minor, currency, requested_by_user_id, requested_at
+         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+         RETURNING *`,
+        [
+          input.publicId,
+          source.id,
+          source.mission_assignment_id,
+          source.creator_user_id,
+          source.business_id,
+          source.kind,
+          source.base_reward_minor_snapshot,
+          creatorRewardMinor,
+          platformFeeMinor,
+          creatorRewardMinor + platformFeeMinor,
+          source.currency,
+          input.actorUserId,
+          source.server_now,
+        ],
+      );
+      const renewal = inserted.rows[0];
+      if (!renewal) throw new Error('Content license renewal insert returned no row.');
+      await client.query(
+        `INSERT INTO content_license_renewal_history (
+           content_license_renewal_id, to_status, renewal_version,
+           actor_user_id, actor_type, reason, occurred_at
+         ) VALUES ($1,'requested',1,$2,'user','Business requested creator-visible renewal',$3)`,
+        [renewal.id, input.actorUserId, source.server_now],
+      );
+      await this.appendAudit(client, {
+        action: 'rights.renewal-requested',
+        actorId: input.actorUserId,
+        actorType: 'user',
+        correlationId: input.correlationId,
+        details: {
+          creatorRewardMinor,
+          kind: source.kind,
+          platformFeeMinor,
+          totalDueMinor: creatorRewardMinor + platformFeeMinor,
+        },
+        subjectId: renewal.id,
+        subjectType: 'content-license-renewal',
+      });
+      return toRenewal(renewal);
+    });
+  }
+
+  async getRenewalForCreator(input: {
+    actorUserId: string;
+    renewalId: string;
+  }): Promise<CreatorRenewalView> {
+    return this.withTransaction(async (client) => {
+      const result = await client.query<
+        RenewalRow & {
+          asset_public_ids: string[];
+          business_name: string;
+          channels: ContentLicenseChannel[];
+          current_license_expires_at: Date;
+        }
+      >(
+        `SELECT renewal.*, business.name AS business_name,
+                source.expires_at AS current_license_expires_at,
+                array_agg(DISTINCT media.public_id ORDER BY media.public_id) AS asset_public_ids,
+                array_agg(DISTINCT channel.channel::text ORDER BY channel.channel::text) AS channels
+           FROM content_license_renewals renewal
+           JOIN businesses business ON business.id = renewal.business_id
+           JOIN content_licenses source ON source.id = renewal.source_content_license_id
+           JOIN content_license_assets asset ON asset.content_license_id = source.id
+           JOIN media_assets media ON media.id = asset.media_asset_id
+           JOIN content_license_channels channel ON channel.content_license_id = source.id
+          WHERE renewal.id = $1 AND renewal.creator_user_id = $2
+          GROUP BY renewal.id, business.id, source.id`,
+        [input.renewalId, input.actorUserId],
+      );
+      const row = result.rows[0];
+      if (!row)
+        throw new RightsError('RIGHTS_ACCESS_DENIED', 403, 'Creator renewal access denied.');
+      return {
+        ...toRenewal(row),
+        assetPublicIds: row.asset_public_ids,
+        businessName: row.business_name,
+        channels: row.channels,
+        currentLicenseExpiresAt: row.current_license_expires_at,
+        term:
+          row.kind === 'organic_owned_social_90d'
+            ? '90 days'
+            : row.kind === 'extended_owned_media_12m'
+              ? '12 months'
+              : '30 days',
+      };
+    });
+  }
+
+  async decideRenewal(input: {
+    actorUserId: string;
+    correlationId: string;
+    decision: 'accept' | 'decline';
+    renewalId: string;
+  }): Promise<ContentLicenseRenewalRecord> {
+    return this.withTransaction(async (client) => {
+      const result = await client.query<RenewalRow & { server_now: Date }>(
+        `SELECT *, now() AS server_now FROM content_license_renewals
+          WHERE id = $1 AND creator_user_id = $2 FOR UPDATE`,
+        [input.renewalId, input.actorUserId],
+      );
+      const renewal = result.rows[0];
+      if (!renewal)
+        throw new RightsError('RIGHTS_ACCESS_DENIED', 403, 'Creator renewal access denied.');
+      if (renewal.status !== 'requested') {
+        throw new RightsError('RIGHTS_TRANSITION_CONFLICT', 409, 'Renewal was already decided.');
+      }
+      const nextStatus = input.decision === 'accept' ? 'accepted' : 'declined';
+      const nextVersion = renewal.version + 1;
+      const updated = await client.query<RenewalRow>(
+        `UPDATE content_license_renewals
+            SET status = $2::content_license_renewal_status,
+                decision_at = $3::timestamptz,
+                terminal_at = CASE
+                  WHEN $2::content_license_renewal_status = 'declined' THEN $3::timestamptz
+                  ELSE NULL::timestamptz
+                END,
+                version = $4, updated_at = $3::timestamptz
+          WHERE id = $1 RETURNING *`,
+        [renewal.id, nextStatus, renewal.server_now, nextVersion],
+      );
+      await client.query(
+        `INSERT INTO content_license_renewal_history (
+           content_license_renewal_id, from_status, to_status, renewal_version,
+           actor_user_id, actor_type, reason, occurred_at
+         ) VALUES ($1,'requested',$2,$3,$4,'user',$5,$6)`,
+        [
+          renewal.id,
+          nextStatus,
+          nextVersion,
+          input.actorUserId,
+          input.decision === 'accept'
+            ? 'Creator explicitly accepted renewal economics and scope'
+            : 'Creator declined renewal without reliability effect',
+          renewal.server_now,
+        ],
+      );
+      await this.appendAudit(client, {
+        action: input.decision === 'accept' ? 'rights.renewal-accepted' : 'rights.renewal-declined',
+        actorId: input.actorUserId,
+        actorType: 'user',
+        correlationId: input.correlationId,
+        details: { reliabilityChanged: false },
+        subjectId: renewal.id,
+        subjectType: 'content-license-renewal',
+      });
+      const row = updated.rows[0];
+      if (!row) throw new Error('Renewal decision update returned no row.');
+      return toRenewal(row);
+    });
+  }
+
+  async beginRenewalFunding(input: {
+    actorUserId: string;
+    correlationId: string;
+    fundingIntentPublicId: string;
+    renewalId: string;
+  }): Promise<RenewalFundingIntentRecord> {
+    return this.withTransaction(async (client) => {
+      const result = await client.query<RenewalRow & { server_now: Date }>(
+        `SELECT renewal.*, now() AS server_now
+           FROM content_license_renewals renewal
+           JOIN business_memberships member ON member.business_id = renewal.business_id
+            AND member.user_id = $2 AND member.status = 'active' AND member.role IN ('owner','manager')
+          WHERE renewal.id = $1 FOR UPDATE OF renewal`,
+        [input.renewalId, input.actorUserId],
+      );
+      const renewal = result.rows[0];
+      if (!renewal)
+        throw new RightsError('RIGHTS_ACCESS_DENIED', 403, 'Renewal funding access denied.');
+      if (renewal.status !== 'accepted') {
+        throw new RightsError(
+          'RIGHTS_RENEWAL_NOT_READY',
+          409,
+          'Creator acceptance is required before Business funding.',
+        );
+      }
+      const intentResult = await client.query<{
+        creator_reward_minor: number;
+        currency: string;
+        id: string;
+        platform_fee_minor: number;
+        public_id: string;
+        status: 'pending_provider';
+        total_due_minor: number;
+      }>(
+        `INSERT INTO content_license_renewal_funding_intents (
+           public_id, content_license_renewal_id, creator_reward_minor,
+           platform_fee_minor, total_due_minor, currency, requested_by_user_id, requested_at
+         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+        [
+          input.fundingIntentPublicId,
+          renewal.id,
+          renewal.creator_reward_minor,
+          renewal.platform_fee_minor,
+          renewal.total_due_minor,
+          renewal.currency,
+          input.actorUserId,
+          renewal.server_now,
+        ],
+      );
+      const intent = intentResult.rows[0];
+      if (!intent) throw new Error('Renewal funding intent insert returned no row.');
+      const nextVersion = renewal.version + 1;
+      await client.query(
+        `UPDATE content_license_renewals SET status = 'funding_pending',
+                funding_requested_at = $2, version = $3, updated_at = $2 WHERE id = $1`,
+        [renewal.id, renewal.server_now, nextVersion],
+      );
+      await client.query(
+        `INSERT INTO content_license_renewal_history (
+           content_license_renewal_id, from_status, to_status, renewal_version,
+           actor_user_id, actor_type, reason, occurred_at
+         ) VALUES ($1,'accepted','funding_pending',$2,$3,'user',
+                   'Business explicitly requested separately priced renewal funding',$4)`,
+        [renewal.id, nextVersion, input.actorUserId, renewal.server_now],
+      );
+      await this.appendAudit(client, {
+        action: 'rights.renewal-funding-requested',
+        actorId: input.actorUserId,
+        actorType: 'user',
+        correlationId: input.correlationId,
+        details: { totalDueMinor: renewal.total_due_minor },
+        subjectId: intent.id,
+        subjectType: 'content-license-renewal-funding-intent',
+      });
+      return {
+        creatorRewardMinor: intent.creator_reward_minor,
+        currency: intent.currency,
+        id: intent.id,
+        platformFeeMinor: intent.platform_fee_minor,
+        publicId: intent.public_id,
+        renewalId: renewal.id,
+        status: intent.status,
+        totalDueMinor: intent.total_due_minor,
+      };
+    });
+  }
+
+  async closeRenewalFunding(input: {
+    correlationId: string;
+    fundingIntentId: string;
+    outcome: 'failed' | 'abandoned';
+  }): Promise<void> {
+    return this.withTransaction(async (client) => {
+      const result = await client.query<{
+        id: string;
+        renewal_id: string;
+        renewal_version: number;
+        server_now: Date;
+        status: string;
+      }>(
+        `SELECT intent.id, intent.status, renewal.id AS renewal_id,
+                renewal.version AS renewal_version, now() AS server_now
+           FROM content_license_renewal_funding_intents intent
+           JOIN content_license_renewals renewal ON renewal.id = intent.content_license_renewal_id
+          WHERE intent.id = $1 FOR UPDATE OF intent, renewal`,
+        [input.fundingIntentId],
+      );
+      const row = result.rows[0];
+      if (!row || row.status !== 'pending_provider') {
+        throw new RightsError(
+          'RIGHTS_RENEWAL_NOT_READY',
+          409,
+          'Pending renewal funding is absent.',
+        );
+      }
+      const renewalStatus = input.outcome === 'failed' ? 'funding_failed' : 'abandoned';
+      await client.query(
+        `UPDATE content_license_renewal_funding_intents
+            SET status = $2, completed_at = $3, version = version + 1 WHERE id = $1`,
+        [row.id, input.outcome, row.server_now],
+      );
+      await client.query(
+        `UPDATE content_license_renewals SET status = $2, terminal_at = $3,
+                version = version + 1, updated_at = $3 WHERE id = $1`,
+        [row.renewal_id, renewalStatus, row.server_now],
+      );
+      await client.query(
+        `INSERT INTO content_license_renewal_history (
+           content_license_renewal_id, from_status, to_status, renewal_version,
+           actor_type, reason, occurred_at
+         ) VALUES ($1,'funding_pending',$2,$3,'provider',$4,$5)`,
+        [
+          row.renewal_id,
+          renewalStatus,
+          row.renewal_version + 1,
+          input.outcome === 'failed'
+            ? 'Authoritative provider funding failed; no rights extended'
+            : 'Renewal funding was abandoned; no rights extended',
+          row.server_now,
+        ],
+      );
+      await this.appendAudit(client, {
+        action: `rights.renewal-funding-${input.outcome}`,
+        actorId: null,
+        actorType: 'service',
+        correlationId: input.correlationId,
+        details: { rightsExtended: false },
+        subjectId: row.renewal_id,
+        subjectType: 'content-license-renewal',
+      });
+    });
+  }
+
+  async recordAuthoritativeRenewalFunding(input: {
+    correlationId: string;
+    fundedAt: Date;
+    fundingIntentId: string;
+    fundingSnapshotPublicId: string;
+    invoiceProviderObjectId: string;
+    invoiceProviderReferencePublicId: string;
+    licensePublicId: string;
+    payablePublicId: string;
+    paymentIntentProviderObjectId: string;
+    paymentIntentProviderReferencePublicId: string;
+    provider: PaymentProvider;
+    providerAccountReference: string;
+    providerEventId: string;
+  }): Promise<ContentLicenseRecord> {
+    return this.withTransaction(async (client) => {
+      const result = await client.query<
+        RenewalRow & {
+          acceptance_id: string;
+          funding_intent_id: string;
+          funding_status: string;
+          rights_version: number;
+          server_now: Date;
+          source_expires_at: Date;
+          source_status: ContentLicenseStatus;
+          submission_attempt_id: string;
+          term_number: number;
+        }
+      >(
+        `SELECT renewal.*, intent.id AS funding_intent_id, intent.status AS funding_status,
+                source.status AS source_status, source.expires_at AS source_expires_at,
+                source.term_number, source.rights_version, source.mission_contract_acceptance_id AS acceptance_id,
+                source.submission_attempt_id, now() AS server_now
+           FROM content_license_renewal_funding_intents intent
+           JOIN content_license_renewals renewal ON renewal.id = intent.content_license_renewal_id
+           JOIN content_licenses source ON source.id = renewal.source_content_license_id
+          WHERE intent.id = $1 FOR UPDATE OF intent, renewal, source`,
+        [input.fundingIntentId],
+      );
+      const renewal = result.rows[0];
+      if (!renewal)
+        throw new RightsError('RIGHTS_NOT_FOUND', 404, 'Renewal funding intent is absent.');
+      if (renewal.funding_status === 'confirmed' && renewal.status === 'funded') {
+        const existing = await client.query<LicenseRow>(
+          `SELECT license.* FROM content_license_renewal_funding_snapshots snapshot
+            JOIN content_licenses license ON license.id = snapshot.activated_content_license_id
+           WHERE snapshot.content_license_renewal_funding_intent_id = $1
+             AND snapshot.provider_event_id = $2`,
+          [renewal.funding_intent_id, input.providerEventId],
+        );
+        const row = existing.rows[0];
+        if (row) return toLicense(row);
+        throw new RightsError(
+          'RIGHTS_TRANSITION_CONFLICT',
+          409,
+          'Renewal funding was already confirmed by different immutable evidence.',
+        );
+      }
+      if (
+        renewal.status !== 'funding_pending' ||
+        renewal.funding_status !== 'pending_provider' ||
+        !['active', 'expired'].includes(renewal.source_status)
+      ) {
+        throw new RightsError(
+          'RIGHTS_RENEWAL_NOT_READY',
+          409,
+          'Only an accepted pending renewal can consume authoritative funding.',
+        );
+      }
+      const termEndExpression =
+        renewal.kind === 'organic_owned_social_90d'
+          ? `interval '90 days'`
+          : renewal.kind === 'extended_owned_media_12m'
+            ? `interval '12 months'`
+            : `interval '30 days'`;
+      const invoiceReference = await client.query<{ id: string }>(
+        `INSERT INTO payment_provider_references (
+           public_id, provider, provider_account_reference, object_type, provider_object_id
+         ) VALUES ($1,$2,$3,'invoice',$4) RETURNING id`,
+        [
+          input.invoiceProviderReferencePublicId,
+          input.provider,
+          input.providerAccountReference,
+          input.invoiceProviderObjectId,
+        ],
+      );
+      const paymentReference = await client.query<{ id: string }>(
+        `INSERT INTO payment_provider_references (
+           public_id, provider, provider_account_reference, object_type, provider_object_id
+         ) VALUES ($1,$2,$3,'payment_intent',$4) RETURNING id`,
+        [
+          input.paymentIntentProviderReferencePublicId,
+          input.provider,
+          input.providerAccountReference,
+          input.paymentIntentProviderObjectId,
+        ],
+      );
+      const invoiceReferenceId = invoiceReference.rows[0]?.id;
+      const paymentReferenceId = paymentReference.rows[0]?.id;
+      if (!invoiceReferenceId || !paymentReferenceId) {
+        throw new Error('Renewal provider reference insert returned no row.');
+      }
+      const licenseResult = await client.query<LicenseRow>(
+        `INSERT INTO content_licenses (
+           public_id, mission_assignment_id, mission_contract_acceptance_id,
+           submission_attempt_id, financial_action_intent_id, kind, status, term_number,
+           rights_version, base_reward_minor_snapshot, compensation_component_minor,
+           currency, permitted_edits, activated_at, expires_at
+         )
+         SELECT $1,$2,$3,$4,NULL,$5,'active',$6,$7,$8,$9,$10,$11::jsonb,
+                GREATEST(source.expires_at, now()),
+                GREATEST(source.expires_at, now()) + ${termEndExpression}
+           FROM content_licenses source WHERE source.id = $12
+         RETURNING *`,
+        [
+          input.licensePublicId,
+          renewal.mission_assignment_id,
+          renewal.acceptance_id,
+          renewal.submission_attempt_id,
+          renewal.kind,
+          renewal.term_number + 1,
+          renewal.rights_version + 1,
+          renewal.original_base_reward_minor,
+          renewal.creator_reward_minor,
+          renewal.currency,
+          JSON.stringify(permittedEdits),
+          renewal.source_content_license_id,
+        ],
+      );
+      const license = licenseResult.rows[0];
+      if (!license) throw new Error('Renewal content license insert returned no row.');
+      await client.query(
+        `INSERT INTO content_license_assets (public_id, content_license_id, media_asset_id, position)
+         SELECT $1 || '_' || source.position::text, $2, source.media_asset_id, source.position
+           FROM content_license_assets source
+          WHERE source.content_license_id = $3 ORDER BY source.position`,
+        [`cla_${input.licensePublicId}`, license.id, renewal.source_content_license_id],
+      );
+      await client.query(
+        `INSERT INTO content_license_channels (public_id, content_license_id, channel)
+         SELECT $1 || '_' || row_number() OVER (ORDER BY source.channel)::text,
+                $2, source.channel
+           FROM content_license_channels source
+          WHERE source.content_license_id = $3`,
+        [`clc_${input.licensePublicId}`, license.id, renewal.source_content_license_id],
+      );
+      await client.query(
+        `INSERT INTO content_license_status_history (
+           content_license_id, to_status, license_version, actor_type, reason, occurred_at
+         ) VALUES ($1,'active',1,'provider','Authoritative separately funded renewal activation',$2)`,
+        [license.id, renewal.server_now],
+      );
+      await client.query(
+        `INSERT INTO content_license_renewal_funding_snapshots (
+           public_id, content_license_renewal_funding_intent_id,
+           invoice_provider_reference_id, payment_intent_provider_reference_id,
+           activated_content_license_id, provider_event_id, creator_reward_minor,
+           platform_fee_minor, total_due_minor, currency, funded_at
+         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+        [
+          input.fundingSnapshotPublicId,
+          renewal.funding_intent_id,
+          invoiceReferenceId,
+          paymentReferenceId,
+          license.id,
+          input.providerEventId,
+          renewal.creator_reward_minor,
+          renewal.platform_fee_minor,
+          renewal.total_due_minor,
+          renewal.currency,
+          input.fundedAt,
+        ],
+      );
+      await client.query(
+        `INSERT INTO content_license_renewal_payables (
+           public_id, content_license_renewal_id, creator_user_id, amount_minor, currency
+         ) VALUES ($1,$2,$3,$4,$5)`,
+        [
+          input.payablePublicId,
+          renewal.id,
+          renewal.creator_user_id,
+          renewal.creator_reward_minor,
+          renewal.currency,
+        ],
+      );
+      await client.query(
+        `UPDATE content_license_renewal_funding_intents
+            SET status = 'confirmed', completed_at = $2, version = version + 1 WHERE id = $1`,
+        [renewal.funding_intent_id, renewal.server_now],
+      );
+      const nextVersion = renewal.version + 1;
+      await client.query(
+        `UPDATE content_license_renewals SET status = 'funded', funded_at = $2,
+                version = $3, updated_at = $2 WHERE id = $1`,
+        [renewal.id, renewal.server_now, nextVersion],
+      );
+      await client.query(
+        `INSERT INTO content_license_renewal_history (
+           content_license_renewal_id, from_status, to_status, renewal_version,
+           actor_type, reason, occurred_at
+         ) VALUES ($1,'funding_pending','funded',$2,'provider',
+                   'Authoritative provider success activated renewal and full creator payable',$3)`,
+        [renewal.id, nextVersion, renewal.server_now],
+      );
+      await this.appendAudit(client, {
+        action: 'rights.renewal-funded',
+        actorId: null,
+        actorType: 'service',
+        correlationId: input.correlationId,
+        details: {
+          creatorRewardMinor: renewal.creator_reward_minor,
+          platformFeeMinor: renewal.platform_fee_minor,
+          termStartsAt: license.activated_at.toISOString(),
+          totalDueMinor: renewal.total_due_minor,
+        },
+        subjectId: renewal.id,
+        subjectType: 'content-license-renewal',
+      });
+      return toLicense(license);
+    });
+  }
+
+  async recordDueLicenseExpiryReminders(input: {
+    correlationId: string;
+    missionAssignmentId: string;
+  }): Promise<LicenseExpiryReminderRecord[]> {
+    return this.withTransaction(async (client) => {
+      const due = await client.query<
+        LicenseRow & { reminder_stage: '30_days' | '7_days' | '1_day'; server_now: Date }
+      >(
+        `SELECT id, public_id, mission_assignment_id, kind, status,
+                base_reward_minor_snapshot, compensation_component_minor, currency,
+                activated_at, expires_at, term_number, version, now() AS server_now,
+                CASE
+                  WHEN expires_at <= now() + interval '1 day' THEN '1_day'
+                  WHEN expires_at <= now() + interval '7 days' THEN '7_days'
+                  ELSE '30_days'
+                END AS reminder_stage
+           FROM content_licenses
+          WHERE mission_assignment_id = $1 AND status = 'active'
+            AND expires_at > now() AND expires_at <= now() + interval '30 days'
+          ORDER BY kind, term_number FOR UPDATE`,
+        [input.missionAssignmentId],
+      );
+      const recorded: LicenseExpiryReminderRecord[] = [];
+      for (const license of due.rows) {
+        const usagePolicyAtExpiry =
+          license.kind === 'organic_owned_social_90d'
+            ? 'archived_organic_nonboostable'
+            : 'remove_active_placement';
+        const inserted = await client.query(
+          `INSERT INTO audit_events (
+             actor_id, actor_type, action, correlation_id,
+             subject_type, subject_id, details, occurred_at
+           )
+           SELECT NULL, 'service', 'rights.license-expiry-reminder-recorded', $2,
+                  'content-license', $1,
+                  jsonb_build_object(
+                    'stage', $3::text,
+                    'kind', $4::text,
+                    'termNumber', $5::int,
+                    'expiresAt', $6::timestamptz,
+                    'usagePolicyAtExpiry', $7::text
+                  ), $8::timestamptz
+            WHERE NOT EXISTS (
+              SELECT 1 FROM audit_events
+               WHERE action = 'rights.license-expiry-reminder-recorded'
+                 AND subject_type = 'content-license' AND subject_id = $1
+                 AND details->>'stage' = $3::text
+            )
+            RETURNING id`,
+          [
+            license.id,
+            input.correlationId,
+            license.reminder_stage,
+            license.kind,
+            license.term_number ?? 1,
+            license.expires_at,
+            usagePolicyAtExpiry,
+            license.server_now,
+          ],
+        );
+        if (inserted.rowCount === 1) {
+          recorded.push({
+            contentLicenseId: license.id,
+            expiresAt: license.expires_at,
+            stage: license.reminder_stage,
+          });
+        }
+      }
+      return recorded;
+    });
+  }
+
   async expireDueLicenses(input: {
     correlationId: string;
     missionAssignmentId: string;
@@ -727,10 +1478,10 @@ export class RightsStore {
       const due = await client.query<LicenseRow & { server_now: Date }>(
         `SELECT id, public_id, mission_assignment_id, kind, status,
                 base_reward_minor_snapshot, compensation_component_minor, currency,
-                activated_at, expires_at, version, now() AS server_now
+                activated_at, expires_at, term_number, version, now() AS server_now
            FROM content_licenses
           WHERE mission_assignment_id = $1 AND status = 'active' AND expires_at <= now()
-          ORDER BY kind FOR UPDATE`,
+          ORDER BY kind, term_number FOR UPDATE`,
         [input.missionAssignmentId],
       );
       const expired: ContentLicenseRecord[] = [];
@@ -741,7 +1492,7 @@ export class RightsStore {
                   version = $3, updated_at = $2 WHERE id = $1
            RETURNING id, public_id, mission_assignment_id, kind, status,
                      base_reward_minor_snapshot, compensation_component_minor, currency,
-                     activated_at, expires_at, version`,
+                     activated_at, expires_at, term_number, version`,
           [license.id, license.server_now, nextVersion],
         );
         await client.query(
@@ -780,14 +1531,26 @@ export class RightsStore {
           asset_public_ids: string[];
           channels: ContentLicenseChannel[];
           is_currently_usable: boolean;
+          usage_policy:
+            | 'active_usage'
+            | 'future_term'
+            | 'archived_organic_nonboostable'
+            | 'remove_active_placement';
         }
       >(
         `SELECT l.id, l.public_id, l.mission_assignment_id, l.kind, l.status,
                 l.base_reward_minor_snapshot, l.compensation_component_minor, l.currency,
-                l.activated_at, l.expires_at, l.version,
+                l.activated_at, l.expires_at, l.term_number, l.version,
                 array_agg(DISTINCT media.public_id ORDER BY media.public_id) AS asset_public_ids,
                 array_agg(DISTINCT channel.channel::text ORDER BY channel.channel::text) AS channels,
-                (l.status = 'active' AND now() < l.expires_at) AS is_currently_usable
+                (l.status = 'active' AND now() >= l.activated_at AND now() < l.expires_at)
+                  AS is_currently_usable,
+                CASE
+                  WHEN now() < l.activated_at THEN 'future_term'
+                  WHEN l.status = 'active' AND now() < l.expires_at THEN 'active_usage'
+                  WHEN l.kind = 'organic_owned_social_90d' THEN 'archived_organic_nonboostable'
+                  ELSE 'remove_active_placement'
+                END AS usage_policy
            FROM content_licenses l
            JOIN mission_assignments assignment ON assignment.id = l.mission_assignment_id
            JOIN campaigns campaign ON campaign.id = assignment.campaign_id
@@ -799,7 +1562,7 @@ export class RightsStore {
            JOIN content_license_channels channel ON channel.content_license_id = l.id
           WHERE l.mission_assignment_id = $1
           GROUP BY l.id
-          ORDER BY l.kind`,
+          ORDER BY l.kind, l.term_number`,
         [input.missionAssignmentId, input.actorUserId],
       );
       if (licenses.rows.length === 0) {
@@ -827,6 +1590,7 @@ export class RightsStore {
         assetPublicIds: row.asset_public_ids,
         channels: row.channels,
         isCurrentlyUsable: row.is_currently_usable,
+        usagePolicy: row.usage_policy,
       }));
     });
   }

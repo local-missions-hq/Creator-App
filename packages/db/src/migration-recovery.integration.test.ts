@@ -236,7 +236,7 @@ describe.sequential('latest schema and roll-forward recovery', () => {
 
       expect(await trackedMigrations(pool)).toHaveLength(migrations.length - 1);
       expect(
-        await pool.query(`SELECT to_regclass('public.local_pass_customer_challenges') AS relation`),
+        await pool.query(`SELECT to_regclass('public.content_license_renewals') AS relation`),
       ).toMatchObject({ rows: [{ relation: null }] });
       await expectFixtureIntact(pool);
 
@@ -258,6 +258,9 @@ describe.sequential('latest schema and roll-forward recovery', () => {
         incident_history: 'local_pass_fulfillment_incident_history',
         incidents: 'local_pass_fulfillment_incidents',
       });
+      expect(
+        await pool.query(`SELECT to_regclass('public.content_license_renewals') AS relation`),
+      ).toMatchObject({ rows: [{ relation: 'content_license_renewals' }] });
 
       await pool.query(`
         UPDATE notification_preferences
