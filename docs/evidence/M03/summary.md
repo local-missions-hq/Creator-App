@@ -3,6 +3,7 @@
 Status: Campaign-lifecycle and shared-identity/tenant slices passed; M3 overall remains in progress
 Date: 2026-08-27  
 Checkpoint: `M03-campaign-lifecycle-001`, implementation commit `87ba940`
+Shared identity checkpoint: `M03-shared-identity-tenant-002`, implementation commit `8ef7b08`
 Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Implemented in this checkpoint

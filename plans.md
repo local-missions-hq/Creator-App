@@ -108,6 +108,7 @@ Actual physical-iPhone VoiceOver gesture testing is intentionally deferred by AD
 ### M3 — Database, API contract, and domain state machines
 
 - [x] Complete checkpoint `M03-campaign-lifecycle-001`: first real-PostgreSQL campaign migration, integer-minor-unit money and pilot-cap constraints, legal/illegal campaign transitions, same-transaction history/audit, idempotent retries, and one-winner concurrency proof.
+- [x] Complete checkpoint `M03-shared-identity-tenant-002`: shared users/provider subjects, creator locality/payout state, business memberships/locations, forward-migration preservation, one-winner identity binding, and tenant-scoped campaign/location access.
 - [ ] Create the transactional PostgreSQL schema, migrations, indexes, constraints, UTC timestamps, integer-minor-unit money fields, stable public IDs, and deterministic synthetic seed.
 - [ ] Define the `/v1` REST contract, standard errors, pagination, request IDs, structured logs, health/build endpoints, and a production-impossible local dev-token boundary.
 - [ ] Generate and intentionally review the OpenAPI artifact and typed mobile/dashboard client contract.
@@ -3934,3 +3935,13 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Decisions: Existing ADR-003 and ADR-008 govern this slice: PostgreSQL is authoritative, and retryable writes use idempotent same-transaction records. Local database commands reject non-loopback targets; committed migrations are append-only and recovery is forward-only.
 - Blockers: None for the next local slice. M3 overall remains open because most domain tables, the `/v1` API/OpenAPI clients, prior-schema upgrade proof, and the complete state/concurrency matrix are not implemented.
 - Next exact task: Add the next schema slice for root users/external identities, creator profiles, business memberships, business locations, and their tenant-scoping constraints; generate a forward migration and prove duplicate identity and cross-business isolation failures against real PostgreSQL.
+
+### 2026-08-27 — Shared identity and tenant boundary passed
+
+- Milestone: M3 database, API contract, and domain state machines in progress
+- Completed: Committed checkpoint `8ef7b08` with one shared root user; Apple, Google, Microsoft, and passwordless-email issuer/subject bindings; creator profile/locality/payout state; business memberships; and business locations. Added tenant-scoped campaign creation/read/transition/replay plus location management so every operation requires an active owner/manager membership in the exact business workspace.
+- Verification: Forward migration `0001_empty_tyrannus.sql` preserved the pre-existing synthetic business, campaign title, and `$575.00` Total Due. Five new real-PostgreSQL tests passed upgrade preservation, concurrent duplicate-identity binding, one-provider-per-user linking, verified-locality constraints, and cross-business campaign/location isolation. The combined M3 suite passes nine integration tests; `pnpm verify` passes all workspace gates; `db:seed` is repeatable at campaign version 1; `db:check` verifies ten tables; the security scan passes 248 text files; Gitleaks finds no leak in approximately 6.09 MB; and `drizzle-kit check` reports a consistent journal.
+- Evidence: `docs/evidence/M03/shared-identity-tenant.md`, `docs/evidence/M03/test-results/tenant-store-junit.xml`, `docs/evidence/M03/summary.md`, and `packages/db/drizzle/0001_empty_tyrannus.sql`.
+- Decisions: ADR-011 keeps Creator and Business on one root user; ADR-025 prevents email-based account merging; ADR-027 keeps creator postal locality private; and business operations are scoped by server-side membership rather than a client-selected business ID.
+- Blockers: None for the next local slice. M3 remains open because mission templates/slots/applications, capacity reservation, check-in, submissions/media, disputes, payment ledger, Local Pass, consent/rights, notification/outbox, `/v1` API/OpenAPI clients, and remaining transition matrices are not implemented.
+- Next exact task: Add mission templates, versioned campaign briefs, mission slots, applications/reservations, and status history; then prove that parallel qualified applications cannot overbook campaign capacity and that a creator cannot apply twice.
