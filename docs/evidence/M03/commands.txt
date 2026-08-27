@@ -472,3 +472,45 @@ PASS — no leaks found in approximately 9.79 MB.
 
 pnpm --filter @local-missions/db exec vitest run src/migration-recovery.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/migration-recovery-junit.xml
 PASS — retained two migration-recovery tests with no failures or errors; machine hostname replaced by local-development-host.
+M03-locality-proof-retention-013 — 2026-08-27
+
+pnpm --filter @local-missions/db exec vitest run src/locality-proof-store.integration.test.ts
+INITIAL FAIL — three of seven tests exposed a timestamp equality assumption in annual expiry and an ambiguous `version` column in a PostgreSQL `UPDATE ... FROM` worker claim.
+RESOLUTION — expiry now changes only a currently verified profile whose deadline is due by database time, protecting newer credentials; worker counters and versions are explicitly table-qualified.
+PASS — all seven locality privacy, review, appeal, expiry, address-change, hold, deletion, concurrency, retry, and alert tests passed against real PostgreSQL.
+
+pnpm --filter @local-missions/db test:integration
+PASS — all 74 database integration tests passed across twelve suites, including the updated fourteen-migration empty/recovery proof.
+
+pnpm db:migrate
+PASS — append-only migration 0013 applied to the retained loopback database and backfilled the existing derived credential without inventing raw proof.
+
+pnpm db:seed
+pnpm db:seed
+PASS — both reruns retained the deterministic identity, business, campaign, four templates, one brief, two deliverable requirements, and 10 Community Slots.
+
+pnpm db:check
+PASS — all 69 tables and the deterministic mission contract were verified.
+
+pnpm --filter @local-missions/db contracts:check
+PASS — the manifest verified fourteen ordered migration SQL/snapshot hashes and rejected unreviewed destructive statements.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — the fourteen-entry Drizzle journal and all snapshots are internally consistent.
+
+pnpm --filter @local-missions/db exec vitest run src/locality-proof-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/locality-proof-store-junit.xml
+PASS — retained seven locality lifecycle tests with no failures or errors; machine hostname replaced by local-development-host.
+
+pnpm verify
+INITIAL FAIL — the fixed schema-list unit assertion still expected 63 tables after the reviewed expansion to 69.
+RESOLUTION — updated that exact expectation to include the six locality lifecycle tables; no runtime behavior or migration was changed.
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, contracts, and all nine workspace builds passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:integration
+PASS — 74 database tests and seven API integration tests passed against real PostgreSQL.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 348 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 10.31 MB.

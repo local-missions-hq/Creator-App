@@ -92,6 +92,13 @@
       "when": 1787854315691,
       "tag": "0012_notification_preference_history_backfill",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1787855254766,
+      "tag": "0013_brave_maddog",
+      "breakpoints": true
     }
   ]
 }

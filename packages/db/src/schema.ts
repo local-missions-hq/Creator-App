@@ -165,6 +165,7 @@ export const correctionReasonCode = pgEnum('correction_reason_code', [
 export const platformStaffRole = pgEnum('platform_staff_role', [
   'dispute_reviewer',
   'finance_operator',
+  'verification_reviewer',
   'admin',
 ]);
 export const platformStaffStatus = pgEnum('platform_staff_status', ['active', 'revoked']);
@@ -331,6 +332,52 @@ export const notificationDeliveryStatus = pgEnum('notification_delivery_status',
   'no_send',
   'failed',
   'delivered',
+]);
+export const localityVerificationMethod = pgEnum('locality_verification_method', [
+  'utility_bill',
+  'lease_or_mortgage',
+  'government_mail',
+  'accessible_manual_review',
+]);
+export const localityVerificationStatus = pgEnum('locality_verification_status', [
+  'pending_review',
+  'correction_needed',
+  'verified',
+  'rejected',
+  'appeal_pending',
+  'final_rejected',
+  'expired',
+  'invalidated',
+]);
+export const localityReviewReason = pgEnum('locality_review_reason', [
+  'approved',
+  'unreadable',
+  'document_too_old',
+  'postal_area_mismatch',
+  'unsupported_proof',
+  'ineligible_area',
+  'suspected_tampering',
+]);
+export const localityAppealReason = pgEnum('locality_appeal_reason', [
+  'review_error',
+  'accessibility_issue',
+  'newer_evidence',
+]);
+export const localityEvidenceDeletionStatus = pgEnum('locality_evidence_deletion_status', [
+  'pending',
+  'processing',
+  'completed',
+  'dead_letter',
+]);
+export const localityEvidenceDeletionOutcome = pgEnum('locality_evidence_deletion_outcome', [
+  'deleted',
+  'no_object',
+  'failed',
+]);
+export const localityLegalHoldReason = pgEnum('locality_legal_hold_reason', [
+  'binding_legal_request',
+  'litigation_preservation',
+  'security_incident',
 ]);
 
 export const users = pgTable(
@@ -2611,6 +2658,277 @@ export const notificationOutboxStatusHistory = pgTable(
   ],
 );
 
+export const localityVerifications = pgTable(
+  'locality_verifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => creatorProfiles.userId, { onDelete: 'restrict' }),
+    status: localityVerificationStatus('status').default('pending_review').notNull(),
+    method: localityVerificationMethod('method').notNull(),
+    declaredPostalArea: text('declared_postal_area').notNull(),
+    evidenceReference: text('evidence_reference'),
+    reviewPolicyVersion: text('review_policy_version').default('locality-v1').notNull(),
+    reviewerUserId: uuid('reviewer_user_id').references(() => users.id, {
+      onDelete: 'restrict',
+    }),
+    reviewReason: localityReviewReason('review_reason'),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    appealDeadline: timestamp('appeal_deadline', { withTimezone: true }),
+    appealedAt: timestamp('appealed_at', { withTimezone: true }),
+    appealReason: localityAppealReason('appeal_reason'),
+    appealReviewerUserId: uuid('appeal_reviewer_user_id').references(() => users.id, {
+      onDelete: 'restrict',
+    }),
+    appealDecidedAt: timestamp('appeal_decided_at', { withTimezone: true }),
+    verificationCompletedAt: timestamp('verification_completed_at', { withTimezone: true }),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    evidenceDeletionDueAt: timestamp('evidence_deletion_due_at', { withTimezone: true }),
+    evidenceDeletedAt: timestamp('evidence_deleted_at', { withTimezone: true }),
+    invalidatedAt: timestamp('invalidated_at', { withTimezone: true }),
+    invalidationReason: text('invalidation_reason'),
+    submittedAt: timestamp('submitted_at', { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    version: integer('version').default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex('locality_verifications_public_id_uq').on(table.publicId),
+    uniqueIndex('locality_verifications_active_creator_uq')
+      .on(table.creatorUserId)
+      .where(sql`${table.status} IN ('pending_review', 'correction_needed', 'appeal_pending')`),
+    index('locality_verifications_creator_created_idx').on(table.creatorUserId, table.createdAt),
+    index('locality_verifications_expiry_idx').on(table.status, table.expiresAt),
+    index('locality_verifications_deletion_due_idx').on(
+      table.evidenceDeletionDueAt,
+      table.evidenceDeletedAt,
+    ),
+    check('locality_verifications_postal_area_ck', sql`${table.declaredPostalArea} ~ '^[0-9]{5}$'`),
+    check(
+      'locality_verifications_evidence_reference_ck',
+      sql`${table.evidenceReference} IS NULL OR ${table.evidenceReference} ~ '^private/locality/[a-z0-9/_-]{8,180}$'`,
+    ),
+    check(
+      'locality_verifications_policy_ck',
+      sql`${table.reviewPolicyVersion} ~ '^[a-z0-9][a-z0-9._-]{2,39}$'`,
+    ),
+    check(
+      'locality_verifications_verified_shape_ck',
+      sql`${table.status} NOT IN ('verified', 'expired') OR (
+        ${table.reviewReason} = 'approved' AND ${table.reviewedAt} IS NOT NULL
+        AND ${table.verificationCompletedAt} IS NOT NULL AND ${table.verifiedAt} IS NOT NULL
+        AND ${table.expiresAt} > ${table.verifiedAt}
+      )`,
+    ),
+    check(
+      'locality_verifications_deleted_shape_ck',
+      sql`${table.evidenceDeletedAt} IS NULL OR ${table.evidenceReference} IS NULL`,
+    ),
+    check(
+      'locality_verifications_invalidation_ck',
+      sql`${table.status} <> 'invalidated' OR (
+        ${table.invalidatedAt} IS NOT NULL AND length(btrim(${table.invalidationReason})) > 0
+      )`,
+    ),
+    check('locality_verifications_version_positive_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const localityVerificationStatusHistory = pgTable(
+  'locality_verification_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    localityVerificationId: uuid('locality_verification_id')
+      .notNull()
+      .references(() => localityVerifications.id, { onDelete: 'restrict' }),
+    fromStatus: localityVerificationStatus('from_status'),
+    toStatus: localityVerificationStatus('to_status').notNull(),
+    verificationVersion: integer('verification_version').notNull(),
+    actorUserId: uuid('actor_user_id').references(() => users.id, { onDelete: 'restrict' }),
+    actorType: auditActorType('actor_type').notNull(),
+    reasonCode: text('reason_code').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('locality_verification_status_history_version_uq').on(
+      table.localityVerificationId,
+      table.verificationVersion,
+    ),
+    index('locality_verification_status_history_timeline_idx').on(
+      table.localityVerificationId,
+      table.occurredAt,
+    ),
+    check(
+      'locality_verification_status_history_reason_ck',
+      sql`${table.reasonCode} ~ '^[A-Z0-9_]{2,80}$'`,
+    ),
+    check('locality_verification_status_history_version_ck', sql`${table.verificationVersion} > 0`),
+  ],
+);
+
+export const localityLegalHolds = pgTable(
+  'locality_legal_holds',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    localityVerificationId: uuid('locality_verification_id')
+      .notNull()
+      .references(() => localityVerifications.id, { onDelete: 'restrict' }),
+    caseId: text('case_id').notNull(),
+    reason: localityLegalHoldReason('reason').notNull(),
+    scope: text('scope').default('locality_evidence').notNull(),
+    ownerUserId: uuid('owner_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    reviewAt: timestamp('review_at', { withTimezone: true }).notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    releasedAt: timestamp('released_at', { withTimezone: true }),
+    releasedByUserId: uuid('released_by_user_id').references(() => users.id, {
+      onDelete: 'restrict',
+    }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    version: integer('version').default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex('locality_legal_holds_public_id_uq').on(table.publicId),
+    uniqueIndex('locality_legal_holds_case_uq').on(table.caseId),
+    uniqueIndex('locality_legal_holds_active_verification_uq')
+      .on(table.localityVerificationId)
+      .where(sql`${table.releasedAt} IS NULL`),
+    index('locality_legal_holds_expiry_idx').on(table.expiresAt, table.releasedAt),
+    check('locality_legal_holds_case_ck', sql`${table.caseId} ~ '^[A-Z0-9_-]{6,80}$'`),
+    check('locality_legal_holds_scope_ck', sql`${table.scope} = 'locality_evidence'`),
+    check(
+      'locality_legal_holds_window_ck',
+      sql`${table.reviewAt} > ${table.createdAt} AND ${table.reviewAt} <= ${table.expiresAt}
+        AND ${table.expiresAt} <= ${table.createdAt} + interval '90 days'`,
+    ),
+    check(
+      'locality_legal_holds_release_ck',
+      sql`(${table.releasedAt} IS NULL AND ${table.releasedByUserId} IS NULL)
+        OR (${table.releasedAt} IS NOT NULL AND ${table.releasedByUserId} IS NOT NULL)`,
+    ),
+    check('locality_legal_holds_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const localityEvidenceDeletionJobs = pgTable(
+  'locality_evidence_deletion_jobs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    localityVerificationId: uuid('locality_verification_id')
+      .notNull()
+      .references(() => localityVerifications.id, { onDelete: 'restrict' }),
+    status: localityEvidenceDeletionStatus('status').default('pending').notNull(),
+    availableAt: timestamp('available_at', { withTimezone: true }).notNull(),
+    attemptCount: integer('attempt_count').default(0).notNull(),
+    maxAttempts: integer('max_attempts').default(5).notNull(),
+    lockToken: uuid('lock_token'),
+    lockedBy: text('locked_by'),
+    lockedUntil: timestamp('locked_until', { withTimezone: true }),
+    lastErrorCode: text('last_error_code'),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    deadLetteredAt: timestamp('dead_lettered_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    version: integer('version').default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex('locality_evidence_deletion_jobs_public_id_uq').on(table.publicId),
+    uniqueIndex('locality_evidence_deletion_jobs_verification_uq').on(table.localityVerificationId),
+    index('locality_evidence_deletion_jobs_due_idx').on(table.status, table.availableAt),
+    check(
+      'locality_evidence_deletion_jobs_attempts_ck',
+      sql`${table.attemptCount} >= 0 AND ${table.maxAttempts} BETWEEN 1 AND 10
+        AND ${table.attemptCount} <= ${table.maxAttempts}`,
+    ),
+    check(
+      'locality_evidence_deletion_jobs_lock_ck',
+      sql`(${table.status} = 'processing' AND ${table.lockToken} IS NOT NULL
+        AND ${table.lockedBy} IS NOT NULL AND ${table.lockedUntil} IS NOT NULL)
+        OR (${table.status} <> 'processing' AND ${table.lockToken} IS NULL
+        AND ${table.lockedBy} IS NULL AND ${table.lockedUntil} IS NULL)`,
+    ),
+    check(
+      'locality_evidence_deletion_jobs_error_ck',
+      sql`${table.lastErrorCode} IS NULL OR ${table.lastErrorCode} ~ '^[A-Z0-9_]{2,80}$'`,
+    ),
+    check(
+      'locality_evidence_deletion_jobs_terminal_ck',
+      sql`(${table.status} = 'completed' AND ${table.completedAt} IS NOT NULL
+        AND ${table.deadLetteredAt} IS NULL)
+        OR (${table.status} = 'dead_letter' AND ${table.deadLetteredAt} IS NOT NULL
+        AND ${table.completedAt} IS NULL)
+        OR (${table.status} IN ('pending', 'processing') AND ${table.completedAt} IS NULL
+        AND ${table.deadLetteredAt} IS NULL)`,
+    ),
+    check('locality_evidence_deletion_jobs_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const localityEvidenceDeletionAttempts = pgTable(
+  'locality_evidence_deletion_attempts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    localityEvidenceDeletionJobId: uuid('locality_evidence_deletion_job_id')
+      .notNull()
+      .references(() => localityEvidenceDeletionJobs.id, { onDelete: 'restrict' }),
+    attemptNumber: integer('attempt_number').notNull(),
+    outcome: localityEvidenceDeletionOutcome('outcome').notNull(),
+    workerId: text('worker_id').notNull(),
+    errorCode: text('error_code'),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('locality_evidence_deletion_attempts_public_id_uq').on(table.publicId),
+    uniqueIndex('locality_evidence_deletion_attempts_number_uq').on(
+      table.localityEvidenceDeletionJobId,
+      table.attemptNumber,
+    ),
+    index('locality_evidence_deletion_attempts_job_idx').on(table.localityEvidenceDeletionJobId),
+    check('locality_evidence_deletion_attempts_number_ck', sql`${table.attemptNumber} > 0`),
+    check(
+      'locality_evidence_deletion_attempts_error_ck',
+      sql`(${table.outcome} = 'failed' AND ${table.errorCode} ~ '^[A-Z0-9_]{2,80}$')
+        OR (${table.outcome} <> 'failed' AND ${table.errorCode} IS NULL)`,
+    ),
+    check(
+      'locality_evidence_deletion_attempts_time_ck',
+      sql`${table.completedAt} >= ${table.startedAt}`,
+    ),
+  ],
+);
+
+export const localityRetentionAlerts = pgTable(
+  'locality_retention_alerts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    localityEvidenceDeletionJobId: uuid('locality_evidence_deletion_job_id')
+      .notNull()
+      .references(() => localityEvidenceDeletionJobs.id, { onDelete: 'restrict' }),
+    code: text('code').notNull(),
+    attemptCount: integer('attempt_count').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('locality_retention_alerts_public_id_uq').on(table.publicId),
+    uniqueIndex('locality_retention_alerts_job_uq').on(table.localityEvidenceDeletionJobId),
+    check(
+      'locality_retention_alerts_code_ck',
+      sql`${table.code} = 'LOCALITY_EVIDENCE_DELETION_FAILED'`,
+    ),
+    check('locality_retention_alerts_attempts_ck', sql`${table.attemptCount} > 0`),
+  ],
+);
+
 export const auditEvents = pgTable(
   'audit_events',
   {
@@ -2710,6 +3028,12 @@ export const initialSchemaTables = [
   'in_app_notifications',
   'notification_delivery_attempts',
   'notification_outbox_status_history',
+  'locality_verifications',
+  'locality_verification_status_history',
+  'locality_legal_holds',
+  'locality_evidence_deletion_jobs',
+  'locality_evidence_deletion_attempts',
+  'locality_retention_alerts',
   'audit_events',
   'idempotency_records',
 ] as const;

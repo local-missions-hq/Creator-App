@@ -90,6 +90,15 @@ async function insertNMinusOneFixture(pool: Pool): Promise<void> {
     VALUES ('10000000-0000-4000-8000-000000000091', 'usr_synthetic_recovery_001')
   `);
   await pool.query(`
+    INSERT INTO creator_profiles (
+      user_id, public_id, status, locality_status, verified_postal_area,
+      locality_verified_at, locality_expires_at
+    ) VALUES (
+      '10000000-0000-4000-8000-000000000091', 'cr_synthetic_recovery_001',
+      'approved', 'verified', '32801', '2026-08-01T12:00:00Z', '2027-08-01T12:00:00Z'
+    )
+  `);
+  await pool.query(`
     INSERT INTO businesses (id, public_id, name)
     VALUES (
       '20000000-0000-4000-8000-000000000091',
@@ -200,17 +209,16 @@ describe.sequential('latest schema and roll-forward recovery', () => {
           hash: entry.sqlSha256,
         })),
       );
-      expect(tracked).toHaveLength(13);
+      expect(tracked).toHaveLength(14);
     });
   }, 30_000);
 
   it('rolls an injected N-1 migration failure back, then recovers forward without data loss', async () => {
     await withTemporaryDatabase('recovery', async (pool) => {
-      await applyTrackedMigrations(pool, migrations.length - 2);
+      await applyTrackedMigrations(pool, migrations.length - 1);
       await insertNMinusOneFixture(pool);
-      await applyTrackedMigrations(pool, migrations.length - 1, migrations.length - 2);
       await expectFixtureIntact(pool);
-      expect(await trackedMigrations(pool)).toHaveLength(12);
+      expect(await trackedMigrations(pool)).toHaveLength(13);
 
       const latest = migrations.at(-1);
       if (!latest) throw new Error('Latest migration is missing.');
@@ -226,32 +234,34 @@ describe.sequential('latest schema and roll-forward recovery', () => {
         client.release();
       }
 
-      expect(await trackedMigrations(pool)).toHaveLength(12);
+      expect(await trackedMigrations(pool)).toHaveLength(13);
       expect(
-        await pool.query(
-          `SELECT count(*)::int AS count FROM notification_preference_history
-            WHERE notification_preference_id = '60000000-0000-4000-8000-000000000091'`,
-        ),
-      ).toMatchObject({ rows: [{ count: 0 }] });
+        await pool.query(`SELECT to_regclass('public.locality_verifications') AS relation`),
+      ).toMatchObject({ rows: [{ relation: null }] });
       await expectFixtureIntact(pool);
 
       await migrate(drizzle(pool), { migrationsFolder: migrationsDirectory });
-      expect(await trackedMigrations(pool)).toHaveLength(13);
+      expect(await trackedMigrations(pool)).toHaveLength(14);
       await expectFixtureIntact(pool);
       const backfilled = await pool.query<{
-        changed_by_user_id: string;
-        enabled: boolean;
-        preference_version: number;
+        attempt_count: number;
+        evidence_reference: string | null;
+        job_status: string;
+        status: string;
       }>(`
-        SELECT changed_by_user_id, enabled, preference_version
-          FROM notification_preference_history
-         WHERE notification_preference_id = '60000000-0000-4000-8000-000000000091'
+        SELECT verification.status, verification.evidence_reference,
+               job.status AS job_status, job.attempt_count
+          FROM locality_verifications verification
+          JOIN locality_evidence_deletion_jobs job
+            ON job.locality_verification_id = verification.id
+         WHERE verification.creator_user_id = '10000000-0000-4000-8000-000000000091'
       `);
       expect(backfilled.rows).toEqual([
         {
-          changed_by_user_id: '10000000-0000-4000-8000-000000000091',
-          enabled: false,
-          preference_version: 1,
+          attempt_count: 0,
+          evidence_reference: null,
+          job_status: 'completed',
+          status: 'verified',
         },
       ]);
 

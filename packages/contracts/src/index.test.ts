@@ -25,7 +25,9 @@ import {
   notificationEventTypeSchema,
   notificationOutboxStatusSchema,
   localDevTokenRequestSchema,
+  localityVerificationStatusSchema,
   missionTemplatePageSchema,
+  platformStaffRoleSchema,
 } from './index.js';
 
 describe('healthStatusSchema', () => {
@@ -164,6 +166,20 @@ describe('shared identity and business membership contracts', () => {
 
   it('keeps Venue Staff distinct from owner and manager membership', () => {
     expect(businessMembershipRoleSchema.options).toEqual(['owner', 'manager', 'venue_staff']);
+    expect(platformStaffRoleSchema.options).toContain('verification_reviewer');
+  });
+
+  it('keeps locality correction, appeal, expiry, and invalidation explicit', () => {
+    expect(localityVerificationStatusSchema.options).toEqual([
+      'pending_review',
+      'correction_needed',
+      'verified',
+      'rejected',
+      'appeal_pending',
+      'final_rejected',
+      'expired',
+      'invalidated',
+    ]);
   });
 });
 

@@ -28,6 +28,7 @@ const migrationPaths = [
   fileURLToPath(
     new URL('../drizzle/0012_notification_preference_history_backfill.sql', import.meta.url),
   ),
+  fileURLToPath(new URL('../drizzle/0013_brave_maddog.sql', import.meta.url)),
 ];
 const databaseName = `local_missions_m3_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());

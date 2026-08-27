@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="7" failures="0" errors="0" time="1.342058375">
+    <testsuite name="src/locality-proof-store.integration.test.ts" timestamp="2026-08-27T18:47:09.615Z" hostname="local-development-host" tests="7" failures="0" errors="0" skipped="0" time="1.342058375">
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; preserves prior derived credentials without inventing a raw proof" time="0.51607125">
+        </testcase>
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; keeps evidence private and requires an authorized objective review" time="0.0689905">
+        </testcase>
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; supports one objective correction and an independent timely appeal" time="0.081936209">
+        </testcase>
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; sets annual expiry and immediately blocks Community applications after address change" time="0.064741584">
+        </testcase>
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; expires credentials by database time exactly once" time="0.058817042">
+        </testcase>
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; honors a bounded hold, auto-releases on expiry, and permits one deletion worker" time="0.077385833">
+        </testcase>
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; uses bounded retries and creates one immutable failure alert without clearing evidence" time="0.065730541">
+        </testcase>
+    </testsuite>
+</testsuites>

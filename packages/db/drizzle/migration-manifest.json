@@ -91,6 +91,13 @@
       "snapshotSha256": "41ff4a03be58e4813899023e47e6d15495128665fcf7bf7cc3a12d95d5df3b6a",
       "sqlSha256": "0d434cdd072af492eda8907f2bc15bced191a841ff8fcb80239c0fcd8e05d57a",
       "tag": "0012_notification_preference_history_backfill"
+    },
+    {
+      "index": 13,
+      "journalTimestamp": 1787855254766,
+      "snapshotSha256": "ae043605ca0c635de568f3f291b2dffb47a7dc7c66bf315930412b2001c95997",
+      "sqlSha256": "4b72c0d08d6a896da56f043e1e0380a7708385fab8d36ed0e295099f10cc70ac",
+      "tag": "0013_brave_maddog"
     }
   ],
   "hashAlgorithm": "sha256",

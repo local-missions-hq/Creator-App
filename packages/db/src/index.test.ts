@@ -66,6 +66,12 @@ describe('initial schema', () => {
       'in_app_notifications',
       'notification_delivery_attempts',
       'notification_outbox_status_history',
+      'locality_verifications',
+      'locality_verification_status_history',
+      'locality_legal_holds',
+      'locality_evidence_deletion_jobs',
+      'locality_evidence_deletion_attempts',
+      'locality_retention_alerts',
       'audit_events',
       'idempotency_records',
     ]);

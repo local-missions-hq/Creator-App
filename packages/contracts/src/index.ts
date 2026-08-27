@@ -280,7 +280,12 @@ export const correctionReasonCodeSchema = z.enum([
   'unrelated_brand_watermark',
   'missing_disclosure',
 ]);
-export const platformStaffRoleSchema = z.enum(['dispute_reviewer', 'finance_operator', 'admin']);
+export const platformStaffRoleSchema = z.enum([
+  'dispute_reviewer',
+  'finance_operator',
+  'verification_reviewer',
+  'admin',
+]);
 export const platformStaffStatusSchema = z.enum(['active', 'revoked']);
 export const disputeOpenedBySchema = z.enum(['creator', 'business']);
 export const disputeReasonCodeSchema = z.enum([
@@ -432,6 +437,53 @@ export const notificationConflictCodeSchema = z.enum([
   'NOTIFICATION_NOT_FOUND',
   'NOTIFICATION_PREFERENCE_INVALID',
   'NOTIFICATION_TRANSITION_CONFLICT',
+]);
+export const localityVerificationMethodSchema = z.enum([
+  'utility_bill',
+  'lease_or_mortgage',
+  'government_mail',
+  'accessible_manual_review',
+]);
+export const localityVerificationStatusSchema = z.enum([
+  'pending_review',
+  'correction_needed',
+  'verified',
+  'rejected',
+  'appeal_pending',
+  'final_rejected',
+  'expired',
+  'invalidated',
+]);
+export const localityReviewReasonSchema = z.enum([
+  'approved',
+  'unreadable',
+  'document_too_old',
+  'postal_area_mismatch',
+  'unsupported_proof',
+  'ineligible_area',
+  'suspected_tampering',
+]);
+export const localityAppealReasonSchema = z.enum([
+  'review_error',
+  'accessibility_issue',
+  'newer_evidence',
+]);
+export const localityEvidenceDeletionStatusSchema = z.enum([
+  'pending',
+  'processing',
+  'completed',
+  'dead_letter',
+]);
+export const localityConflictCodeSchema = z.enum([
+  'LOCALITY_ACCESS_DENIED',
+  'LOCALITY_ACTIVE_REVIEW_EXISTS',
+  'LOCALITY_APPEAL_INVALID',
+  'LOCALITY_CLAIM_INVALID',
+  'LOCALITY_EVIDENCE_INVALID',
+  'LOCALITY_HOLD_INVALID',
+  'LOCALITY_NOT_FOUND',
+  'LOCALITY_REVIEW_INVALID',
+  'LOCALITY_TRANSITION_CONFLICT',
 ]);
 
 export const localPassConflictCodeSchema = z.enum([
@@ -614,6 +666,12 @@ export type LocalPassEvidenceKind = z.infer<typeof localPassEvidenceKindSchema>;
 export type LocalPassFulfillmentKind = z.infer<typeof localPassFulfillmentKindSchema>;
 export type LocalPassLinkStatus = z.infer<typeof localPassLinkStatusSchema>;
 export type LocalPassOfferStatus = z.infer<typeof localPassOfferStatusSchema>;
+export type LocalityAppealReason = z.infer<typeof localityAppealReasonSchema>;
+export type LocalityConflictCode = z.infer<typeof localityConflictCodeSchema>;
+export type LocalityEvidenceDeletionStatus = z.infer<typeof localityEvidenceDeletionStatusSchema>;
+export type LocalityReviewReason = z.infer<typeof localityReviewReasonSchema>;
+export type LocalityVerificationMethod = z.infer<typeof localityVerificationMethodSchema>;
+export type LocalityVerificationStatus = z.infer<typeof localityVerificationStatusSchema>;
 export type RightsConflictCode = z.infer<typeof rightsConflictCodeSchema>;
 export type NotificationAggregateType = z.infer<typeof notificationAggregateTypeSchema>;
 export type NotificationAudience = z.infer<typeof notificationAudienceSchema>;
