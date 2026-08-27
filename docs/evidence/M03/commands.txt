@@ -69,3 +69,44 @@ PASS — no leaks found in approximately 6.09 MB.
 
 pnpm --filter @local-missions/db exec drizzle-kit check
 PASS — committed Drizzle migration journal and snapshots are internally consistent.
+
+M03-mission-contract-capacity-003 — 2026-08-27
+
+pnpm db:generate
+PASS — generated append-only drizzle/0002_material_rachel_grey.sql; schema now contains 16 tables.
+
+pnpm test:integration
+PASS — 15 tests passed across campaign, identity/tenant, and mission/capacity suites against real PostgreSQL.
+
+pnpm db:migrate
+PASS — forward migration applied to the existing local database and preserved the prior synthetic campaign.
+
+pnpm db:seed
+pnpm db:seed
+PASS — both reruns retained one versioned brief, four templates, and 10 Community Slots totaling $500.00.
+
+pnpm db:check
+PASS — all 16 tables and the deterministic mission contract were verified.
+
+pnpm verify
+INITIAL FAIL — the generated Drizzle snapshot required repository formatting; after that repair, the expanded table-list unit expectation correctly identified the six newly added tables.
+RESOLUTION — formatted the generated snapshot and updated the schema unit contract to the intentional 16-table list.
+
+pnpm test:integration
+INITIAL FAIL — all 15 assertions passed, but force-terminating already-closing test connections emitted three PostgreSQL shutdown errors.
+RESOLUTION — removed administrator connection termination. Each test pool must now close cleanly before its temporary database can be dropped; the rerun passed 15 tests with zero unhandled errors.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, contract checks, and all eight workspace builds passed.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 254 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 6.23 MB.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — the three-entry Drizzle journal and all snapshots are internally consistent.
+
+pnpm --filter @local-missions/db exec vitest run src/mission-application-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/mission-application-store-junit.xml
+PASS — retained six mission/capacity tests with no failures or errors; machine hostname replaced by local-development-host.

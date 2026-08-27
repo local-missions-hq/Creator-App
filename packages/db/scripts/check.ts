@@ -77,8 +77,38 @@ try {
     throw new Error('Deterministic synthetic business location is missing or incorrect.');
   }
 
+  const contract = await pool.query<{
+    brief_count: number;
+    community_count: number;
+    reward_total: number;
+    slot_count: number;
+    template_count: number;
+  }>(
+    `SELECT
+       (SELECT count(*)::int FROM mission_templates) AS template_count,
+       (SELECT count(*)::int FROM campaign_brief_versions b WHERE b.campaign_id = c.id) AS brief_count,
+       count(s.id)::int AS slot_count,
+       count(s.id) FILTER (WHERE s.type = 'community')::int AS community_count,
+       coalesce(sum(s.reward_minor), 0)::int AS reward_total
+     FROM campaigns c
+     LEFT JOIN mission_slots s ON s.campaign_id = c.id
+     WHERE c.public_id = 'cmp_orlando_synthetic_001'
+     GROUP BY c.id`,
+  );
+  const contractRow = contract.rows[0];
+  if (
+    !contractRow ||
+    contractRow.template_count !== 4 ||
+    contractRow.brief_count !== 1 ||
+    contractRow.slot_count !== 10 ||
+    contractRow.community_count !== 10 ||
+    contractRow.reward_total !== 50_000
+  ) {
+    throw new Error('Deterministic synthetic mission contract is missing or incorrect.');
+  }
+
   process.stdout.write(
-    `Database check passed for ${actual.length} tables and the synthetic shared identity, creator, business, location, and campaign.\n`,
+    `Database check passed for ${actual.length} tables and the synthetic identity, business, campaign, four templates, versioned brief, and 10 Community Slots.\n`,
   );
 } finally {
   await pool.end();

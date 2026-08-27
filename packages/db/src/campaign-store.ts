@@ -209,6 +209,9 @@ export class CampaignStore {
           `Campaign cannot transition from ${current.status} to ${input.toStatus}.`,
         );
       }
+      if (current.status === 'draft' && input.toStatus === 'submitted') {
+        await this.assertCampaignContractComplete(client, current);
+      }
 
       const updatedResult = await client.query<CampaignRow>(
         `UPDATE campaigns
@@ -301,6 +304,42 @@ export class CampaignStore {
         'CAMPAIGN_ACCESS_DENIED',
         403,
         'The active user cannot manage this business workspace.',
+      );
+    }
+  }
+
+  private async assertCampaignContractComplete(
+    client: PoolClient,
+    campaign: CampaignRecord,
+  ): Promise<void> {
+    const result = await client.query<{
+      brief_count: number;
+      community_count: number;
+      reward_total: number;
+      slot_count: number;
+    }>(
+      `SELECT
+         (SELECT count(*)::int FROM campaign_brief_versions WHERE campaign_id = $1) AS brief_count,
+         count(*)::int AS slot_count,
+         count(*) FILTER (WHERE type = 'community')::int AS community_count,
+         coalesce(sum(reward_minor), 0)::int AS reward_total
+       FROM mission_slots
+       WHERE campaign_id = $1`,
+      [campaign.id],
+    );
+    const contract = result.rows[0];
+    const minimumCommunitySlots = Math.ceil(campaign.slotCount * 0.8);
+    if (
+      !contract ||
+      contract.brief_count < 1 ||
+      contract.slot_count !== campaign.slotCount ||
+      contract.community_count < minimumCommunitySlots ||
+      contract.reward_total !== campaign.creatorRewardPoolMinor
+    ) {
+      throw new CampaignConflictError(
+        'CAMPAIGN_CONTRACT_INCOMPLETE',
+        409,
+        'Campaign needs a versioned brief and a reconciled slot allocation with at least 80% Community Slots before submission.',
       );
     }
   }

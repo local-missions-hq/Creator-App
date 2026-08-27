@@ -104,10 +104,6 @@ beforeEach(async () => {
 
 afterAll(async () => {
   if (pool) await pool.end();
-  await adminPool.query(
-    `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()`,
-    [databaseName],
-  );
   await adminPool.query(`DROP DATABASE IF EXISTS "${databaseName}"`);
   await adminPool.end();
 });

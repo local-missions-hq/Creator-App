@@ -20,6 +20,7 @@ export const campaignStatusSchema = z.enum([
 
 export const campaignConflictCodeSchema = z.enum([
   'CAMPAIGN_ACCESS_DENIED',
+  'CAMPAIGN_CONTRACT_INCOMPLETE',
   'CAMPAIGN_NOT_FOUND',
   'CAMPAIGN_TRANSITION_CONFLICT',
   'CAMPAIGN_VERSION_CONFLICT',
@@ -80,6 +81,54 @@ export const payoutOnboardingStatusSchema = z.enum([
 export const businessMembershipRoleSchema = z.enum(['owner', 'manager', 'venue_staff']);
 export const businessMembershipStatusSchema = z.enum(['invited', 'active', 'disabled']);
 
+export const missionTemplateCodeSchema = z.enum([
+  'visit_create',
+  'visit_share',
+  'event_attendance',
+  'private_experience_feedback',
+]);
+export const missionSlotTypeSchema = z.enum(['community', 'reach']);
+export const missionSlotStatusSchema = z.enum([
+  'available',
+  'reserved',
+  'accepted',
+  'in_progress',
+  'completed',
+  'canceled',
+]);
+export const reachLevelSchema = z.enum(['level_1', 'level_2', 'level_3']);
+export const missionApplicationStatusSchema = z.enum([
+  'submitted',
+  'accepted',
+  'withdrawn',
+  'rejected',
+  'expired',
+  'canceled',
+]);
+export const slotReservationStatusSchema = z.enum(['active', 'converted', 'released', 'expired']);
+
+export const missionApplicationConflictCodeSchema = z.enum([
+  'APPLICATION_ACCESS_DENIED',
+  'APPLICATION_ALREADY_EXISTS',
+  'APPLICATION_NOT_FOUND',
+  'APPLICATION_TRANSITION_CONFLICT',
+  'CAMPAIGN_CONTRACT_INCOMPLETE',
+  'CAMPAIGN_NOT_AVAILABLE',
+  'CREATOR_NOT_QUALIFIED',
+  'MISSION_CAPACITY_FULL',
+]);
+
+export const missionApplicationRecordSchema = z.object({
+  campaignId: z.uuid(),
+  creatorUserId: z.uuid(),
+  id: z.uuid(),
+  publicId: z.string().min(1),
+  reservedSlotId: z.uuid(),
+  slotType: missionSlotTypeSchema,
+  status: missionApplicationStatusSchema,
+  version: z.int().positive(),
+});
+
 export const identityTenantConflictCodeSchema = z.enum([
   'BUSINESS_ACCESS_DENIED',
   'IDENTITY_ALREADY_BOUND',
@@ -99,5 +148,13 @@ export type HealthStatus = z.infer<typeof healthStatusSchema>;
 export type IdentityProvider = z.infer<typeof identityProviderSchema>;
 export type IdentityTenantConflictCode = z.infer<typeof identityTenantConflictCodeSchema>;
 export type LocalityStatus = z.infer<typeof localityStatusSchema>;
+export type MissionApplicationConflictCode = z.infer<typeof missionApplicationConflictCodeSchema>;
+export type MissionApplicationRecord = z.infer<typeof missionApplicationRecordSchema>;
+export type MissionApplicationStatus = z.infer<typeof missionApplicationStatusSchema>;
+export type MissionSlotStatus = z.infer<typeof missionSlotStatusSchema>;
+export type MissionSlotType = z.infer<typeof missionSlotTypeSchema>;
+export type MissionTemplateCode = z.infer<typeof missionTemplateCodeSchema>;
 export type PayoutOnboardingStatus = z.infer<typeof payoutOnboardingStatusSchema>;
+export type ReachLevel = z.infer<typeof reachLevelSchema>;
+export type SlotReservationStatus = z.infer<typeof slotReservationStatusSchema>;
 export type UserStatus = z.infer<typeof userStatusSchema>;

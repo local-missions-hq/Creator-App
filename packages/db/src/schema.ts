@@ -61,6 +61,37 @@ export const businessMembershipStatus = pgEnum('business_membership_status', [
   'active',
   'disabled',
 ]);
+export const missionTemplateCode = pgEnum('mission_template_code', [
+  'visit_create',
+  'visit_share',
+  'event_attendance',
+  'private_experience_feedback',
+]);
+export const missionTemplateStatus = pgEnum('mission_template_status', ['active', 'retired']);
+export const missionSlotType = pgEnum('mission_slot_type', ['community', 'reach']);
+export const missionSlotStatus = pgEnum('mission_slot_status', [
+  'available',
+  'reserved',
+  'accepted',
+  'in_progress',
+  'completed',
+  'canceled',
+]);
+export const reachLevel = pgEnum('reach_level', ['level_1', 'level_2', 'level_3']);
+export const missionApplicationStatus = pgEnum('mission_application_status', [
+  'submitted',
+  'accepted',
+  'withdrawn',
+  'rejected',
+  'expired',
+  'canceled',
+]);
+export const slotReservationStatus = pgEnum('slot_reservation_status', [
+  'active',
+  'converted',
+  'released',
+  'expired',
+]);
 
 export const users = pgTable(
   'users',
@@ -263,6 +294,190 @@ export const campaignStatusHistory = pgTable(
   ],
 );
 
+export const missionTemplates = pgTable(
+  'mission_templates',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    code: missionTemplateCode('code').notNull(),
+    version: integer('version').notNull(),
+    name: text('name').notNull(),
+    checklistSchema: jsonb('checklist_schema').$type<Record<string, unknown>>().notNull(),
+    status: missionTemplateStatus('status').default('active').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('mission_templates_code_version_uq').on(table.code, table.version),
+    check('mission_templates_version_positive_ck', sql`${table.version} > 0`),
+    check('mission_templates_name_nonempty_ck', sql`length(btrim(${table.name})) > 0`),
+  ],
+);
+
+export const campaignBriefVersions = pgTable(
+  'campaign_brief_versions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'restrict' }),
+    version: integer('version').notNull(),
+    missionTemplateId: uuid('mission_template_id')
+      .notNull()
+      .references(() => missionTemplates.id, { onDelete: 'restrict' }),
+    plainLanguageBrief: text('plain_language_brief').notNull(),
+    checklist: jsonb('checklist').$type<Record<string, unknown>>().notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('campaign_brief_versions_campaign_version_uq').on(table.campaignId, table.version),
+    index('campaign_brief_versions_template_idx').on(table.missionTemplateId),
+    check('campaign_brief_versions_version_positive_ck', sql`${table.version} > 0`),
+    check(
+      'campaign_brief_versions_plain_brief_nonempty_ck',
+      sql`length(btrim(${table.plainLanguageBrief})) > 0`,
+    ),
+  ],
+);
+
+export const missionSlots = pgTable(
+  'mission_slots',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'restrict' }),
+    ordinal: integer('ordinal').notNull(),
+    type: missionSlotType('type').notNull(),
+    status: missionSlotStatus('status').default('available').notNull(),
+    baseRewardMinor: integer('base_reward_minor').notNull(),
+    bonusRewardMinor: integer('bonus_reward_minor').default(0).notNull(),
+    rewardMinor: integer('reward_minor').notNull(),
+    reachLevel: reachLevel('reach_level'),
+    currency: text('currency').default('USD').notNull(),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('mission_slots_public_id_uq').on(table.publicId),
+    uniqueIndex('mission_slots_campaign_ordinal_uq').on(table.campaignId, table.ordinal),
+    index('mission_slots_campaign_status_type_idx').on(table.campaignId, table.status, table.type),
+    check('mission_slots_ordinal_positive_ck', sql`${table.ordinal} > 0`),
+    check('mission_slots_base_reward_positive_ck', sql`${table.baseRewardMinor} > 0`),
+    check('mission_slots_bonus_nonnegative_ck', sql`${table.bonusRewardMinor} >= 0`),
+    check(
+      'mission_slots_reward_total_ck',
+      sql`${table.rewardMinor} = ${table.baseRewardMinor} + ${table.bonusRewardMinor}`,
+    ),
+    check(
+      'mission_slots_community_reach_ck',
+      sql`(
+        ${table.type} = 'community' AND ${table.reachLevel} IS NULL AND ${table.bonusRewardMinor} = 0
+      ) OR (
+        ${table.type} = 'reach' AND ${table.reachLevel} IS NOT NULL AND ${table.bonusRewardMinor} > 0
+      )`,
+    ),
+    check(
+      'mission_slots_reach_bonus_ck',
+      sql`${table.type} = 'community' OR (
+        (${table.reachLevel} = 'level_1' AND ${table.bonusRewardMinor} * 2 = ${table.baseRewardMinor}) OR
+        (${table.reachLevel} = 'level_2' AND ${table.bonusRewardMinor} = ${table.baseRewardMinor}) OR
+        (${table.reachLevel} = 'level_3' AND ${table.bonusRewardMinor} = ${table.baseRewardMinor} * 2)
+      )`,
+    ),
+    check('mission_slots_currency_iso_ck', sql`${table.currency} ~ '^[A-Z]{3}$'`),
+    check('mission_slots_version_positive_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const missionApplications = pgTable(
+  'mission_applications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'restrict' }),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    status: missionApplicationStatus('status').default('submitted').notNull(),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('mission_applications_public_id_uq').on(table.publicId),
+    uniqueIndex('mission_applications_campaign_creator_uq').on(
+      table.campaignId,
+      table.creatorUserId,
+    ),
+    index('mission_applications_campaign_status_idx').on(table.campaignId, table.status),
+    check('mission_applications_version_positive_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const slotReservations = pgTable(
+  'slot_reservations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    missionSlotId: uuid('mission_slot_id')
+      .notNull()
+      .references(() => missionSlots.id, { onDelete: 'restrict' }),
+    applicationId: uuid('application_id')
+      .notNull()
+      .references(() => missionApplications.id, { onDelete: 'restrict' }),
+    status: slotReservationStatus('status').default('active').notNull(),
+    reservedAt: timestamp('reserved_at', { withTimezone: true }).defaultNow().notNull(),
+    releasedAt: timestamp('released_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('slot_reservations_application_uq').on(table.applicationId),
+    uniqueIndex('slot_reservations_live_slot_uq')
+      .on(table.missionSlotId)
+      .where(sql`${table.status} IN ('active', 'converted')`),
+    index('slot_reservations_slot_status_idx').on(table.missionSlotId, table.status),
+    check(
+      'slot_reservations_release_ck',
+      sql`(${table.status} IN ('active', 'converted') AND ${table.releasedAt} IS NULL) OR
+          (${table.status} IN ('released', 'expired') AND ${table.releasedAt} IS NOT NULL)`,
+    ),
+  ],
+);
+
+export const missionApplicationStatusHistory = pgTable(
+  'mission_application_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    applicationId: uuid('application_id')
+      .notNull()
+      .references(() => missionApplications.id, { onDelete: 'restrict' }),
+    fromStatus: missionApplicationStatus('from_status'),
+    toStatus: missionApplicationStatus('to_status').notNull(),
+    applicationVersion: integer('application_version').notNull(),
+    actorId: uuid('actor_id').notNull(),
+    reason: text('reason'),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('mission_application_status_history_version_uq').on(
+      table.applicationId,
+      table.applicationVersion,
+    ),
+    index('mission_application_status_history_timeline_idx').on(
+      table.applicationId,
+      table.occurredAt,
+    ),
+    check(
+      'mission_application_status_history_version_positive_ck',
+      sql`${table.applicationVersion} > 0`,
+    ),
+  ],
+);
+
 export const auditEvents = pgTable(
   'audit_events',
   {
@@ -309,6 +524,12 @@ export const initialSchemaTables = [
   'business_locations',
   'campaigns',
   'campaign_status_history',
+  'mission_templates',
+  'campaign_brief_versions',
+  'mission_slots',
+  'mission_applications',
+  'slot_reservations',
+  'mission_application_status_history',
   'audit_events',
   'idempotency_records',
 ] as const;

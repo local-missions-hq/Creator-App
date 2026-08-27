@@ -1,10 +1,12 @@
 import { Pool } from 'pg';
 
 import { CampaignStore } from '../src/campaign-store.js';
+import { MissionApplicationStore } from '../src/mission-application-store.js';
 import { getLocalDatabaseUrl } from './local-database.js';
 
 const pool = new Pool({ connectionString: getLocalDatabaseUrl() });
 const store = new CampaignStore(pool);
+const missionStore = new MissionApplicationStore(pool);
 
 try {
   const client = await pool.connect();
@@ -67,6 +69,19 @@ try {
        ) ON CONFLICT (public_id) DO NOTHING`,
       [businessId],
     );
+    await client.query(
+      `INSERT INTO mission_templates (id, code, version, name, checklist_schema) VALUES
+         ('21000000-0000-4000-8000-000000000001', 'visit_create', 1, 'Visit & Create',
+          '{"type":"object","required":["photos","clips"]}'::jsonb),
+         ('21000000-0000-4000-8000-000000000002', 'visit_share', 1, 'Visit & Share',
+          '{"type":"object","required":["platform","post"]}'::jsonb),
+         ('21000000-0000-4000-8000-000000000003', 'event_attendance', 1, 'Event Attendance',
+          '{"type":"object","required":["attendanceMinutes"]}'::jsonb),
+         ('21000000-0000-4000-8000-000000000004', 'private_experience_feedback', 1,
+          'Private Experience Feedback',
+          '{"type":"object","required":["responses"]}'::jsonb)
+       ON CONFLICT (code, version) DO NOTHING`,
+    );
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');
@@ -76,11 +91,12 @@ try {
   }
 
   const existingCampaign = await pool.query<{
+    id: string;
     public_id: string;
     status: 'draft';
     version: number;
   }>(
-    `SELECT public_id, status, version
+    `SELECT id, public_id, status, version
        FROM campaigns
       WHERE public_id = 'cmp_orlando_synthetic_001'`,
   );
@@ -100,8 +116,34 @@ try {
       totalDueMinor: 57_500,
     }));
 
+  const campaignId = campaign.id;
+  const existingSlots = await pool.query<{ count: string }>(
+    `SELECT count(*)::text AS count FROM mission_slots WHERE campaign_id = $1`,
+    [campaignId],
+  );
+  if (existingSlots.rows[0]?.count === '0') {
+    await missionStore.configureCampaignContract({
+      actorUserId: '10000000-0000-4000-8000-000000000001',
+      campaignId,
+      checklist: { clips: 2, photos: 5 },
+      correlationId: '30000000-0000-4000-8000-000000000002',
+      missionTemplateCode: 'visit_create',
+      missionTemplateVersion: 1,
+      plainLanguageBrief:
+        'Visit the synthetic Orlando venue and create five photos and two short vertical clips.',
+      slots: Array.from({ length: 10 }, (_, index) => ({
+        baseRewardMinor: 5_000,
+        bonusRewardMinor: 0,
+        currency: 'USD',
+        ordinal: index + 1,
+        publicId: `slot_orlando_synthetic_${String(index + 1).padStart(2, '0')}`,
+        type: 'community' as const,
+      })),
+    });
+  }
+
   process.stdout.write(
-    `Seeded synthetic shared user, creator profile, business workspace, location, and campaign ${'publicId' in campaign ? campaign.publicId : campaign.public_id} in ${campaign.status} at version ${campaign.version}.\n`,
+    `Seeded synthetic shared user, creator profile, business workspace, four mission templates, versioned brief, 10 Community Slots, and campaign ${'publicId' in campaign ? campaign.publicId : campaign.public_id} in ${campaign.status} at version ${campaign.version}.\n`,
   );
 } finally {
   await pool.end();

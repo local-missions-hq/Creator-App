@@ -1,9 +1,10 @@
 # M03 database and state-machine evidence
 
-Status: Campaign-lifecycle and shared-identity/tenant slices passed; M3 overall remains in progress
+Status: Campaign lifecycle, shared identity/tenant, and mission contract/capacity slices passed; M3 overall remains in progress
 Date: 2026-08-27  
 Checkpoint: `M03-campaign-lifecycle-001`, implementation commit `87ba940`
 Shared identity checkpoint: `M03-shared-identity-tenant-002`, implementation commit `8ef7b08`
+Mission capacity checkpoint: `M03-mission-contract-capacity-003`
 Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Implemented in this checkpoint
@@ -33,8 +34,12 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Running the upgraded synthetic seed twice retained the same campaign at version 1. `db:check` verified all ten tables plus the synthetic shared identity, creator profile, owner membership, Orlando location, and `$500.00 + $75.00 = $575.00` campaign.
 - JUnit evidence: [`test-results/campaign-store-junit.xml`](./test-results/campaign-store-junit.xml).
 - Identity/tenant JUnit evidence: [`test-results/tenant-store-junit.xml`](./test-results/tenant-store-junit.xml).
+- Six mission-contract/capacity tests passed against real PostgreSQL: forward preservation and no-follower schema, 80% Community rollback, same-creator duplicate race, six-creators-for-three-slots capacity race, withdrawal/replacement behavior, and cross-business acceptance denial.
+- The latest deterministic seed contains all four templates, one versioned brief, and ten Community Slots totaling the `$500.00` Creator Reward Pool. Repeating the seed does not duplicate any contract row; `db:check` verifies all 16 tables.
+- Mission/capacity JUnit evidence: [`test-results/mission-application-store-junit.xml`](./test-results/mission-application-store-junit.xml).
 - Migration: [`../../../packages/db/drizzle/0000_giant_snowbird.sql`](../../../packages/db/drizzle/0000_giant_snowbird.sql).
 - Forward migration: [`../../../packages/db/drizzle/0001_empty_tyrannus.sql`](../../../packages/db/drizzle/0001_empty_tyrannus.sql).
+- Mission/capacity migration: [`../../../packages/db/drizzle/0002_material_rachel_grey.sql`](../../../packages/db/drizzle/0002_material_rachel_grey.sql).
 
 ## Privacy and safety
 
@@ -45,6 +50,6 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Known limitations and M3 gate
 
-These are two complete transactional slices, not the full M3 schema or API. Mission templates/slots/applications, check-in, submission/media, dispute, payment ledger, Local Pass, consent/rights, notification/outbox, raw-proof retention, Venue Staff assignments, and remaining audit records are not implemented yet. The `/v1` API, OpenAPI/client generation, a latest-schema empty-database proof, full capacity/overbooking matrix, and complete state-transition tables remain open.
+These are three complete transactional slices, not the full M3 schema or API. Check-in, submission/media, dispute, payment ledger, Local Pass, consent/rights, notification/outbox, raw-proof retention, Venue Staff assignments, Reach analytics qualification, and remaining audit records are not implemented yet. The `/v1` API, OpenAPI/client generation, a latest-schema empty-database proof, and complete state-transition tables remain open.
 
 The M3 milestone gate has not passed. No broad M3 checklist item is marked complete by this checkpoint; `plans.md` records this smaller completed slice separately.

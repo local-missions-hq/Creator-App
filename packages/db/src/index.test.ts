@@ -13,6 +13,12 @@ describe('initial schema', () => {
       'business_locations',
       'campaigns',
       'campaign_status_history',
+      'mission_templates',
+      'campaign_brief_versions',
+      'mission_slots',
+      'mission_applications',
+      'slot_reservations',
+      'mission_application_status_history',
       'audit_events',
       'idempotency_records',
     ]);

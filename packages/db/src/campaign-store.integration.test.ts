@@ -7,11 +7,13 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { getLocalDatabaseUrl } from '../scripts/local-database.js';
 import { CampaignStore } from './campaign-store.js';
+import { MissionApplicationStore } from './mission-application-store.js';
 import { IdentityTenantStore } from './tenant-store.js';
 
 const migrationPaths = [
   fileURLToPath(new URL('../drizzle/0000_giant_snowbird.sql', import.meta.url)),
   fileURLToPath(new URL('../drizzle/0001_empty_tyrannus.sql', import.meta.url)),
+  fileURLToPath(new URL('../drizzle/0002_material_rachel_grey.sql', import.meta.url)),
 ];
 const databaseName = `local_missions_m3_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
@@ -23,6 +25,7 @@ testUrl.pathname = `/${databaseName}`;
 const adminPool = new Pool({ connectionString: adminUrl.toString(), max: 1 });
 let pool: Pool;
 let store: CampaignStore;
+let missionStore: MissionApplicationStore;
 let tenantStore: IdentityTenantStore;
 
 async function createCampaign(overrides: { idempotencyKey?: string; publicId?: string } = {}) {
@@ -39,6 +42,23 @@ async function createCampaign(overrides: { idempotencyKey?: string; publicId?: s
     slotCount: 10,
     title: 'Family Adventure Preview',
     totalDueMinor: 57_500,
+  });
+  await missionStore.configureCampaignContract({
+    actorUserId: actorId,
+    campaignId: campaign.id,
+    checklist: { clips: 2, photos: 5 },
+    correlationId: randomUUID(),
+    missionTemplateCode: 'visit_create',
+    missionTemplateVersion: 1,
+    plainLanguageBrief: 'Visit the synthetic venue and create original local content.',
+    slots: Array.from({ length: 10 }, (_, index) => ({
+      baseRewardMinor: 5_000,
+      bonusRewardMinor: 0,
+      currency: 'USD',
+      ordinal: index + 1,
+      publicId: `slot_${campaign.id}_${index + 1}`,
+      type: 'community' as const,
+    })),
   });
   return { actorId, campaign };
 }
@@ -91,23 +111,26 @@ beforeAll(async () => {
     }
   }
   store = new CampaignStore(pool);
+  missionStore = new MissionApplicationStore(pool);
   tenantStore = new IdentityTenantStore(pool);
 }, 30_000);
 
 beforeEach(async () => {
   await pool.query(
-    `TRUNCATE idempotency_records, audit_events, campaign_status_history, campaigns,
+    `TRUNCATE idempotency_records, audit_events, mission_application_status_history,
+              slot_reservations, mission_applications, mission_slots, campaign_brief_versions,
+              campaign_status_history, campaigns, mission_templates,
               business_locations, business_memberships, creator_profiles, external_identities,
               businesses, users CASCADE`,
+  );
+  await pool.query(
+    `INSERT INTO mission_templates (code, version, name, checklist_schema)
+     VALUES ('visit_create', 1, 'Visit & Create', '{"type":"object"}'::jsonb)`,
   );
 });
 
 afterAll(async () => {
   if (pool) await pool.end();
-  await adminPool.query(
-    `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()`,
-    [databaseName],
-  );
   await adminPool.query(`DROP DATABASE IF EXISTS "${databaseName}"`);
   await adminPool.end();
 });
@@ -203,7 +226,7 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
 
     expect(campaign).toMatchObject({ status: 'published', version: 5 });
     expect(await countRows('campaign_status_history', campaign.id)).toBe(5);
-    expect(await countCampaignAudits(campaign.id)).toBe(5);
+    expect(await countCampaignAudits(campaign.id)).toBe(6);
 
     await expect(
       store.transitionCampaign({
@@ -222,7 +245,7 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
       version: 5,
     });
     expect(await countRows('campaign_status_history', campaign.id)).toBe(5);
-    expect(await countCampaignAudits(campaign.id)).toBe(5);
+    expect(await countCampaignAudits(campaign.id)).toBe(6);
     expect(await countRows('idempotency_records')).toBe(5);
   });
 
@@ -252,7 +275,7 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
       version: 2,
     });
     expect(await countRows('campaign_status_history', campaign.id)).toBe(2);
-    expect(await countCampaignAudits(campaign.id)).toBe(2);
+    expect(await countCampaignAudits(campaign.id)).toBe(3);
     expect(await countRows('idempotency_records')).toBe(2);
   });
 });

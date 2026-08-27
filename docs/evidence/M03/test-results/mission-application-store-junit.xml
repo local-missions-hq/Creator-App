@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="6" failures="0" errors="0" time="0.408408375">
+    <testsuite name="src/mission-application-store.integration.test.ts" timestamp="2026-08-27T14:54:01.815Z" hostname="local-development-host" tests="6" failures="0" errors="0" skipped="0" time="0.408408375">
+        <testcase classname="src/mission-application-store.integration.test.ts" name="mission contracts and capacity against real PostgreSQL &gt; preserves prior data, creates the complete slice, and contains no follower field" time="0.014936">
+        </testcase>
+        <testcase classname="src/mission-application-store.integration.test.ts" name="mission contracts and capacity against real PostgreSQL &gt; rolls back slot contracts that violate the 80 percent Community floor" time="0.026786292">
+        </testcase>
+        <testcase classname="src/mission-application-store.integration.test.ts" name="mission contracts and capacity against real PostgreSQL &gt; allows only one application and reservation when the same creator races twice" time="0.052392042">
+        </testcase>
+        <testcase classname="src/mission-application-store.integration.test.ts" name="mission contracts and capacity against real PostgreSQL &gt; never overbooks Community capacity under parallel qualified applications" time="0.061413833">
+        </testcase>
+        <testcase classname="src/mission-application-store.integration.test.ts" name="mission contracts and capacity against real PostgreSQL &gt; releases a withdrawn slot for a replacement but never lets one creator apply twice" time="0.05623125">
+        </testcase>
+        <testcase classname="src/mission-application-store.integration.test.ts" name="mission contracts and capacity against real PostgreSQL &gt; keeps application acceptance inside the correct business tenant" time="0.052511">
+        </testcase>
+    </testsuite>
+</testsuites>
