@@ -26,6 +26,11 @@ const migration0005 = fileURLToPath(
   new URL('../drizzle/0005_huge_agent_brand.sql', import.meta.url),
 );
 const migration0006 = fileURLToPath(new URL('../drizzle/0006_dapper_mordo.sql', import.meta.url));
+const currentSchemaMigrations = [
+  '0007_thick_sharon_ventura.sql',
+  '0008_fair_sheva_callister.sql',
+  '0009_nifty_scorpion.sql',
+].map((name) => fileURLToPath(new URL(`../drizzle/${name}`, import.meta.url)));
 const databaseName = `local_missions_m3_dispute_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
 const adminUrl = new URL(baseUrl);
@@ -468,6 +473,7 @@ beforeAll(async () => {
     submissionPublicId: row.submission_public_id,
   };
   await applyMigration(migration0006);
+  for (const migration of currentSchemaMigrations) await applyMigration(migration);
   ledgerStore = new LedgerStore(pool);
   disputeStore = new DisputeStore(pool);
 }, 30_000);

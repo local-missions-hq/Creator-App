@@ -1,6 +1,6 @@
 # M03 database and state-machine evidence
 
-Status: Campaign lifecycle, shared identity/tenant, mission contract/capacity, accepted-mission/check-in, submission/review, dispute/resolution, immutable-ledger, and Local Pass slices passed; M3 overall remains in progress
+Status: Campaign lifecycle, shared identity/tenant, mission contract/capacity, accepted-mission/check-in, submission/review, dispute/resolution, immutable-ledger, Local Pass, and content-rights slices passed; M3 overall remains in progress
 Date: 2026-08-27  
 Checkpoint: `M03-campaign-lifecycle-001`, implementation commit `87ba940`
 Shared identity checkpoint: `M03-shared-identity-tenant-002`, implementation commit `8ef7b08`
@@ -10,6 +10,7 @@ Submission checkpoint: `M03-submission-review-005`
 Dispute checkpoint: `M03-dispute-resolution-006`
 Ledger checkpoint: `M03-immutable-ledger-007`
 Local Pass checkpoint: `M03-local-pass-008`
+Content rights checkpoint: `M03-content-rights-009`
 Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Implemented in this checkpoint
@@ -48,7 +49,7 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Seven deliverable-submission/review tests passed against real PostgreSQL: checked-in-assignment upgrade/backfill and privacy schema inspection, objective-contract enforcement, pre-check-in rollback, missing/quarantined/invalid media rollback, duplicate-completion concurrency, tenant review plus one bounded correction, and server-time auto-approval concurrency.
 - The latest deterministic seed contains two locked Visit & Create requirements—five photos and two 5–15-second vertical clips. Repeating the seed does not duplicate them; `db:check` verifies all 29 tables.
 - Submission/review JUnit evidence: [`test-results/submission-store-junit.xml`](./test-results/submission-store-junit.xml).
-- The combined M3 suite now passes 52 real-PostgreSQL tests. `pnpm verify` passes all workspace gates, the security scan passes 283 text files, Gitleaks finds no leak in approximately 7.66 MB, `db:check` verifies 49 tables, and `drizzle-kit check` reports a consistent eight-migration journal.
+- The combined M3 suite now passes 58 real-PostgreSQL tests. `pnpm verify` passes all workspace gates, the security scan passes 290 text files, Gitleaks finds no leak in approximately 8.42 MB, `db:check` verifies 56 tables, and `drizzle-kit check` reports a consistent ten-migration journal.
 - Eight dispute/resolution tests passed against real PostgreSQL: approved-submission preservation plus full-payable-intent backfill and privacy/economic schema inspection, cross-business and subjective-reason rollback, creator correction dispute, server-time expiry, cross-mission evidence rejection plus duplicate race, approval/dispute race, independent full-reward resolution, and one-winner no-payout resolution.
 - Resolution is all-or-nothing: the database records only a pending full creator-payable intent or pending full slot-refund intent. No dispute table or financial intent contains a manually editable amount, and no payment provider is contacted.
 - Dispute/resolution JUnit evidence: [`test-results/dispute-store-junit.xml`](./test-results/dispute-store-junit.xml).
@@ -58,6 +59,10 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Five Local Pass tests passed against real PostgreSQL: forward migration/privacy/immutability, first-valid creator attribution under a duplicate-customer race, final-inventory one-winner behavior plus future-claim pause, rotating-token/wrong-venue/authorization/replay enforcement, and seven-day unredeemed inventory release.
 - Opaque creator links and rotating claim tokens retain only hashes. The customer boundary retains only a versioned HMAC-style synthetic deduplication token; no phone, email, IP, device identifier, or raw token exists in the Local Pass schema. Evidence is limited to `link_open`, `pass_claimed`, and `verified_pass_redemption` and never changes mission, reward, reliability, Reach, or financial state.
 - Local Pass JUnit evidence: [`test-results/local-pass-store-junit.xml`](./test-results/local-pass-store-junit.xml).
+- Six content-rights tests passed against real PostgreSQL: forward migration and immutable hash-only legal documents, fixed add-on economics and exact-Creator consent, no-rights failure states, concurrent idempotent activation with scoped Business reads, no-content rejection, and server-time expiry without renewal.
+- The included 90-day organic license is fixed to accepted assets on Business-owned social. Optional 12-month owned-media and 30-day paid-ad licenses add 50% and 100% of the base reward respectively. Community Slots can receive these contract add-ons without becoming Reach Slots or adding a follower gate.
+- Rights activation requires final objective approval and the full Creator-payable obligation. Incomplete, unpaid, canceled, and final no-payout/refund-obligation workflows create no license. No provider call, live-money action, external message, ownership transfer, exclusivity, sublicensing, AI training, synthetic media, or face/voice cloning right exists.
+- Content-rights JUnit evidence: [`test-results/rights-store-junit.xml`](./test-results/rights-store-junit.xml).
 - Migration: [`../../../packages/db/drizzle/0000_giant_snowbird.sql`](../../../packages/db/drizzle/0000_giant_snowbird.sql).
 - Forward migration: [`../../../packages/db/drizzle/0001_empty_tyrannus.sql`](../../../packages/db/drizzle/0001_empty_tyrannus.sql).
 - Mission/capacity migration: [`../../../packages/db/drizzle/0002_material_rachel_grey.sql`](../../../packages/db/drizzle/0002_material_rachel_grey.sql).
@@ -66,6 +71,8 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Dispute/resolution migration: [`../../../packages/db/drizzle/0005_huge_agent_brand.sql`](../../../packages/db/drizzle/0005_huge_agent_brand.sql).
 - Immutable-ledger/provider-reference migration: [`../../../packages/db/drizzle/0006_dapper_mordo.sql`](../../../packages/db/drizzle/0006_dapper_mordo.sql).
 - Local Pass migration: [`../../../packages/db/drizzle/0007_thick_sharon_ventura.sql`](../../../packages/db/drizzle/0007_thick_sharon_ventura.sql).
+- Content-rights migration: [`../../../packages/db/drizzle/0008_fair_sheva_callister.sql`](../../../packages/db/drizzle/0008_fair_sheva_callister.sql).
+- Slot bonus-component migration: [`../../../packages/db/drizzle/0009_nifty_scorpion.sql`](../../../packages/db/drizzle/0009_nifty_scorpion.sql).
 
 ## Privacy and safety
 
@@ -76,6 +83,6 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Known limitations and M3 gate
 
-These are eight complete transactional slices, not the full M3 schema or API. Local Pass OTP/recovery/refusal/reporting edges, consent/rights, notification/outbox, raw-proof retention jobs, Reach analytics qualification, and remaining audit records are not implemented yet. Stripe execution, webhook processing, transfers, refunds, payouts, chargebacks, reserve controls, and provider reconciliation remain M12 work; the ledger checkpoint records internal obligations only. Cloud upload intents and media workers remain later M10 work. The `/v1` API, OpenAPI/client generation, a latest-schema empty-database proof, and complete state-transition tables remain open. Physical camera/location execution remains the later M9 gate rather than part of this local state-machine checkpoint.
+These are nine complete transactional slices, not the full M3 schema or API. Local Pass OTP/recovery/refusal/reporting edges, rights renewal operations, notification/outbox, raw-proof retention jobs, Reach analytics qualification, and remaining audit records are not implemented yet. Stripe execution, webhook processing, transfers, refunds, payouts, chargebacks, reserve controls, and provider reconciliation remain M12 work; the ledger checkpoint records internal obligations only. Cloud upload intents and media workers remain later M10 work. The `/v1` API, OpenAPI/client generation, a latest-schema empty-database proof, and complete state-transition tables remain open. Physical camera/location execution remains the later M9 gate rather than part of this local state-machine checkpoint.
 
 The M3 milestone gate has not passed. No broad M3 checklist item is marked complete by this checkpoint; `plans.md` records this smaller completed slice separately.

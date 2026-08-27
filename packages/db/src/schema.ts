@@ -269,6 +269,27 @@ export const localPassFulfillmentKind = pgEnum('local_pass_fulfillment_kind', [
   'preapproved_substitute',
   'customer_accepted_substitute',
 ]);
+export const legalDocumentType = pgEnum('legal_document_type', [
+  'creator_terms',
+  'sponsorship_disclosure',
+]);
+export const contentLicenseKind = pgEnum('content_license_kind', [
+  'organic_owned_social_90d',
+  'extended_owned_media_12m',
+  'paid_advertising_30d',
+]);
+export const contentLicenseStatus = pgEnum('content_license_status', [
+  'active',
+  'expired',
+  'suspended',
+  'revoked',
+]);
+export const contentLicenseChannel = pgEnum('content_license_channel', [
+  'owned_social',
+  'business_website',
+  'business_email',
+  'paid_advertising',
+]);
 
 export const users = pgTable(
   'users',
@@ -602,6 +623,8 @@ export const missionSlots = pgTable(
     type: missionSlotType('type').notNull(),
     status: missionSlotStatus('status').default('available').notNull(),
     baseRewardMinor: integer('base_reward_minor').notNull(),
+    reachBonusMinor: integer('reach_bonus_minor').default(0).notNull(),
+    contractAddOnBonusMinor: integer('contract_add_on_bonus_minor').default(0).notNull(),
     bonusRewardMinor: integer('bonus_reward_minor').default(0).notNull(),
     rewardMinor: integer('reward_minor').notNull(),
     reachLevel: reachLevel('reach_level'),
@@ -616,7 +639,15 @@ export const missionSlots = pgTable(
     index('mission_slots_campaign_status_type_idx').on(table.campaignId, table.status, table.type),
     check('mission_slots_ordinal_positive_ck', sql`${table.ordinal} > 0`),
     check('mission_slots_base_reward_positive_ck', sql`${table.baseRewardMinor} > 0`),
-    check('mission_slots_bonus_nonnegative_ck', sql`${table.bonusRewardMinor} >= 0`),
+    check(
+      'mission_slots_bonus_nonnegative_ck',
+      sql`${table.reachBonusMinor} >= 0 AND ${table.contractAddOnBonusMinor} >= 0
+          AND ${table.bonusRewardMinor} >= 0`,
+    ),
+    check(
+      'mission_slots_bonus_components_ck',
+      sql`${table.bonusRewardMinor} = ${table.reachBonusMinor} + ${table.contractAddOnBonusMinor}`,
+    ),
     check(
       'mission_slots_reward_total_ck',
       sql`${table.rewardMinor} = ${table.baseRewardMinor} + ${table.bonusRewardMinor}`,
@@ -624,17 +655,17 @@ export const missionSlots = pgTable(
     check(
       'mission_slots_community_reach_ck',
       sql`(
-        ${table.type} = 'community' AND ${table.reachLevel} IS NULL AND ${table.bonusRewardMinor} = 0
+        ${table.type} = 'community' AND ${table.reachLevel} IS NULL AND ${table.reachBonusMinor} = 0
       ) OR (
-        ${table.type} = 'reach' AND ${table.reachLevel} IS NOT NULL AND ${table.bonusRewardMinor} > 0
+        ${table.type} = 'reach' AND ${table.reachLevel} IS NOT NULL AND ${table.reachBonusMinor} > 0
       )`,
     ),
     check(
       'mission_slots_reach_bonus_ck',
       sql`${table.type} = 'community' OR (
-        (${table.reachLevel} = 'level_1' AND ${table.bonusRewardMinor} * 2 = ${table.baseRewardMinor}) OR
-        (${table.reachLevel} = 'level_2' AND ${table.bonusRewardMinor} = ${table.baseRewardMinor}) OR
-        (${table.reachLevel} = 'level_3' AND ${table.bonusRewardMinor} = ${table.baseRewardMinor} * 2)
+        (${table.reachLevel} = 'level_1' AND ${table.reachBonusMinor} * 2 = ${table.baseRewardMinor}) OR
+        (${table.reachLevel} = 'level_2' AND ${table.reachBonusMinor} = ${table.baseRewardMinor}) OR
+        (${table.reachLevel} = 'level_3' AND ${table.reachBonusMinor} = ${table.baseRewardMinor} * 2)
       )`,
     ),
     check('mission_slots_currency_iso_ck', sql`${table.currency} ~ '^[A-Z]{3}$'`),
@@ -1947,6 +1978,294 @@ export const localPassAttributionEvents = pgTable(
   ],
 );
 
+export const legalDocumentVersions = pgTable(
+  'legal_document_versions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    type: legalDocumentType('type').notNull(),
+    version: integer('version').notNull(),
+    title: text('title').notNull(),
+    bodySha256: text('body_sha256').notNull(),
+    effectiveAt: timestamp('effective_at', { withTimezone: true }).notNull(),
+    publishedByUserId: uuid('published_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('legal_document_versions_public_id_uq').on(table.publicId),
+    uniqueIndex('legal_document_versions_type_version_uq').on(table.type, table.version),
+    uniqueIndex('legal_document_versions_type_hash_uq').on(table.type, table.bodySha256),
+    index('legal_document_versions_type_effective_idx').on(table.type, table.effectiveAt),
+    check('legal_document_versions_version_ck', sql`${table.version} > 0`),
+    check('legal_document_versions_title_ck', sql`length(btrim(${table.title})) > 0`),
+    check('legal_document_versions_hash_ck', sql`${table.bodySha256} ~ '^[a-f0-9]{64}$'`),
+  ],
+);
+
+export const missionRightsOffers = pgTable(
+  'mission_rights_offers',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    missionSlotId: uuid('mission_slot_id')
+      .notNull()
+      .references(() => missionSlots.id, { onDelete: 'restrict' }),
+    campaignBriefVersionId: uuid('campaign_brief_version_id')
+      .notNull()
+      .references(() => campaignBriefVersions.id, { onDelete: 'restrict' }),
+    rightsVersion: integer('rights_version').default(1).notNull(),
+    baseRewardMinorSnapshot: integer('base_reward_minor_snapshot').notNull(),
+    extendedOwnedMediaSelected: boolean('extended_owned_media_selected').default(false).notNull(),
+    extendedOwnedMediaBonusMinor: integer('extended_owned_media_bonus_minor').default(0).notNull(),
+    paidAdvertisingSelected: boolean('paid_advertising_selected').default(false).notNull(),
+    paidAdvertisingBonusMinor: integer('paid_advertising_bonus_minor').default(0).notNull(),
+    totalRightsBonusMinor: integer('total_rights_bonus_minor').default(0).notNull(),
+    currency: text('currency').notNull(),
+    publicDisclosureRequired: boolean('public_disclosure_required').notNull(),
+    createdByUserId: uuid('created_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('mission_rights_offers_public_id_uq').on(table.publicId),
+    uniqueIndex('mission_rights_offers_slot_uq').on(table.missionSlotId),
+    index('mission_rights_offers_brief_idx').on(table.campaignBriefVersionId),
+    check('mission_rights_offers_version_ck', sql`${table.rightsVersion} > 0`),
+    check('mission_rights_offers_base_reward_ck', sql`${table.baseRewardMinorSnapshot} > 0`),
+    check(
+      'mission_rights_offers_extended_bonus_ck',
+      sql`(${table.extendedOwnedMediaSelected} = true
+           AND ${table.extendedOwnedMediaBonusMinor} = ((${table.baseRewardMinorSnapshot} * 50 + 50) / 100)) OR
+          (${table.extendedOwnedMediaSelected} = false AND ${table.extendedOwnedMediaBonusMinor} = 0)`,
+    ),
+    check(
+      'mission_rights_offers_paid_bonus_ck',
+      sql`(${table.paidAdvertisingSelected} = true
+           AND ${table.paidAdvertisingBonusMinor} = ${table.baseRewardMinorSnapshot}) OR
+          (${table.paidAdvertisingSelected} = false AND ${table.paidAdvertisingBonusMinor} = 0)`,
+    ),
+    check(
+      'mission_rights_offers_total_bonus_ck',
+      sql`${table.totalRightsBonusMinor} = ${table.extendedOwnedMediaBonusMinor} + ${table.paidAdvertisingBonusMinor}`,
+    ),
+    check('mission_rights_offers_currency_ck', sql`${table.currency} ~ '^[A-Z]{3}$'`),
+  ],
+);
+
+export const missionContractAcceptances = pgTable(
+  'mission_contract_acceptances',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    missionAssignmentId: uuid('mission_assignment_id')
+      .notNull()
+      .references(() => missionAssignments.id, { onDelete: 'restrict' }),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    campaignBriefVersionId: uuid('campaign_brief_version_id')
+      .notNull()
+      .references(() => campaignBriefVersions.id, { onDelete: 'restrict' }),
+    missionRightsOfferId: uuid('mission_rights_offer_id')
+      .notNull()
+      .references(() => missionRightsOffers.id, { onDelete: 'restrict' }),
+    creatorTermsDocumentId: uuid('creator_terms_document_id')
+      .notNull()
+      .references(() => legalDocumentVersions.id, { onDelete: 'restrict' }),
+    disclosureDocumentId: uuid('disclosure_document_id')
+      .notNull()
+      .references(() => legalDocumentVersions.id, { onDelete: 'restrict' }),
+    compensationAcknowledged: boolean('compensation_acknowledged').notNull(),
+    deliverablesAcknowledged: boolean('deliverables_acknowledged').notNull(),
+    disclosureAcknowledged: boolean('disclosure_acknowledged').notNull(),
+    rightsAcknowledged: boolean('rights_acknowledged').notNull(),
+    acceptedAt: timestamp('accepted_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('mission_contract_acceptances_public_id_uq').on(table.publicId),
+    uniqueIndex('mission_contract_acceptances_assignment_uq').on(table.missionAssignmentId),
+    index('mission_contract_acceptances_creator_timeline_idx').on(
+      table.creatorUserId,
+      table.acceptedAt,
+    ),
+    check(
+      'mission_contract_acceptances_explicit_ck',
+      sql`${table.compensationAcknowledged} = true AND ${table.deliverablesAcknowledged} = true
+          AND ${table.disclosureAcknowledged} = true AND ${table.rightsAcknowledged} = true`,
+    ),
+  ],
+);
+
+export const contentLicenses = pgTable(
+  'content_licenses',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    missionAssignmentId: uuid('mission_assignment_id')
+      .notNull()
+      .references(() => missionAssignments.id, { onDelete: 'restrict' }),
+    missionContractAcceptanceId: uuid('mission_contract_acceptance_id')
+      .notNull()
+      .references(() => missionContractAcceptances.id, { onDelete: 'restrict' }),
+    submissionAttemptId: uuid('submission_attempt_id')
+      .notNull()
+      .references(() => submissionAttempts.id, { onDelete: 'restrict' }),
+    financialActionIntentId: uuid('financial_action_intent_id')
+      .notNull()
+      .references(() => financialActionIntents.id, { onDelete: 'restrict' }),
+    kind: contentLicenseKind('kind').notNull(),
+    status: contentLicenseStatus('status').default('active').notNull(),
+    rightsVersion: integer('rights_version').notNull(),
+    baseRewardMinorSnapshot: integer('base_reward_minor_snapshot').notNull(),
+    compensationComponentMinor: integer('compensation_component_minor').notNull(),
+    currency: text('currency').notNull(),
+    attributionRequired: boolean('attribution_required').default(true).notNull(),
+    nonExclusive: boolean('non_exclusive').default(true).notNull(),
+    thirdPartySublicensingAllowed: boolean('third_party_sublicensing_allowed')
+      .default(false)
+      .notNull(),
+    aiTrainingAllowed: boolean('ai_training_allowed').default(false).notNull(),
+    syntheticMediaAllowed: boolean('synthetic_media_allowed').default(false).notNull(),
+    faceVoiceCloningAllowed: boolean('face_voice_cloning_allowed').default(false).notNull(),
+    permittedEdits: jsonb('permitted_edits').$type<string[]>().notNull(),
+    activatedAt: timestamp('activated_at', { withTimezone: true }).notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    expiredAt: timestamp('expired_at', { withTimezone: true }),
+    suspendedAt: timestamp('suspended_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    version: integer('version').default(1).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('content_licenses_public_id_uq').on(table.publicId),
+    uniqueIndex('content_licenses_assignment_kind_uq').on(table.missionAssignmentId, table.kind),
+    index('content_licenses_status_expiry_idx').on(table.status, table.expiresAt),
+    index('content_licenses_acceptance_idx').on(table.missionContractAcceptanceId),
+    check('content_licenses_rights_version_ck', sql`${table.rightsVersion} > 0`),
+    check('content_licenses_base_reward_ck', sql`${table.baseRewardMinorSnapshot} > 0`),
+    check(
+      'content_licenses_compensation_ck',
+      sql`(${table.kind} = 'organic_owned_social_90d' AND ${table.compensationComponentMinor} = 0) OR
+          (${table.kind} = 'extended_owned_media_12m'
+           AND ${table.compensationComponentMinor} = ((${table.baseRewardMinorSnapshot} * 50 + 50) / 100)) OR
+          (${table.kind} = 'paid_advertising_30d'
+           AND ${table.compensationComponentMinor} = ${table.baseRewardMinorSnapshot})`,
+    ),
+    check('content_licenses_currency_ck', sql`${table.currency} ~ '^[A-Z]{3}$'`),
+    check(
+      'content_licenses_standard_safety_ck',
+      sql`${table.attributionRequired} = true AND ${table.nonExclusive} = true
+          AND ${table.thirdPartySublicensingAllowed} = false AND ${table.aiTrainingAllowed} = false
+          AND ${table.syntheticMediaAllowed} = false AND ${table.faceVoiceCloningAllowed} = false`,
+    ),
+    check(
+      'content_licenses_permitted_edits_ck',
+      sql`${table.permittedEdits} = '["crop","resize","caption","logo_placement","minor_formatting"]'::jsonb`,
+    ),
+    check(
+      'content_licenses_term_ck',
+      sql`(${table.kind} = 'organic_owned_social_90d'
+           AND ${table.expiresAt} = ${table.activatedAt} + interval '90 days') OR
+          (${table.kind} = 'extended_owned_media_12m'
+           AND ${table.expiresAt} = ${table.activatedAt} + interval '12 months') OR
+          (${table.kind} = 'paid_advertising_30d'
+           AND ${table.expiresAt} = ${table.activatedAt} + interval '30 days')`,
+    ),
+    check(
+      'content_licenses_status_shape_ck',
+      sql`(${table.status} = 'active' AND ${table.expiredAt} IS NULL
+           AND ${table.suspendedAt} IS NULL AND ${table.revokedAt} IS NULL) OR
+          (${table.status} = 'expired' AND ${table.expiredAt} IS NOT NULL
+           AND ${table.suspendedAt} IS NULL AND ${table.revokedAt} IS NULL) OR
+          (${table.status} = 'suspended' AND ${table.expiredAt} IS NULL
+           AND ${table.suspendedAt} IS NOT NULL AND ${table.revokedAt} IS NULL) OR
+          (${table.status} = 'revoked' AND ${table.expiredAt} IS NULL
+           AND ${table.revokedAt} IS NOT NULL)`,
+    ),
+    check('content_licenses_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const contentLicenseAssets = pgTable(
+  'content_license_assets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    contentLicenseId: uuid('content_license_id')
+      .notNull()
+      .references(() => contentLicenses.id, { onDelete: 'restrict' }),
+    mediaAssetId: uuid('media_asset_id')
+      .notNull()
+      .references(() => mediaAssets.id, { onDelete: 'restrict' }),
+    position: integer('position').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('content_license_assets_public_id_uq').on(table.publicId),
+    uniqueIndex('content_license_assets_license_asset_uq').on(
+      table.contentLicenseId,
+      table.mediaAssetId,
+    ),
+    uniqueIndex('content_license_assets_license_position_uq').on(
+      table.contentLicenseId,
+      table.position,
+    ),
+    check('content_license_assets_position_ck', sql`${table.position} > 0`),
+  ],
+);
+
+export const contentLicenseChannels = pgTable(
+  'content_license_channels',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    contentLicenseId: uuid('content_license_id')
+      .notNull()
+      .references(() => contentLicenses.id, { onDelete: 'restrict' }),
+    channel: contentLicenseChannel('channel').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('content_license_channels_public_id_uq').on(table.publicId),
+    uniqueIndex('content_license_channels_license_channel_uq').on(
+      table.contentLicenseId,
+      table.channel,
+    ),
+    index('content_license_channels_channel_idx').on(table.channel),
+  ],
+);
+
+export const contentLicenseStatusHistory = pgTable(
+  'content_license_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    contentLicenseId: uuid('content_license_id')
+      .notNull()
+      .references(() => contentLicenses.id, { onDelete: 'restrict' }),
+    fromStatus: contentLicenseStatus('from_status'),
+    toStatus: contentLicenseStatus('to_status').notNull(),
+    licenseVersion: integer('license_version').notNull(),
+    actorId: uuid('actor_id').references(() => users.id, { onDelete: 'restrict' }),
+    actorType: auditActorType('actor_type').notNull(),
+    reason: text('reason'),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('content_license_status_history_version_uq').on(
+      table.contentLicenseId,
+      table.licenseVersion,
+    ),
+    index('content_license_status_history_timeline_idx').on(
+      table.contentLicenseId,
+      table.occurredAt,
+    ),
+    check('content_license_status_history_version_ck', sql`${table.licenseVersion} > 0`),
+  ],
+);
+
 export const auditEvents = pgTable(
   'audit_events',
   {
@@ -2032,6 +2351,13 @@ export const initialSchemaTables = [
   'local_pass_claim_status_history',
   'local_pass_redemptions',
   'local_pass_attribution_events',
+  'legal_document_versions',
+  'mission_rights_offers',
+  'mission_contract_acceptances',
+  'content_licenses',
+  'content_license_assets',
+  'content_license_channels',
+  'content_license_status_history',
   'audit_events',
   'idempotency_records',
 ] as const;

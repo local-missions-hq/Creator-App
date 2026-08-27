@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="6" failures="0" errors="0" time="0.650792042">
+    <testsuite name="src/rights-store.integration.test.ts" timestamp="2026-08-27T17:10:30.730Z" hostname="local-development-host" tests="6" failures="0" errors="0" skipped="0" time="0.650792042">
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; migrates forward and publishes immutable hash-only legal document versions under admin control" time="0.012081917">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; locks exact rights economics and creator consent without cross-role substitution" time="0.031603833">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; grants no rights to incomplete, unpaid, canceled, or final no-payout work" time="0.06719875">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; activates one immutable fixed license set under concurrency without changing payment state" time="0.048265875">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; rejects approval without verified accepted content instead of licensing business access" time="0.024756583">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; expires a fixed term with matching audit history and never renews automatically" time="0.028231875">
+        </testcase>
+    </testsuite>
+</testsuites>

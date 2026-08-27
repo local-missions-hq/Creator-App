@@ -52,6 +52,13 @@ describe('initial schema', () => {
       'local_pass_claim_status_history',
       'local_pass_redemptions',
       'local_pass_attribution_events',
+      'legal_document_versions',
+      'mission_rights_offers',
+      'mission_contract_acceptances',
+      'content_licenses',
+      'content_license_assets',
+      'content_license_channels',
+      'content_license_status_history',
       'audit_events',
       'idempotency_records',
     ]);

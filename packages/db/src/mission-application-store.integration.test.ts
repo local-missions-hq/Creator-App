@@ -23,6 +23,11 @@ const migration0005 = fileURLToPath(
   new URL('../drizzle/0005_huge_agent_brand.sql', import.meta.url),
 );
 const migration0006 = fileURLToPath(new URL('../drizzle/0006_dapper_mordo.sql', import.meta.url));
+const currentSchemaMigrations = [
+  '0007_thick_sharon_ventura.sql',
+  '0008_fair_sheva_callister.sql',
+  '0009_nifty_scorpion.sql',
+].map((name) => fileURLToPath(new URL(`../drizzle/${name}`, import.meta.url)));
 const databaseName = `local_missions_m3_capacity_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
 const adminUrl = new URL(baseUrl);
@@ -215,6 +220,7 @@ beforeAll(async () => {
   await applyMigration(migration0004);
   await applyMigration(migration0005);
   await applyMigration(migration0006);
+  for (const migration of currentSchemaMigrations) await applyMigration(migration);
 
   campaignStore = new CampaignStore(pool);
   ledgerStore = new LedgerStore(pool);

@@ -316,3 +316,39 @@ PASS — no leaks found in approximately 7.66 MB.
 
 pnpm --filter @local-missions/db exec vitest run src/local-pass-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/local-pass-store-junit.xml
 PASS — retained five Local Pass tests with no failures or errors; machine hostname replaced by local-development-host.
+
+M03-content-rights-009 — 2026-08-27
+
+pnpm db:generate
+PASS — generated append-only rights migration 0008 and slot bonus-component migration 0009; schema now contains 56 tables. Community contract add-ons are separated from optional Reach bonuses.
+
+pnpm --filter @local-missions/db exec vitest run src/rights-store.integration.test.ts
+PASS — all six rights tests passed against real PostgreSQL, including exact consent, no-rights states, concurrent activation, immutable licensed assets/channels, and expiry without renewal.
+
+pnpm test:integration
+PASS — 58 tests passed across nine campaign, identity/tenant, mission/capacity, check-in, submission/review, dispute/resolution, ledger, Local Pass, and content-rights suites against real PostgreSQL.
+
+pnpm db:migrate
+PASS — migrations 0008 and 0009 applied to the retained local database and preserved the synthetic identity, business, draft campaign, mission contract, and prior schema.
+
+pnpm db:seed
+pnpm db:seed
+PASS — both reruns retained the deterministic identity, business, campaign, four templates, one brief, two deliverable requirements, and 10 Community Slots.
+
+pnpm db:check
+PASS — all 56 tables and the deterministic mission contract were verified.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — the ten-entry Drizzle journal and all snapshots are internally consistent.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, tests, contracts, and all eight workspace builds passed under the pinned Node 24.19.0 and pnpm 11.24.0 runtimes.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 290 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 8.42 MB.
+
+pnpm --filter @local-missions/db exec vitest run src/rights-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/rights-store-junit.xml
+PASS — retained six content-rights tests with no failures or errors; machine hostname replaced by local-development-host.

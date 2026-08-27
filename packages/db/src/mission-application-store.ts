@@ -11,6 +11,7 @@ import type { Pool, PoolClient, QueryResultRow } from 'pg';
 export type CampaignSlotInput = {
   baseRewardMinor: number;
   bonusRewardMinor: number;
+  contractAddOnBonusMinor?: number;
   currency: string;
   ordinal: number;
   publicId: string;
@@ -67,12 +68,14 @@ function quoteSchema(schemaName: string): string {
 
 export class MissionApplicationStore {
   private readonly quotedSchema: string;
+  private readonly schemaName: string;
 
   constructor(
     private readonly pool: Pool,
     schemaName = 'public',
   ) {
     this.quotedSchema = quoteSchema(schemaName);
+    this.schemaName = schemaName;
   }
 
   async configureCampaignContract(input: {
@@ -164,24 +167,67 @@ export class MissionApplicationStore {
         ],
       );
 
-      for (const slot of input.slots) {
-        await client.query(
-          `INSERT INTO mission_slots (
-             public_id, campaign_id, ordinal, type, base_reward_minor, bonus_reward_minor,
-             reward_minor, reach_level, currency
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-          [
-            slot.publicId,
-            input.campaignId,
-            slot.ordinal,
-            slot.type,
-            slot.baseRewardMinor,
-            slot.bonusRewardMinor,
-            slot.baseRewardMinor + slot.bonusRewardMinor,
-            slot.reachLevel ?? null,
-            slot.currency,
-          ],
+      const bonusComponentColumns = await client.query<{ supported: boolean }>(
+        `SELECT EXISTS (
+           SELECT 1 FROM information_schema.columns
+            WHERE table_schema = $1 AND table_name = 'mission_slots'
+              AND column_name = 'contract_add_on_bonus_minor'
+         ) AS supported`,
+        [this.schemaName],
+      );
+      const supportsBonusComponents = bonusComponentColumns.rows[0]?.supported === true;
+      if (
+        !supportsBonusComponents &&
+        input.slots.some((slot) => (slot.contractAddOnBonusMinor ?? 0) > 0)
+      ) {
+        throw new MissionApplicationError(
+          'CAMPAIGN_CONTRACT_INCOMPLETE',
+          409,
+          'The database must be upgraded before paid contract add-ons can be configured.',
         );
+      }
+
+      for (const slot of input.slots) {
+        const contractAddOnBonusMinor = slot.contractAddOnBonusMinor ?? 0;
+        if (supportsBonusComponents) {
+          await client.query(
+            `INSERT INTO mission_slots (
+               public_id, campaign_id, ordinal, type, base_reward_minor, reach_bonus_minor,
+               contract_add_on_bonus_minor, bonus_reward_minor, reward_minor, reach_level, currency
+             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+            [
+              slot.publicId,
+              input.campaignId,
+              slot.ordinal,
+              slot.type,
+              slot.baseRewardMinor,
+              slot.bonusRewardMinor,
+              contractAddOnBonusMinor,
+              slot.bonusRewardMinor + contractAddOnBonusMinor,
+              slot.baseRewardMinor + slot.bonusRewardMinor + contractAddOnBonusMinor,
+              slot.reachLevel ?? null,
+              slot.currency,
+            ],
+          );
+        } else {
+          await client.query(
+            `INSERT INTO mission_slots (
+               public_id, campaign_id, ordinal, type, base_reward_minor, bonus_reward_minor,
+               reward_minor, reach_level, currency
+             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [
+              slot.publicId,
+              input.campaignId,
+              slot.ordinal,
+              slot.type,
+              slot.baseRewardMinor,
+              slot.bonusRewardMinor,
+              slot.baseRewardMinor + slot.bonusRewardMinor,
+              slot.reachLevel ?? null,
+              slot.currency,
+            ],
+          );
+        }
       }
 
       const communitySlots = input.slots.filter((slot) => slot.type === 'community').length;
@@ -422,15 +468,18 @@ export class MissionApplicationStore {
     const ordinals = slots.map((slot) => slot.ordinal).sort((a, b) => a - b);
     const expectedOrdinals = Array.from({ length: campaign.slot_count }, (_, index) => index + 1);
     const rewardTotal = slots.reduce(
-      (total, slot) => total + slot.baseRewardMinor + slot.bonusRewardMinor,
+      (total, slot) =>
+        total + slot.baseRewardMinor + slot.bonusRewardMinor + (slot.contractAddOnBonusMinor ?? 0),
       0,
     );
     const communitySlots = slots.filter((slot) => slot.type === 'community').length;
     const minimumCommunitySlots = Math.ceil(campaign.slot_count * 0.8);
     const validReachConfiguration = slots.every(
       (slot) =>
-        (slot.type === 'community' && !slot.reachLevel && slot.bonusRewardMinor === 0) ||
-        (slot.type === 'reach' && Boolean(slot.reachLevel) && slot.bonusRewardMinor > 0),
+        Number.isInteger(slot.contractAddOnBonusMinor ?? 0) &&
+        (slot.contractAddOnBonusMinor ?? 0) >= 0 &&
+        ((slot.type === 'community' && !slot.reachLevel && slot.bonusRewardMinor === 0) ||
+          (slot.type === 'reach' && Boolean(slot.reachLevel) && slot.bonusRewardMinor > 0)),
     );
 
     if (

@@ -3,6 +3,7 @@ export * from './check-in-store.js';
 export * from './dispute-store.js';
 export * from './ledger-store.js';
 export * from './local-pass-store.js';
+export * from './rights-store.js';
 export * from './mission-application-store.js';
 export * from './schema.js';
 export * from './submission-store.js';

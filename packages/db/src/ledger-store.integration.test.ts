@@ -21,6 +21,11 @@ const migrationPathsBeforeLedger = [
   fileURLToPath(new URL('../drizzle/0005_huge_agent_brand.sql', import.meta.url)),
 ];
 const ledgerMigration = fileURLToPath(new URL('../drizzle/0006_dapper_mordo.sql', import.meta.url));
+const currentSchemaMigrations = [
+  '0007_thick_sharon_ventura.sql',
+  '0008_fair_sheva_callister.sql',
+  '0009_nifty_scorpion.sql',
+].map((name) => fileURLToPath(new URL(`../drizzle/${name}`, import.meta.url)));
 const databaseName = `local_missions_m3_ledger_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
 const adminUrl = new URL(baseUrl);
@@ -362,6 +367,7 @@ beforeAll(async () => {
   for (const migrationPath of migrationPathsBeforeLedger) await applyMigration(migrationPath);
   const beforeUpgrade = await createUpgradeProof();
   await applyMigration(ledgerMigration);
+  for (const migration of currentSchemaMigrations) await applyMigration(migration);
   const preserved = await pool.query<{
     intent_public_id: string;
     intent_status: string;

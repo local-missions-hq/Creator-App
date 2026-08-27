@@ -241,6 +241,31 @@ export const localPassFulfillmentKindSchema = z.enum([
   'preapproved_substitute',
   'customer_accepted_substitute',
 ]);
+export const legalDocumentTypeSchema = z.enum(['creator_terms', 'sponsorship_disclosure']);
+export const contentLicenseKindSchema = z.enum([
+  'organic_owned_social_90d',
+  'extended_owned_media_12m',
+  'paid_advertising_30d',
+]);
+export const contentLicenseStatusSchema = z.enum(['active', 'expired', 'suspended', 'revoked']);
+export const contentLicenseChannelSchema = z.enum([
+  'owned_social',
+  'business_website',
+  'business_email',
+  'paid_advertising',
+]);
+export const rightsConflictCodeSchema = z.enum([
+  'RIGHTS_ACCESS_DENIED',
+  'RIGHTS_ACCEPTANCE_INVALID',
+  'RIGHTS_ALREADY_ACCEPTED',
+  'RIGHTS_ALREADY_ACTIVATED',
+  'RIGHTS_DOCUMENT_INVALID',
+  'RIGHTS_LICENSE_NOT_READY',
+  'RIGHTS_NO_CONTENT',
+  'RIGHTS_NOT_FOUND',
+  'RIGHTS_OFFER_INVALID',
+  'RIGHTS_TRANSITION_CONFLICT',
+]);
 
 export const localPassConflictCodeSchema = z.enum([
   'LOCAL_PASS_ACCESS_DENIED',
@@ -396,6 +421,10 @@ export type LedgerConflictCode = z.infer<typeof ledgerConflictCodeSchema>;
 export type LedgerEntryDirection = z.infer<typeof ledgerEntryDirectionSchema>;
 export type LedgerTransactionSourceType = z.infer<typeof ledgerTransactionSourceTypeSchema>;
 export type LedgerTransactionType = z.infer<typeof ledgerTransactionTypeSchema>;
+export type ContentLicenseChannel = z.infer<typeof contentLicenseChannelSchema>;
+export type ContentLicenseKind = z.infer<typeof contentLicenseKindSchema>;
+export type ContentLicenseStatus = z.infer<typeof contentLicenseStatusSchema>;
+export type LegalDocumentType = z.infer<typeof legalDocumentTypeSchema>;
 export type LocalPassClaimStatus = z.infer<typeof localPassClaimStatusSchema>;
 export type LocalPassClaimTokenStatus = z.infer<typeof localPassClaimTokenStatusSchema>;
 export type LocalPassConflictCode = z.infer<typeof localPassConflictCodeSchema>;
@@ -403,6 +432,7 @@ export type LocalPassEvidenceKind = z.infer<typeof localPassEvidenceKindSchema>;
 export type LocalPassFulfillmentKind = z.infer<typeof localPassFulfillmentKindSchema>;
 export type LocalPassLinkStatus = z.infer<typeof localPassLinkStatusSchema>;
 export type LocalPassOfferStatus = z.infer<typeof localPassOfferStatusSchema>;
+export type RightsConflictCode = z.infer<typeof rightsConflictCodeSchema>;
 export type PaymentProvider = z.infer<typeof paymentProviderSchema>;
 export type PaymentProviderObjectType = z.infer<typeof paymentProviderObjectTypeSchema>;
 export type HealthStatus = z.infer<typeof healthStatusSchema>;

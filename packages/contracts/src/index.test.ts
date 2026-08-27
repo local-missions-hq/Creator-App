@@ -13,6 +13,9 @@ import {
   ledgerTransactionTypeSchema,
   localPassClaimStatusSchema,
   localPassEvidenceKindSchema,
+  contentLicenseChannelSchema,
+  contentLicenseKindSchema,
+  contentLicenseStatusSchema,
   paymentProviderObjectTypeSchema,
 } from './index.js';
 
@@ -146,5 +149,28 @@ describe('objective dispute and all-or-nothing outcome contracts', () => {
     expect(localPassEvidenceKindSchema.safeParse('confirmed_purchase').success).toBe(false);
     expect(localPassEvidenceKindSchema.safeParse('incremental_lift').success).toBe(false);
     expect(localPassClaimStatusSchema.options).toEqual(['active', 'redeemed', 'expired']);
+  });
+
+  it('limits content rights to the three approved non-perpetual V1 licenses', () => {
+    expect(contentLicenseKindSchema.options).toEqual([
+      'organic_owned_social_90d',
+      'extended_owned_media_12m',
+      'paid_advertising_30d',
+    ]);
+    expect(contentLicenseStatusSchema.options).toEqual([
+      'active',
+      'expired',
+      'suspended',
+      'revoked',
+    ]);
+    expect(contentLicenseChannelSchema.options).toEqual([
+      'owned_social',
+      'business_website',
+      'business_email',
+      'paid_advertising',
+    ]);
+    expect(contentLicenseKindSchema.safeParse('perpetual_ownership').success).toBe(false);
+    expect(contentLicenseKindSchema.safeParse('ai_training').success).toBe(false);
+    expect(contentLicenseKindSchema.safeParse('face_voice_clone').success).toBe(false);
   });
 });
