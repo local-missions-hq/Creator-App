@@ -290,6 +290,48 @@ export const contentLicenseChannel = pgEnum('content_license_channel', [
   'business_email',
   'paid_advertising',
 ]);
+export const notificationEventType = pgEnum('notification_event_type', [
+  'mission_accepted',
+  'mission_reminder',
+  'check_in_reminder',
+  'submission_due',
+  'revision_requested',
+  'mission_approved',
+  'payout_available',
+  'dispute_update',
+  'security_alert',
+]);
+export const notificationCategory = pgEnum('notification_category', [
+  'mission_action',
+  'mission_reminder',
+  'money',
+  'dispute',
+  'security',
+]);
+export const notificationAudience = pgEnum('notification_audience', [
+  'creator',
+  'business_member',
+  'platform_staff',
+  'account_owner',
+]);
+export const notificationChannel = pgEnum('notification_channel', ['in_app', 'push', 'email']);
+export const notificationAggregateType = pgEnum('notification_aggregate_type', [
+  'user',
+  'mission_application',
+  'mission_assignment',
+]);
+export const notificationOutboxStatus = pgEnum('notification_outbox_status', [
+  'pending',
+  'processing',
+  'completed',
+  'dead_letter',
+]);
+export const notificationDeliveryStatus = pgEnum('notification_delivery_status', [
+  'suppressed',
+  'no_send',
+  'failed',
+  'delivered',
+]);
 
 export const users = pgTable(
   'users',
@@ -2266,6 +2308,309 @@ export const contentLicenseStatusHistory = pgTable(
   ],
 );
 
+export const notificationPreferences = pgTable(
+  'notification_preferences',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    category: notificationCategory('category').notNull(),
+    channel: notificationChannel('channel').notNull(),
+    enabled: boolean('enabled').default(true).notNull(),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('notification_preferences_public_id_uq').on(table.publicId),
+    uniqueIndex('notification_preferences_user_category_channel_uq').on(
+      table.userId,
+      table.category,
+      table.channel,
+    ),
+    index('notification_preferences_user_idx').on(table.userId, table.category),
+    check(
+      'notification_preferences_external_channel_ck',
+      sql`${table.channel} IN ('push','email')`,
+    ),
+    check(
+      'notification_preferences_security_required_ck',
+      sql`${table.category} <> 'security' OR ${table.enabled} = true`,
+    ),
+    check('notification_preferences_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const notificationPreferenceHistory = pgTable(
+  'notification_preference_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    notificationPreferenceId: uuid('notification_preference_id')
+      .notNull()
+      .references(() => notificationPreferences.id, { onDelete: 'restrict' }),
+    enabled: boolean('enabled').notNull(),
+    preferenceVersion: integer('preference_version').notNull(),
+    changedByUserId: uuid('changed_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('notification_preference_history_public_id_uq').on(table.publicId),
+    uniqueIndex('notification_preference_history_version_uq').on(
+      table.notificationPreferenceId,
+      table.preferenceVersion,
+    ),
+    index('notification_preference_history_timeline_idx').on(
+      table.notificationPreferenceId,
+      table.occurredAt,
+    ),
+    check('notification_preference_history_version_ck', sql`${table.preferenceVersion} > 0`),
+  ],
+);
+
+export const notificationEvents = pgTable(
+  'notification_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    type: notificationEventType('type').notNull(),
+    category: notificationCategory('category').notNull(),
+    audience: notificationAudience('audience').notNull(),
+    recipientUserId: uuid('recipient_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    businessId: uuid('business_id').references(() => businesses.id, { onDelete: 'restrict' }),
+    aggregateType: notificationAggregateType('aggregate_type').notNull(),
+    aggregateId: uuid('aggregate_id').notNull(),
+    templateKey: text('template_key').notNull(),
+    deepLinkRoute: text('deep_link_route').notNull(),
+    deduplicationKey: text('deduplication_key').notNull(),
+    correlationId: uuid('correlation_id').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('notification_events_public_id_uq').on(table.publicId),
+    uniqueIndex('notification_events_recipient_dedup_uq').on(
+      table.recipientUserId,
+      table.type,
+      table.deduplicationKey,
+    ),
+    index('notification_events_recipient_timeline_idx').on(table.recipientUserId, table.occurredAt),
+    index('notification_events_aggregate_idx').on(table.aggregateType, table.aggregateId),
+    index('notification_events_business_idx').on(table.businessId, table.occurredAt),
+    check(
+      'notification_events_template_key_ck',
+      sql`${table.templateKey} ~ '^notification[.][a-z0-9_]+[.]v[1-9][0-9]*$'`,
+    ),
+    check(
+      'notification_events_deep_link_ck',
+      sql`${table.deepLinkRoute} ~ '^/[a-z0-9_/-]{1,240}$'`,
+    ),
+    check(
+      'notification_events_dedup_key_ck',
+      sql`length(btrim(${table.deduplicationKey})) BETWEEN 1 AND 240`,
+    ),
+    check(
+      'notification_events_category_ck',
+      sql`(
+        ${table.type} IN ('mission_accepted','revision_requested','mission_approved')
+        AND ${table.category} = 'mission_action'
+      ) OR (
+        ${table.type} IN ('mission_reminder','check_in_reminder','submission_due')
+        AND ${table.category} = 'mission_reminder'
+      ) OR (${table.type} = 'payout_available' AND ${table.category} = 'money')
+        OR (${table.type} = 'dispute_update' AND ${table.category} = 'dispute')
+        OR (${table.type} = 'security_alert' AND ${table.category} = 'security')`,
+    ),
+    check(
+      'notification_events_aggregate_shape_ck',
+      sql`(
+        ${table.type} = 'security_alert' AND ${table.aggregateType} = 'user'
+        AND ${table.audience} = 'account_owner' AND ${table.businessId} IS NULL
+      ) OR (
+        ${table.type} = 'mission_accepted' AND ${table.aggregateType} = 'mission_application'
+        AND ${table.audience} = 'creator' AND ${table.businessId} IS NOT NULL
+      ) OR (
+        ${table.type} NOT IN ('security_alert','mission_accepted')
+        AND ${table.aggregateType} = 'mission_assignment' AND ${table.businessId} IS NOT NULL
+        AND ${table.audience} IN ('creator','business_member','platform_staff')
+      )`,
+    ),
+  ],
+);
+
+export const notificationOutboxMessages = pgTable(
+  'notification_outbox_messages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    notificationEventId: uuid('notification_event_id')
+      .notNull()
+      .references(() => notificationEvents.id, { onDelete: 'restrict' }),
+    status: notificationOutboxStatus('status').default('pending').notNull(),
+    attemptCount: integer('attempt_count').default(0).notNull(),
+    maxAttempts: integer('max_attempts').default(5).notNull(),
+    availableAt: timestamp('available_at', { withTimezone: true }).defaultNow().notNull(),
+    lockToken: uuid('lock_token'),
+    lockedBy: text('locked_by'),
+    lockedUntil: timestamp('locked_until', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    deadLetteredAt: timestamp('dead_lettered_at', { withTimezone: true }),
+    replayCount: integer('replay_count').default(0).notNull(),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('notification_outbox_messages_public_id_uq').on(table.publicId),
+    uniqueIndex('notification_outbox_messages_event_uq').on(table.notificationEventId),
+    index('notification_outbox_messages_due_idx').on(table.status, table.availableAt),
+    index('notification_outbox_messages_lease_idx').on(table.status, table.lockedUntil),
+    check(
+      'notification_outbox_messages_counts_ck',
+      sql`${table.attemptCount} >= 0 AND ${table.maxAttempts} > 0
+          AND ${table.replayCount} >= 0 AND ${table.version} > 0`,
+    ),
+    check(
+      'notification_outbox_messages_state_ck',
+      sql`(
+        ${table.status} = 'pending' AND ${table.lockToken} IS NULL AND ${table.lockedBy} IS NULL
+        AND ${table.lockedUntil} IS NULL AND ${table.completedAt} IS NULL
+        AND ${table.deadLetteredAt} IS NULL
+      ) OR (
+        ${table.status} = 'processing' AND ${table.lockToken} IS NOT NULL
+        AND length(btrim(${table.lockedBy})) > 0 AND ${table.lockedUntil} IS NOT NULL
+        AND ${table.completedAt} IS NULL AND ${table.deadLetteredAt} IS NULL
+      ) OR (
+        ${table.status} = 'completed' AND ${table.lockToken} IS NULL AND ${table.lockedBy} IS NULL
+        AND ${table.lockedUntil} IS NULL AND ${table.completedAt} IS NOT NULL
+        AND ${table.deadLetteredAt} IS NULL
+      ) OR (
+        ${table.status} = 'dead_letter' AND ${table.lockToken} IS NULL
+        AND ${table.lockedBy} IS NULL AND ${table.lockedUntil} IS NULL
+        AND ${table.completedAt} IS NULL AND ${table.deadLetteredAt} IS NOT NULL
+      )`,
+    ),
+  ],
+);
+
+export const inAppNotifications = pgTable(
+  'in_app_notifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    notificationEventId: uuid('notification_event_id')
+      .notNull()
+      .references(() => notificationEvents.id, { onDelete: 'restrict' }),
+    recipientUserId: uuid('recipient_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('in_app_notifications_public_id_uq').on(table.publicId),
+    uniqueIndex('in_app_notifications_event_uq').on(table.notificationEventId),
+    index('in_app_notifications_recipient_timeline_idx').on(
+      table.recipientUserId,
+      table.archivedAt,
+      table.createdAt,
+    ),
+    check(
+      'in_app_notifications_archive_ck',
+      sql`${table.archivedAt} IS NULL OR ${table.readAt} IS NOT NULL`,
+    ),
+  ],
+);
+
+export const notificationDeliveryAttempts = pgTable(
+  'notification_delivery_attempts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    notificationOutboxMessageId: uuid('notification_outbox_message_id')
+      .notNull()
+      .references(() => notificationOutboxMessages.id, { onDelete: 'restrict' }),
+    attemptNumber: integer('attempt_number').notNull(),
+    channel: notificationChannel('channel').notNull(),
+    status: notificationDeliveryStatus('status').notNull(),
+    errorCode: text('error_code'),
+    adapterReceiptId: text('adapter_receipt_id'),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex('notification_delivery_attempts_public_id_uq').on(table.publicId),
+    uniqueIndex('notification_delivery_attempts_message_attempt_channel_uq').on(
+      table.notificationOutboxMessageId,
+      table.attemptNumber,
+      table.channel,
+    ),
+    index('notification_delivery_attempts_message_idx').on(
+      table.notificationOutboxMessageId,
+      table.attemptNumber,
+    ),
+    check('notification_delivery_attempts_number_ck', sql`${table.attemptNumber} > 0`),
+    check(
+      'notification_delivery_attempts_external_channel_ck',
+      sql`${table.channel} IN ('push','email')`,
+    ),
+    check(
+      'notification_delivery_attempts_error_code_ck',
+      sql`${table.errorCode} IS NULL OR ${table.errorCode} ~ '^[A-Z0-9_]{1,80}$'`,
+    ),
+    check(
+      'notification_delivery_attempts_shape_ck',
+      sql`(
+        ${table.status} IN ('no_send','delivered') AND ${table.adapterReceiptId} IS NOT NULL
+        AND ${table.errorCode} IS NULL
+      ) OR (
+        ${table.status} IN ('suppressed','failed') AND ${table.adapterReceiptId} IS NULL
+        AND ${table.errorCode} IS NOT NULL
+      )`,
+    ),
+  ],
+);
+
+export const notificationOutboxStatusHistory = pgTable(
+  'notification_outbox_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    notificationOutboxMessageId: uuid('notification_outbox_message_id')
+      .notNull()
+      .references(() => notificationOutboxMessages.id, { onDelete: 'restrict' }),
+    fromStatus: notificationOutboxStatus('from_status'),
+    toStatus: notificationOutboxStatus('to_status').notNull(),
+    outboxVersion: integer('outbox_version').notNull(),
+    attemptCount: integer('attempt_count').notNull(),
+    actorId: uuid('actor_id').references(() => users.id, { onDelete: 'restrict' }),
+    actorType: auditActorType('actor_type').notNull(),
+    reason: text('reason').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('notification_outbox_status_history_version_uq').on(
+      table.notificationOutboxMessageId,
+      table.outboxVersion,
+    ),
+    index('notification_outbox_status_history_timeline_idx').on(
+      table.notificationOutboxMessageId,
+      table.occurredAt,
+    ),
+    check(
+      'notification_outbox_status_history_counts_ck',
+      sql`${table.outboxVersion} > 0 AND ${table.attemptCount} >= 0`,
+    ),
+    check('notification_outbox_status_history_reason_ck', sql`length(btrim(${table.reason})) > 0`),
+  ],
+);
+
 export const auditEvents = pgTable(
   'audit_events',
   {
@@ -2358,6 +2703,13 @@ export const initialSchemaTables = [
   'content_license_assets',
   'content_license_channels',
   'content_license_status_history',
+  'notification_preferences',
+  'notification_preference_history',
+  'notification_events',
+  'notification_outbox_messages',
+  'in_app_notifications',
+  'notification_delivery_attempts',
+  'notification_outbox_status_history',
   'audit_events',
   'idempotency_records',
 ] as const;

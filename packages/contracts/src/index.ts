@@ -266,6 +266,57 @@ export const rightsConflictCodeSchema = z.enum([
   'RIGHTS_OFFER_INVALID',
   'RIGHTS_TRANSITION_CONFLICT',
 ]);
+export const notificationEventTypeSchema = z.enum([
+  'mission_accepted',
+  'mission_reminder',
+  'check_in_reminder',
+  'submission_due',
+  'revision_requested',
+  'mission_approved',
+  'payout_available',
+  'dispute_update',
+  'security_alert',
+]);
+export const notificationCategorySchema = z.enum([
+  'mission_action',
+  'mission_reminder',
+  'money',
+  'dispute',
+  'security',
+]);
+export const notificationAudienceSchema = z.enum([
+  'creator',
+  'business_member',
+  'platform_staff',
+  'account_owner',
+]);
+export const notificationChannelSchema = z.enum(['in_app', 'push', 'email']);
+export const notificationAggregateTypeSchema = z.enum([
+  'user',
+  'mission_application',
+  'mission_assignment',
+]);
+export const notificationOutboxStatusSchema = z.enum([
+  'pending',
+  'processing',
+  'completed',
+  'dead_letter',
+]);
+export const notificationDeliveryStatusSchema = z.enum([
+  'suppressed',
+  'no_send',
+  'failed',
+  'delivered',
+]);
+export const notificationConflictCodeSchema = z.enum([
+  'NOTIFICATION_ACCESS_DENIED',
+  'NOTIFICATION_CLAIM_INVALID',
+  'NOTIFICATION_DEAD_LETTER_REQUIRED',
+  'NOTIFICATION_EVENT_INVALID',
+  'NOTIFICATION_NOT_FOUND',
+  'NOTIFICATION_PREFERENCE_INVALID',
+  'NOTIFICATION_TRANSITION_CONFLICT',
+]);
 
 export const localPassConflictCodeSchema = z.enum([
   'LOCAL_PASS_ACCESS_DENIED',
@@ -433,6 +484,14 @@ export type LocalPassFulfillmentKind = z.infer<typeof localPassFulfillmentKindSc
 export type LocalPassLinkStatus = z.infer<typeof localPassLinkStatusSchema>;
 export type LocalPassOfferStatus = z.infer<typeof localPassOfferStatusSchema>;
 export type RightsConflictCode = z.infer<typeof rightsConflictCodeSchema>;
+export type NotificationAggregateType = z.infer<typeof notificationAggregateTypeSchema>;
+export type NotificationAudience = z.infer<typeof notificationAudienceSchema>;
+export type NotificationCategory = z.infer<typeof notificationCategorySchema>;
+export type NotificationChannel = z.infer<typeof notificationChannelSchema>;
+export type NotificationConflictCode = z.infer<typeof notificationConflictCodeSchema>;
+export type NotificationDeliveryStatus = z.infer<typeof notificationDeliveryStatusSchema>;
+export type NotificationEventType = z.infer<typeof notificationEventTypeSchema>;
+export type NotificationOutboxStatus = z.infer<typeof notificationOutboxStatusSchema>;
 export type PaymentProvider = z.infer<typeof paymentProviderSchema>;
 export type PaymentProviderObjectType = z.infer<typeof paymentProviderObjectTypeSchema>;
 export type HealthStatus = z.infer<typeof healthStatusSchema>;

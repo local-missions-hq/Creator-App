@@ -17,6 +17,10 @@ import {
   contentLicenseKindSchema,
   contentLicenseStatusSchema,
   paymentProviderObjectTypeSchema,
+  notificationChannelSchema,
+  notificationDeliveryStatusSchema,
+  notificationEventTypeSchema,
+  notificationOutboxStatusSchema,
 } from './index.js';
 
 describe('healthStatusSchema', () => {
@@ -172,5 +176,20 @@ describe('objective dispute and all-or-nothing outcome contracts', () => {
     expect(contentLicenseKindSchema.safeParse('perpetual_ownership').success).toBe(false);
     expect(contentLicenseKindSchema.safeParse('ai_training').success).toBe(false);
     expect(contentLicenseKindSchema.safeParse('face_voice_clone').success).toBe(false);
+  });
+
+  it('keeps notification delivery explicit, deduplicated, and free of marketing events', () => {
+    expect(notificationChannelSchema.options).toEqual(['in_app', 'push', 'email']);
+    expect(notificationOutboxStatusSchema.options).toEqual([
+      'pending',
+      'processing',
+      'completed',
+      'dead_letter',
+    ]);
+    expect(notificationDeliveryStatusSchema.options).toContain('no_send');
+    expect(notificationEventTypeSchema.options).toContain('mission_accepted');
+    expect(notificationEventTypeSchema.options).toContain('payout_available');
+    expect(notificationEventTypeSchema.safeParse('promotional_offer').success).toBe(false);
+    expect(notificationEventTypeSchema.safeParse('follower_milestone').success).toBe(false);
   });
 });

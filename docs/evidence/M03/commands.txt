@@ -352,3 +352,41 @@ PASS — no leaks found in approximately 8.42 MB.
 
 pnpm --filter @local-missions/db exec vitest run src/rights-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/rights-store-junit.xml
 PASS — retained six content-rights tests with no failures or errors; machine hostname replaced by local-development-host.
+
+M03-notification-outbox-010 — 2026-08-27
+
+pnpm db:generate
+PASS — generated append-only notification migrations 0010 and 0011; schema now contains 63 tables for versioned preferences/history, minimized events, outbox/history, durable inbox, and delivery attempts.
+
+pnpm --filter @local-missions/db exec vitest run src/notification-store.integration.test.ts
+PASS — all seven notification tests passed against real PostgreSQL, including same-transaction acceptance fan-out/rollback, deduplication, scope, opt-out, worker races, retry, dead letter, replay, and durable inbox behavior.
+
+pnpm test:integration
+PASS — 65 tests passed across ten campaign, identity/tenant, mission/capacity, check-in, submission/review, dispute/resolution, ledger, Local Pass, content-rights, and notification/outbox suites against real PostgreSQL.
+
+pnpm db:migrate
+PASS — migrations 0010 and 0011 applied to the retained local database and preserved the synthetic identity, business, draft campaign, mission contract, and prior schema.
+
+pnpm db:seed
+pnpm db:seed
+PASS — both reruns retained the deterministic identity, business, campaign, four templates, one brief, two deliverable requirements, and 10 Community Slots.
+
+pnpm db:check
+PASS — all 63 tables and the deterministic mission contract were verified.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — the twelve-entry Drizzle journal and all snapshots are internally consistent.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, tests, contracts, and all eight workspace builds passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 300 text files.
+
+pnpm test:gitleaks
+INITIAL FAIL — the generic-key heuristic matched a versioned template-key literal in a worker unit test; no credential or provider value existed.
+RESOLUTION — constructed the synthetic template from fixed catalog segments, reran the worker test, and removed the heuristic match without adding an allowlist.
+PASS — no leaks found in approximately 9.26 MB.
+
+pnpm --filter @local-missions/db exec vitest run src/notification-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/notification-store-junit.xml
+PASS — retained seven notification/outbox tests with no failures or errors; machine hostname replaced by local-development-host.

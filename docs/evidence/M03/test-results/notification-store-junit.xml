@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="7" failures="0" errors="0" time="1.04111025">
+    <testsuite name="src/notification-store.integration.test.ts" timestamp="2026-08-27T17:37:25.880Z" hostname="local-development-host" tests="7" failures="0" errors="0" skipped="0" time="1.04111025">
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; upgrades prior data into a minimized immutable notification schema" time="0.063111916">
+        </testcase>
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; commits mission acceptance, event, outbox, in-app notice, history, and audit atomically" time="0.094120541">
+        </testcase>
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; deduplicates events and enforces recipient, role, tenant, and in-app isolation" time="0.0761485">
+        </testcase>
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; honors opt-out, allows one worker claim, and records only local no-send outcomes" time="0.090001167">
+        </testcase>
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; schedules exponential retry without raw errors and rejects stale claim completion" time="0.053113958">
+        </testcase>
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; dead-letters non-retryable work and permits only audited admin replay" time="0.057169958">
+        </testcase>
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; keeps durable in-app state recipient-scoped and acknowledgment-only" time="0.05134925">
+        </testcase>
+    </testsuite>
+</testsuites>

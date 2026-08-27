@@ -28,6 +28,8 @@ const currentSchemaMigrations = [
   '0007_thick_sharon_ventura.sql',
   '0008_fair_sheva_callister.sql',
   '0009_nifty_scorpion.sql',
+  '0010_wide_lady_ursula.sql',
+  '0011_perpetual_ender_wiggin.sql',
 ].map((name) => fileURLToPath(new URL(`../drizzle/${name}`, import.meta.url)));
 const databaseName = `local_missions_m3_submission_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());

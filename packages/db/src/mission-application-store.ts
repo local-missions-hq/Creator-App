@@ -31,6 +31,7 @@ export class MissionApplicationError extends Error {
 }
 
 type ApplicationRow = QueryResultRow & {
+  business_id: string;
   campaign_id: string;
   creator_user_id: string;
   id: string;
@@ -41,7 +42,19 @@ type ApplicationRow = QueryResultRow & {
   version: number;
 };
 
-function toApplicationRecord(row: ApplicationRow): MissionApplicationRecord {
+function toApplicationRecord(
+  row: Pick<
+    ApplicationRow,
+    | 'campaign_id'
+    | 'creator_user_id'
+    | 'id'
+    | 'public_id'
+    | 'reserved_slot_id'
+    | 'slot_type'
+    | 'status'
+    | 'version'
+  >,
+): MissionApplicationRecord {
   return {
     campaignId: row.campaign_id,
     creatorUserId: row.creator_user_id,
@@ -408,6 +421,12 @@ export class MissionApplicationStore {
         subjectId: updated.id,
         subjectType: 'mission-application',
       });
+      await this.appendAcceptanceNotificationIfAvailable(client, {
+        businessId: current.business_id,
+        correlationId: input.correlationId,
+        creatorUserId: current.creator_user_id,
+        missionApplicationId: current.id,
+      });
       return updated;
     });
   }
@@ -505,6 +524,7 @@ export class MissionApplicationStore {
   ): Promise<ApplicationRow> {
     const result = await client.query<ApplicationRow>(
       `SELECT a.id, a.public_id, a.campaign_id, a.creator_user_id, a.status, a.version,
+              c.business_id,
               r.mission_slot_id AS reserved_slot_id, s.type AS slot_type
          FROM mission_applications a
          JOIN campaigns c ON c.id = a.campaign_id
@@ -537,8 +557,10 @@ export class MissionApplicationStore {
   ): Promise<ApplicationRow> {
     const result = await client.query<ApplicationRow>(
       `SELECT a.id, a.public_id, a.campaign_id, a.creator_user_id, a.status, a.version,
+              c.business_id,
               r.mission_slot_id AS reserved_slot_id, s.type AS slot_type
          FROM mission_applications a
+         JOIN campaigns c ON c.id = a.campaign_id
          JOIN slot_reservations r ON r.application_id = a.id
          JOIN mission_slots s ON s.id = r.mission_slot_id
         WHERE a.id = $1 AND a.creator_user_id = $2
@@ -566,8 +588,16 @@ export class MissionApplicationStore {
           SET status = $2, version = version + 1, updated_at = now()
         WHERE id = $1 AND version = $3
         RETURNING id, public_id, campaign_id, creator_user_id, status, version,
-                  $4::uuid AS reserved_slot_id, $5::mission_slot_type AS slot_type`,
-      [current.id, status, current.version, current.reserved_slot_id, current.slot_type],
+                  $4::uuid AS reserved_slot_id, $5::mission_slot_type AS slot_type,
+                  $6::uuid AS business_id`,
+      [
+        current.id,
+        status,
+        current.version,
+        current.reserved_slot_id,
+        current.slot_type,
+        current.business_id,
+      ],
     );
     const row = result.rows[0];
     if (!row) {
@@ -592,6 +622,61 @@ export class MissionApplicationStore {
          application_id, from_status, to_status, application_version, actor_id, reason
        ) VALUES ($1, $2, $3, $4, $5, $6)`,
       [updated.id, current.status, updated.status, updated.version, actorId, reason],
+    );
+  }
+
+  private async appendAcceptanceNotificationIfAvailable(
+    client: PoolClient,
+    input: {
+      businessId: string;
+      correlationId: string;
+      creatorUserId: string;
+      missionApplicationId: string;
+    },
+  ): Promise<void> {
+    const notificationSchema = await client.query<{ available: boolean }>(
+      `SELECT to_regclass($1) IS NOT NULL AS available`,
+      [`${this.schemaName}.notification_events`],
+    );
+    if (notificationSchema.rows[0]?.available !== true) return;
+
+    const publicId = `nte_accept_${input.missionApplicationId.replaceAll('-', '')}`;
+    const event = await client.query<{ id: string }>(
+      `INSERT INTO notification_events (
+         public_id, type, category, audience, recipient_user_id, business_id,
+         aggregate_type, aggregate_id, template_key, deep_link_route,
+         deduplication_key, correlation_id
+       ) VALUES (
+         $1, 'mission_accepted', 'mission_action', 'creator', $2, $3,
+         'mission_application', $4, 'notification.mission_accepted.v1',
+         $5, $6, $7
+       ) RETURNING id`,
+      [
+        publicId,
+        input.creatorUserId,
+        input.businessId,
+        input.missionApplicationId,
+        `/notifications/${publicId}`,
+        `mission-application:${input.missionApplicationId}:accepted`,
+        input.correlationId,
+      ],
+    );
+    const eventId = event.rows[0]?.id;
+    if (!eventId) throw new Error('Mission acceptance notification returned no row.');
+    await client.query(
+      `INSERT INTO audit_events (
+         actor_id, actor_type, action, correlation_id, subject_type, subject_id, details
+       ) VALUES (NULL, 'service', 'notification.event-enqueued', $1,
+                 'notification-event', $2, $3::jsonb)`,
+      [
+        input.correlationId,
+        eventId,
+        JSON.stringify({
+          audience: 'creator',
+          category: 'mission_action',
+          type: 'mission_accepted',
+        }),
+      ],
     );
   }
 

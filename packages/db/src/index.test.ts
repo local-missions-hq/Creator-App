@@ -59,6 +59,13 @@ describe('initial schema', () => {
       'content_license_assets',
       'content_license_channels',
       'content_license_status_history',
+      'notification_preferences',
+      'notification_preference_history',
+      'notification_events',
+      'notification_outbox_messages',
+      'in_app_notifications',
+      'notification_delivery_attempts',
+      'notification_outbox_status_history',
       'audit_events',
       'idempotency_records',
     ]);
