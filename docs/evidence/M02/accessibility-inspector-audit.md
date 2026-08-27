@@ -51,3 +51,5 @@ Each audit completed with an empty warning outline. This is a representative aut
 ## VoiceOver limitation
 
 The iOS 26.5 Simulator Accessibility settings did not expose VoiceOver, and Settings search returned `No Results for “VoiceOver”`. Accessibility Inspector audit output and the native accessibility tree are retained as partial evidence only. Actual VoiceOver gesture/focus testing remains open for a physical iPhone or another environment that exposes VoiceOver.
+
+The limitation was reconfirmed on 2026-08-27 after restarting the iPhone 17 Pro Simulator. Xcode reported no connected physical devices, and the current Accessibility screen is retained at [`voiceover-unavailable-iphone17pro.png`](./screenshots/ios/voiceover-unavailable-iphone17pro.png). The exact physical-device test is defined in [`voiceover-device-gate.md`](./voiceover-device-gate.md).

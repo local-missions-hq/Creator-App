@@ -6,8 +6,8 @@ Primary client: Native iPhone app with Creator and Business modes
 Companion client: Responsive admin/support web dashboard and optional desktop business views
 Cloud: Microsoft Azure
 Plan status: Executing locally; external/live gates remain closed
-Current milestone: M2 native prototype verification; actual VoiceOver and Maestro execution remain open
-Last updated: 2026-08-26
+Current milestone: M2 native prototype verification; actual VoiceOver remains open and Maestro execution has passed
+Last updated: 2026-08-27
 
 ## Live execution checklist
 
@@ -3885,3 +3885,13 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Decisions: The display/state matrix is complete and checked independently. This does not represent actual VoiceOver gestures or actual Maestro execution.
 - Blockers: Actual VoiceOver remains unavailable in the iOS 26.5 Simulator, and the Maestro CLI remains unavailable. Those M2 boxes stay open.
 - Next exact task: Preserve the M2 checkpoint while leaving actual VoiceOver and actual Maestro execution open for compatible tooling; do not represent static checks as those missing native runs.
+
+### 2026-08-27 — Physical-iPhone VoiceOver gate prepared
+
+- Milestone: M2 accessibility verification remains in progress
+- Completed: Re-ran the current device inventory and native Simulator accessibility check after the M2 Maestro checkpoint. Added a physical-iPhone VoiceOver execution script with exact Creator and Business focus-order paths, pass criteria, privacy boundaries, and required evidence.
+- Verification: `xcrun devicectl list devices` returned `No devices found`; `xctrace list devices` listed only the Mac and iOS Simulators. Computer Use opened Settings → Accessibility on iPhone 17 Pro/iOS 26.5 and confirmed the Vision section exposes Hover Text, Display & Text Size, Motion, and Spoken Content but no VoiceOver control. The current screen was retained as `docs/evidence/M02/screenshots/ios/voiceover-unavailable-iphone17pro.png`. Static Maestro validation remains green for two flows and 34 test-ID references.
+- Evidence: `docs/evidence/M02/voiceover-device-gate.md`, `docs/evidence/M02/screenshots/ios/voiceover-unavailable-iphone17pro.png`, `docs/evidence/M02/accessibility-inspector-audit.md`, and the current Xcode device inventory.
+- Decisions: The broad M2 accessibility checkbox stays open. Native accessibility trees, Xcode Accessibility Inspector, Spoken Content, macOS VoiceOver around the Simulator, and Maestro cannot be represented as actual iOS VoiceOver gesture/focus proof.
+- Blockers: A compatible physical iPhone is not connected. Closing M2 requires the physical-device run in the prepared script; no Apple, identity, payment, location, or external-service setup is required for this local synthetic test.
+- Next exact task: Connect and trust a physical iPhone, enable iOS VoiceOver, open the local Expo prototype, and execute the Creator and Business paths in `docs/evidence/M02/voiceover-device-gate.md`. After that passes, check the remaining M2 accessibility item and begin M3.

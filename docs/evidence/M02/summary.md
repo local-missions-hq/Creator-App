@@ -178,3 +178,5 @@ The inspected standard-size iPhone views show no horizontal overflow or clipped 
 ## Remaining M2 work
 
 M2 is not passed yet. The semantic palette, 12-cell display matrix, semantic states, shared touch-target contract, critical-control labels/test IDs, Xcode Accessibility Inspector checks, complete native lifecycle narration, and both actual Maestro Simulator journeys are proven. Actual VoiceOver gesture/focus testing remains the independent open gate because iOS 26.5 Simulator does not expose VoiceOver.
+
+The target limitation was reconfirmed on 2026-08-27: Xcode found no connected physical iPhone, and the restarted iPhone 17 Pro/iOS 26.5 Simulator still omits VoiceOver from Settings → Accessibility. The retained [`device-gate runbook`](./voiceover-device-gate.md) defines the exact physical-device Creator and Business paths required to close M2; [`current Simulator evidence`](./screenshots/ios/voiceover-unavailable-iphone17pro.png) records why the checkbox remains open.
