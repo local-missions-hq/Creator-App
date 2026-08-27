@@ -30,6 +30,7 @@ const currentSchemaMigrations = [
   '0009_nifty_scorpion.sql',
   '0010_wide_lady_ursula.sql',
   '0011_perpetual_ender_wiggin.sql',
+  '0012_notification_preference_history_backfill.sql',
 ].map((name) => fileURLToPath(new URL(`../drizzle/${name}`, import.meta.url)));
 const databaseName = `local_missions_m3_submission_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());

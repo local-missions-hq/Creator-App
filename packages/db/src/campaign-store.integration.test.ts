@@ -25,6 +25,9 @@ const migrationPaths = [
   fileURLToPath(new URL('../drizzle/0009_nifty_scorpion.sql', import.meta.url)),
   fileURLToPath(new URL('../drizzle/0010_wide_lady_ursula.sql', import.meta.url)),
   fileURLToPath(new URL('../drizzle/0011_perpetual_ender_wiggin.sql', import.meta.url)),
+  fileURLToPath(
+    new URL('../drizzle/0012_notification_preference_history_backfill.sql', import.meta.url),
+  ),
 ];
 const databaseName = `local_missions_m3_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());

@@ -1,0 +1,98 @@
+{
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "index": 0,
+      "journalTimestamp": 1787840315082,
+      "snapshotSha256": "e694e8d07fdf5703dc5ef2cda90a90fec12fede1d998e59a7f69dbdeca6b7961",
+      "sqlSha256": "aa6bc28d916b57d1b5b13fef7f39401d7b75289adfdda0b860d4df88bc3196b8",
+      "tag": "0000_giant_snowbird"
+    },
+    {
+      "index": 1,
+      "journalTimestamp": 1787841072445,
+      "snapshotSha256": "535f1df863a4fc03c8ff0e4c4df9006f5393fd7ab79aac5cb8fa12e0fb13ce45",
+      "sqlSha256": "03dee59f8d4e2d1381aade1a389f6f74bf23da91e0c93b63a235438f923ad102",
+      "tag": "0001_empty_tyrannus"
+    },
+    {
+      "index": 2,
+      "journalTimestamp": 1787842210113,
+      "snapshotSha256": "186b93ec937e37f1d0e64d104a8574b46c08a8d1eb1c321899fd2ef17c4c1759",
+      "sqlSha256": "86506f480802521e796457faf080d2fdbbbe1fe7da0080e935a1f2c2d98f72ef",
+      "tag": "0002_material_rachel_grey"
+    },
+    {
+      "index": 3,
+      "journalTimestamp": 1787843084020,
+      "snapshotSha256": "4ba76fb0486874b1da7159356ecb89a229f00b473f5b1284d7fa8dea7fb49675",
+      "sqlSha256": "da53e952d0ed9e15095f92ddf22ddc6864e6dfda59316e19912a37deaa504298",
+      "tag": "0003_orange_tempest"
+    },
+    {
+      "index": 4,
+      "journalTimestamp": 1787844170407,
+      "snapshotSha256": "80e9771965708e6b3593ffb325cdd820c0e2e9783319c852db2577fe996dd145",
+      "sqlSha256": "dcc6b2f5b69bda2ed1e172112a8239c60a633d71f046f7ca41d485176d90d8a4",
+      "tag": "0004_handy_gideon"
+    },
+    {
+      "index": 5,
+      "journalTimestamp": 1787845445184,
+      "snapshotSha256": "b0c03a47b69ae564ac1d4a6934972380c6256280b4863f565e04c769d5807773",
+      "sqlSha256": "e5c55ed69e69fdc4df1e11c8fbb2c4bf722a9421311f1997f142211c8494d29b",
+      "tag": "0005_huge_agent_brand"
+    },
+    {
+      "index": 6,
+      "journalTimestamp": 1787846673522,
+      "snapshotSha256": "30d0a5722e0b111aec3284ac8c1eb95350a9703f469fed96754d2d810f3be209",
+      "sqlSha256": "9017acbbf7285a38efddac7cd9b5d3af30ca9456617a19c0d2eb25891bb1191c",
+      "tag": "0006_dapper_mordo"
+    },
+    {
+      "index": 7,
+      "journalTimestamp": 1787848637307,
+      "snapshotSha256": "44c3e0f35b1b4841ceb0ccd6dc39638c1030cfe90c8593eb74a180b9892d8423",
+      "sqlSha256": "e176fcc55643e714783feebffab14750a8ea66b420813beb2aec19dfd8117031",
+      "tag": "0007_thick_sharon_ventura"
+    },
+    {
+      "index": 8,
+      "journalTimestamp": 1787849702600,
+      "snapshotSha256": "f061003931f0d3ff2409996af349311e371ede4aa4472de188b0b591ffa5f140",
+      "sqlSha256": "1c54e544f030f52e66a4b7f47383dd3823cff2a7f88d85026d3d119d3d99b169",
+      "tag": "0008_fair_sheva_callister"
+    },
+    {
+      "index": 9,
+      "journalTimestamp": 1787850072086,
+      "snapshotSha256": "bef2d9106d97a39eeb32c87cff362b644c05f075061f8aeb0384d531d6343205",
+      "sqlSha256": "267d1150301a71ccf3527efc1d45d27376bf370a6d536a3f42fa218bc56aba27",
+      "tag": "0009_nifty_scorpion"
+    },
+    {
+      "index": 10,
+      "journalTimestamp": 1787851200261,
+      "snapshotSha256": "80ea1b649b9f431d213d2f43b4130f5b3c95c80891655d64c08fc0cc2b3e5773",
+      "sqlSha256": "af20ec8d62a6fda4d76c577f147034acae684568ef3a3465f171e1b285506695",
+      "tag": "0010_wide_lady_ursula"
+    },
+    {
+      "index": 11,
+      "journalTimestamp": 1787851283076,
+      "snapshotSha256": "961b5e9e722a1ae47478e9bed504844871268565fb528db8992a6c50e236658f",
+      "sqlSha256": "e7ae5c1a6816a82739cef2104fbcaa4686c28f39eb52f2229f29ab9511d2feaf",
+      "tag": "0011_perpetual_ender_wiggin"
+    },
+    {
+      "index": 12,
+      "journalTimestamp": 1787854315691,
+      "snapshotSha256": "41ff4a03be58e4813899023e47e6d15495128665fcf7bf7cc3a12d95d5df3b6a",
+      "sqlSha256": "0d434cdd072af492eda8907f2bc15bced191a841ff8fcb80239c0fcd8e05d57a",
+      "tag": "0012_notification_preference_history_backfill"
+    }
+  ],
+  "hashAlgorithm": "sha256",
+  "manifestVersion": 1
+}

@@ -85,6 +85,13 @@
       "when": 1787851283076,
       "tag": "0011_perpetual_ender_wiggin",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1787854315691,
+      "tag": "0012_notification_preference_history_backfill",
+      "breakpoints": true
     }
   ]
 }

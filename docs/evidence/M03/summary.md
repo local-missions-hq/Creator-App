@@ -13,6 +13,7 @@ Local Pass checkpoint: `M03-local-pass-008`
 Content rights checkpoint: `M03-content-rights-009`
 Notification outbox checkpoint: `M03-notification-outbox-010`
 API foundation checkpoint: `M03-api-foundation-011`
+Migration recovery checkpoint: `M03-migration-recovery-012`
 Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Implemented in this checkpoint
@@ -74,6 +75,10 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - The combined checkpoint now passes 65 real-PostgreSQL domain tests plus seven API integration tests. `pnpm verify` passes all nine-package workspace gates, the security scan passes 332 text files, Gitleaks finds no leak in approximately 9.40 MB, `db:check` verifies 63 tables, and `drizzle-kit check` reports a consistent twelve-migration journal.
 - API JUnit evidence: [`test-results/api-foundation-junit.xml`](./test-results/api-foundation-junit.xml).
 - API review and generated contracts: [`api/contract-review.md`](./api/contract-review.md), [`api/openapi.json`](./api/openapi.json), and [`api/openapi.local.json`](./api/openapi.local.json).
+- Two dedicated migration-recovery tests passed against isolated real PostgreSQL databases. A truly empty database applied all thirteen migrations and matched all 63 current tables and manifested tracker hashes. An N-1 database retained its synthetic identity, Business membership, `$500.00 + $75.00 = $575.00` campaign, history, audit, and notification preference through an injected transactional failure, then recovered forward with one idempotent preference-history backfill.
+- The migration manifest verifies contiguous Drizzle journal order plus SHA-256 hashes for all thirteen SQL files and snapshots and rejects unreviewed destructive statements. `pnpm verify` passes all nine-package workspace gates; the complete integration gate passes 67 database tests plus seven API tests; the security scan passes 342 text files; Gitleaks finds no leak in approximately 9.79 MB; repeated seed and `db:check` verify 63 tables; and `drizzle-kit check` reports a consistent thirteen-migration journal.
+- Migration recovery JUnit and review: [`test-results/migration-recovery-junit.xml`](./test-results/migration-recovery-junit.xml) and [`migration-roll-forward-recovery.md`](./migration-roll-forward-recovery.md).
+- Forward-only operations runbook: [`../../operations/migration-roll-forward.md`](../../operations/migration-roll-forward.md).
 - Migration: [`../../../packages/db/drizzle/0000_giant_snowbird.sql`](../../../packages/db/drizzle/0000_giant_snowbird.sql).
 - Forward migration: [`../../../packages/db/drizzle/0001_empty_tyrannus.sql`](../../../packages/db/drizzle/0001_empty_tyrannus.sql).
 - Mission/capacity migration: [`../../../packages/db/drizzle/0002_material_rachel_grey.sql`](../../../packages/db/drizzle/0002_material_rachel_grey.sql).
@@ -86,6 +91,8 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Slot bonus-component migration: [`../../../packages/db/drizzle/0009_nifty_scorpion.sql`](../../../packages/db/drizzle/0009_nifty_scorpion.sql).
 - Notification catalog/outbox migration: [`../../../packages/db/drizzle/0010_wide_lady_ursula.sql`](../../../packages/db/drizzle/0010_wide_lady_ursula.sql).
 - Notification history/state-machine migration: [`../../../packages/db/drizzle/0011_perpetual_ender_wiggin.sql`](../../../packages/db/drizzle/0011_perpetual_ender_wiggin.sql).
+- Notification preference-history backfill: [`../../../packages/db/drizzle/0012_notification_preference_history_backfill.sql`](../../../packages/db/drizzle/0012_notification_preference_history_backfill.sql).
+- Migration manifest: [`../../../packages/db/drizzle/migration-manifest.json`](../../../packages/db/drizzle/migration-manifest.json).
 
 ## Privacy and safety
 
@@ -96,6 +103,6 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Known limitations and M3 gate
 
-These are eleven complete local foundation slices, not the full M3 milestone. Local Pass OTP/recovery/refusal/reporting edges, rights renewal operations, external notification providers/device registration/scheduling, raw-proof retention jobs, Reach analytics qualification, authenticated domain HTTP resources, and remaining audit records are not implemented yet. Stripe execution, webhook processing, transfers, refunds, payouts, chargebacks, reserve controls, and provider reconciliation remain M12 work; the ledger checkpoint records internal obligations only. Cloud upload intents and media workers remain later M10 work. A latest-schema empty-database/recovery proof and complete state-transition tables remain open. Physical camera/location and push-delivery execution remain later device gates rather than part of this local state-machine checkpoint.
+These are twelve complete local foundation slices, not the full M3 milestone. Local Pass OTP/recovery/refusal/reporting edges, rights renewal operations, external notification providers/device registration/scheduling, raw-proof retention jobs, Reach analytics qualification, authenticated domain HTTP resources, and remaining audit records are not implemented yet. Stripe execution, webhook processing, transfers, refunds, payouts, chargebacks, reserve controls, and provider reconciliation remain M12 work; the ledger checkpoint records internal obligations only. Cloud upload intents and media workers remain later M10 work. Complete state-transition tables remain open. Physical camera/location and push-delivery execution remain later device gates rather than part of this local state-machine checkpoint.
 
-The M3 milestone gate has not passed. The API foundation and reviewed OpenAPI/shared-client checklist items are complete; `plans.md` keeps the remaining M3 work open.
+The M3 milestone gate has not passed. The API foundation, reviewed OpenAPI/shared-client, and latest-schema roll-forward recovery checklist items are complete; `plans.md` keeps the remaining M3 work open.

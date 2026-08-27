@@ -430,3 +430,45 @@ PASS — `/health/live`, `/health/ready`, `/build-info`, `/v1`, paginated `/v1/m
 
 pnpm --filter @local-missions/api exec vitest run src/api.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/api-foundation-junit.xml
 PASS — retained seven API foundation tests with no failures or errors; machine hostname replaced by local-development-host.
+M03-migration-recovery-012 — 2026-08-27
+
+pnpm --filter @local-missions/db test:integration
+INITIAL FAIL — the shell exposed pnpm 11.19.0, while the repository requires pnpm 11.24.0 and Node 24.19.0.
+RESOLUTION — used the repository's established pinned Node 24.19.0 and pnpm 11.24.0 runtime without changing the machine-wide installation.
+PASS — all 67 database integration tests passed against real PostgreSQL, including the dedicated empty-database and roll-forward-recovery tests.
+
+pnpm --filter @local-missions/db exec vitest run src/migration-recovery.integration.test.ts
+INITIAL FAIL — the synthetic notification preference was created after migration 0011, so the correct history trigger immediately created version 1 and invalidated the intended N-1 fixture assumption.
+RESOLUTION — created the preference under migration 0010 before applying 0011, accurately modeling the deployment window that migration 0012 closes.
+PASS — both recovery tests passed: all thirteen migrations on an empty database, plus injected-failure rollback and forward recovery without retained-data loss or duplicate history.
+
+pnpm db:migrate
+PASS — append-only migration 0012 applied to the retained loopback database.
+
+pnpm db:seed
+pnpm db:seed
+PASS — both reruns retained the deterministic identity, business, campaign, four templates, one brief, two deliverable requirements, and 10 Community Slots.
+
+pnpm db:check
+PASS — all 63 tables and the deterministic mission contract were verified.
+
+pnpm --filter @local-missions/db contracts:check
+PASS — the manifest verified thirteen ordered migration SQL/snapshot hashes and rejected unreviewed destructive statements.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — the thirteen-entry Drizzle journal and all snapshots are internally consistent.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, contracts, and all nine workspace builds passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:integration
+PASS — 67 database tests and seven API integration tests passed against real PostgreSQL.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 342 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 9.79 MB.
+
+pnpm --filter @local-missions/db exec vitest run src/migration-recovery.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/migration-recovery-junit.xml
+PASS — retained two migration-recovery tests with no failures or errors; machine hostname replaced by local-development-host.
