@@ -1,6 +1,6 @@
 # M2 iPhone device, appearance, text, and state matrix
 
-Status: Display, semantic-state, and actual Maestro gates passed; separate VoiceOver gate remains open
+Status: M2 display, semantic-state, accessibility-inspector, and actual Maestro gates passed; physical VoiceOver deferred to M16 by ADR-059
 Date: 2026-08-26  
 Scope: representative high-risk routes per combination; not every route repeated in every cell
 
@@ -55,7 +55,7 @@ New exact-cell captures:
 - Touch target: Pass for the current prototype through the shared 44 × 44 point wrapper and source regression test.
 - Light/Dark ordinary-text contrast: Pass for the current semantic palette through automated contrast tests and representative visual inspection.
 - Xcode Accessibility Inspector: Representative pass with all seven available checks enabled and empty warning outlines on the retained routes.
-- Actual VoiceOver gesture/focus: Open; iOS 26.5 Simulator does not expose VoiceOver.
+- Actual VoiceOver gesture/focus: Not yet performed; deferred to the mandatory M16 physical-iPhone gate by ADR-059 because iOS 26.5 Simulator does not expose VoiceOver.
 - Actual Maestro execution: Pass; Maestro 2.9.0 ran the Creator and Business flows on the pinned iPhone 17 Pro Simulator, with retained JUnit, command, driver, and screenshot artifacts.
 
-The 12-cell display matrix and actual Maestro execution are complete. Actual VoiceOver remains an independent open gate; the native tree and Xcode Accessibility Inspector evidence must not be described as actual VoiceOver gesture/focus proof.
+The 12-cell display matrix and actual Maestro execution are complete, so the local M2 gate passes under ADR-059. Actual VoiceOver remains a separate mandatory M16 gate; the native tree and Xcode Accessibility Inspector evidence must not be described as actual VoiceOver gesture/focus proof.

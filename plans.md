@@ -6,7 +6,7 @@ Primary client: Native iPhone app with Creator and Business modes
 Companion client: Responsive admin/support web dashboard and optional desktop business views
 Cloud: Microsoft Azure
 Plan status: Executing locally; external/live gates remain closed
-Current milestone: M2 native prototype verification; actual VoiceOver remains open and Maestro execution has passed
+Current milestone: M3 database, API contract, and domain state machines; physical-iPhone VoiceOver is deferred to M16 by ADR-059
 Last updated: 2026-08-27
 
 ## Live execution checklist
@@ -15,7 +15,7 @@ This checklist is the current proof-based status view. The detailed milestone se
 
 ### M0 — Product contract and architecture
 
-- [x] Freeze the founder-approved V1 product contract and ADR-001 through ADR-058.
+- [x] Freeze the founder-approved V1 product contract and ADR-001 through ADR-059.
 - [x] Generate the ADR files and verify the register has no drift.
 - [x] Record the trust boundaries, legal/provider gates, and synthetic Orlando tabletop walkthrough.
 - [x] Save M0 evidence under `docs/evidence/M00/`.
@@ -78,7 +78,7 @@ Admin/support web views:
 Prototype quality and verification:
 
 - [x] Complete and document the semantic design system and all success/warning/error/pending/locked/empty/loading/offline patterns.
-- [ ] Complete WCAG AA, touch-target, VoiceOver, and Dynamic Type audits.
+- [x] Complete the M2-local WCAG AA contrast, 44 × 44 touch-target, Xcode Accessibility Inspector/native-tree, and Dynamic Type audits.
 - [x] Add native-feeling tab navigation.
 - [x] Add native-feeling sheets.
 - [x] Use realistic synthetic Orlando data without personal information or live payment identifiers.
@@ -102,6 +102,18 @@ Prototype quality and verification:
 - [x] Execute both Maestro flows against the iPhone Simulator and retain run artifacts.
 - [x] Implement and inspect the required admin/support web routes at desktop and mobile widths.
 - [x] Pass the narrated end-to-end M2 gate with no critical large-text clipping.
+
+Actual physical-iPhone VoiceOver gesture testing is intentionally deferred by ADR-059. It remains mandatory in M16 and must pass before M16 closes or external TestFlight testing begins.
+
+### M3 — Database, API contract, and domain state machines
+
+- [ ] Create the transactional PostgreSQL schema, migrations, indexes, constraints, UTC timestamps, integer-minor-unit money fields, stable public IDs, and deterministic synthetic seed.
+- [ ] Define the `/v1` REST contract, standard errors, pagination, request IDs, structured logs, health/build endpoints, and a production-impossible local dev-token boundary.
+- [ ] Generate and intentionally review the OpenAPI artifact and typed mobile/dashboard client contract.
+- [ ] Implement domain state machines, immutable audit/ledger behavior, idempotent writes, optimistic concurrency, and duplicate-event protection.
+- [ ] Prove empty-database migration, upgrade migration, deterministic seed, and documented roll-forward recovery against real ephemeral PostgreSQL.
+- [ ] Pass positive, negative, concurrency, capacity, idempotency, and same-transaction audit tests for every M3 state transition.
+- [ ] Save M3 command, API, test, and summary evidence under `docs/evidence/M03/` and pass the M3 gate.
 
 1. How to use this file
 
@@ -958,6 +970,8 @@ Record design corrections and recapture the affected screens.
 Gate
 
 M2 passes when a tester can narrate the complete workflow from the prototype without guidance and no critical iPhone screen clips at large text size.
+
+Under ADR-059, M2 also requires the completed local contrast, touch-target, Dynamic Type, native accessibility-tree, Xcode Accessibility Inspector, and actual Maestro evidence recorded in `docs/evidence/M02/`. Actual iOS VoiceOver gesture/focus testing is not represented by those tools; it is deferred to the mandatory M16 physical-iPhone gate and is not required to begin M3.
 
 M3 — Database, API contract, and domain state machines
 
@@ -2283,6 +2297,8 @@ Accessibility tasks
 
 VoiceOver traversal of every critical participant flow.
 
+Complete the deferred ADR-059 physical-iPhone Creator and Business paths in `docs/evidence/M02/voiceover-device-gate.md`. Record defects and successful retests; M16 cannot pass until this evidence passes.
+
 Dynamic Type at accessibility sizes.
 
 Color contrast and non-color status indicators.
@@ -2518,6 +2534,8 @@ Add beta description, test focus, support email, and reviewer login/instructions
 Start with internal testers.
 
 Expand to a small external group only after internal exit criteria pass.
+
+Do not expand to external TestFlight testers until the deferred ADR-059 physical-iPhone VoiceOver evidence has passed in M16.
 
 Example release commands
 
@@ -3895,3 +3913,13 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Decisions: The broad M2 accessibility checkbox stays open. Native accessibility trees, Xcode Accessibility Inspector, Spoken Content, macOS VoiceOver around the Simulator, and Maestro cannot be represented as actual iOS VoiceOver gesture/focus proof.
 - Blockers: A compatible physical iPhone is not connected. Closing M2 requires the physical-device run in the prepared script; no Apple, identity, payment, location, or external-service setup is required for this local synthetic test.
 - Next exact task: Connect and trust a physical iPhone, enable iOS VoiceOver, open the local Expo prototype, and execute the Creator and Business paths in `docs/evidence/M02/voiceover-device-gate.md`. After that passes, check the remaining M2 accessibility item and begin M3.
+
+### 2026-08-27 — Physical VoiceOver deferred to M16 and M2 closed
+
+- Milestone: M2 passed; M3 is now active
+- Completed: Recorded ADR-059 so current local development does not require a physical iPhone. Closed the M2-local accessibility evidence using the already-passed contrast, shared touch-target, Dynamic Type, native accessibility-tree, Xcode Accessibility Inspector, display-matrix, narrated-flow, and actual Maestro checks. Added the live M3 implementation checklist.
+- Verification: Node `24.19.0` with pnpm `11.24.0` ran `pnpm verify` successfully across all eight workspaces, including formatting, prerequisites, lint, strict type checks, tests, contracts, and builds; all 26 mobile unit tests passed. `pnpm test:security` scanned 228 text files, Gitleaks found no leaks in approximately 5.93 MB, static Maestro validation passed two flows and 34 test-ID references, and the ADR generator verified all 59 records plus its index.
+- Evidence: `docs/decisions/ADR-059.md`, `docs/evidence/M02/summary.md`, `docs/evidence/M02/device-matrix.md`, `docs/evidence/M02/accessibility-inspector-audit.md`, and `docs/evidence/M02/voiceover-device-gate.md`.
+- Decisions: ADR-059 defers actual iOS VoiceOver focus/gesture testing to M16 without treating Simulator tooling as equivalent proof. The physical Creator and Business paths must pass before M16 closes or external TestFlight testing begins.
+- Blockers: None for beginning M3. A compatible physical iPhone remains a later M16 release gate, not a current development prerequisite.
+- Next exact task: Start M3 with the smallest complete transactional slice: inspect the current database/API packages, define the schema and state-machine boundary, then add the first real-PostgreSQL migration and positive/negative transition tests.

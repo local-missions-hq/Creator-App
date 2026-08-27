@@ -719,7 +719,7 @@ docs/
 
 ## 22. Architecture decision register
 
-Founder-approved V1 baseline frozen on 2026-08-26. ADR-001 through ADR-058 are implementation-authoritative unless a later ADR explicitly supersedes one. `Accepted` does not bypass a provider, legal, security, privacy, cost, or production-readiness gate written into the decision.
+Founder-approved V1 baseline frozen on 2026-08-26. ADR-001 through ADR-059 are implementation-authoritative unless a later ADR explicitly supersedes one. ADR-059 is a founder-approved milestone scheduling decision added on 2026-08-27; it does not weaken the V1 accessibility or release standard. `Accepted` does not bypass a provider, legal, security, privacy, cost, or production-readiness gate written into the decision.
 
 | ADR | Decision | Current status |
 |---|---|---|
@@ -781,6 +781,7 @@ Founder-approved V1 baseline frozen on 2026-08-26. ADR-001 through ADR-058 are i
 | ADR-056 | Creator invitations allow 14 days and business invitations 30 days to submit user-controlled onboarding inputs; reminders and one seven-day support extension apply, provider/platform delay is excluded, and unused capacity returns without penalty | Confirmed 2026-08-26 |
 | ADR-057 | Declined/validly expired or finally denied invited onboarding closes and deletes Local Missions verification, media, draft, and unfunded payment references within 30 days after the applicable appeal boundary, preserving only the minimal waitlist return and a 12-month non-personal audit | Confirmed 2026-08-26 |
 | ADR-058 | Fixable onboarding issues receive a 14-day correction; final creator/business denials use objective reasons and one 14-day independent appeal targeted within 10 business days, with limited fraud-detail withholding and no cross-role/earned-money harm | Confirmed 2026-08-26 |
+| ADR-059 | Physical-iPhone VoiceOver gesture testing is deferred from M2 to M16; it remains mandatory before M16 passes or external TestFlight expansion begins | Confirmed 2026-08-27 |
 
 Individual frozen records live under `docs/decisions/`. Any material change requires a new ADR that names the superseded record; accepted history is not silently rewritten.
 
@@ -844,6 +845,7 @@ ADR-022 supersedes the 18% planning assumption in the current investor business-
 - Pilot invitations expire if creator-controlled onboarding inputs are not submitted within 14 days or business-controlled verification/initial-brief inputs within 30 days. Reminders, one seven-day support extension, exclusion of platform/provider delays, atomic capacity release, and no-penalty waitlist return apply; an invitation reserves no mission or money.
 - Declined or validly expired invited onboarding loses sensitive-workflow access immediately and deletes Local Missions documents, drafts, media, derivatives, and unfunded payment references within 30 days. Provider-mandated retention is not copied locally; only the minimal waitlist return and a 12-month non-personal deletion audit remain, except for a documented expiring hold.
 - Fixable creator/business onboarding issues receive a 14-day **Correction needed** path. Final denials require an objective reason and one 14-day appeal decided by a different reviewer with a 10-business-day target; sensitive fraud methods may be withheld, but popularity, appearance, followers, budget, or subjective preference cannot deny access, and other roles/earned money remain unaffected.
+- A physical iPhone is not required to begin M3. Actual iOS VoiceOver focus and gesture testing is deferred to M16, remains mandatory for the critical Creator and Business paths, and must pass before external TestFlight expansion.
 
 ### Open implementation gates, in dependency order
 
@@ -853,7 +855,7 @@ ADR-022 supersedes the 18% planning assumption in the current investor business-
 
 ## 24. Founder interview status
 
-Questions 1–50 are resolved. The founder approved ADR-001 through ADR-058 as the frozen V1 baseline and authorized individual ADR generation plus local M1 implementation. There is no active founder architecture question. External provider, legal, accounting, insurance, security, privacy, cost, and production approvals remain gates rather than assumptions.
+Questions 1–50 are resolved. The founder approved ADR-001 through ADR-058 as the frozen V1 baseline and authorized individual ADR generation plus local M1 implementation. ADR-059 was approved on 2026-08-27 as a milestone scheduling decision that preserves physical-iPhone VoiceOver as a later release gate. There is no active founder architecture question. External provider, legal, accounting, insurance, security, privacy, cost, and production approvals remain gates rather than assumptions.
 
 ## 25. Primary references
 

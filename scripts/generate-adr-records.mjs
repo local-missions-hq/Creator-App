@@ -18,13 +18,14 @@ const rows = [...architecture.matchAll(/^\| ADR-(\d{3}) \| (.+?) \| (.+?) \|$/gm
   }),
 );
 
-if (rows.length !== 58 || rows[0]?.id !== 'ADR-001' || rows.at(-1)?.id !== 'ADR-058') {
-  throw new Error(
-    `Expected the frozen ADR-001 through ADR-058 register; found ${rows.length} records.`,
-  );
+if (rows.length !== 59 || rows[0]?.id !== 'ADR-001' || rows.at(-1)?.id !== 'ADR-059') {
+  throw new Error(`Expected the ADR-001 through ADR-059 register; found ${rows.length} records.`);
 }
 
 const contextFor = (number) => {
+  if (number === 59) {
+    return 'This record schedules the physical-device accessibility proof without weakening the release requirement or misrepresenting Simulator evidence as actual VoiceOver testing.';
+  }
   if (number <= 10) {
     return 'This record establishes a foundational application, data, integration, or scaling boundary for the Local Missions V1 platform.';
   }
@@ -67,17 +68,29 @@ const gatesFor = (number) => {
     );
   }
 
+  if (number === 59) {
+    gates.unshift(
+      'The prepared physical-iPhone Creator and Business VoiceOver paths must pass during M16 before M16 may close or external TestFlight testing may begin.',
+      'Accessibility Inspector, native accessibility-tree inspection, Maestro, Spoken Content, and macOS VoiceOver must not be reported as actual iOS VoiceOver gesture evidence.',
+    );
+  }
+
   return gates;
 };
 
 const renderRecord = ({ id, number, decision, sourceStatus }) => {
+  const decisionDate = number === 59 ? '2026-08-27' : '2026-08-26';
+  const recordStatus =
+    number === 59
+      ? 'Accepted — founder-approved milestone scheduling decision'
+      : 'Accepted — founder-approved V1 baseline';
   const gates = gatesFor(number)
     .map((gate) => `- ${gate}`)
     .join('\n');
   return `# ${id}: ${decision.replaceAll('**', '').replaceAll('`', '')}
 
-- **Status:** Accepted — founder-approved V1 baseline
-- **Decision date:** 2026-08-26
+- **Status:** ${recordStatus}
+- **Decision date:** ${decisionDate}
 - **Source register status at freeze:** ${sourceStatus}
 - **Scope:** Local Missions V1 unless superseded
 
@@ -114,7 +127,7 @@ const renderIndex = () => {
 
   return `# Local Missions architecture decisions
 
-ADR-001 through ADR-058 are the founder-approved V1 baseline frozen on 2026-08-26. These generated records make the register reviewable as individual decisions; [../../architecture.md](../../architecture.md) remains the detailed architecture overview and [../../plans.md](../../plans.md) remains the build-and-verification contract.
+ADR-001 through ADR-058 are the founder-approved V1 baseline frozen on 2026-08-26. ADR-059 is the founder-approved milestone scheduling decision added on 2026-08-27 without weakening the physical-device accessibility gate. These generated records make the register reviewable as individual decisions; [../../architecture.md](../../architecture.md) remains the detailed architecture overview and [../../plans.md](../../plans.md) remains the build-and-verification contract.
 
 | ADR | Decision | Source status at freeze |
 |---|---|---|

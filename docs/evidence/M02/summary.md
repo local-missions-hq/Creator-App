@@ -1,6 +1,6 @@
 # M02 clickable prototype evidence
 
-Status: In progress; native prototype, display matrix, and Creator/Business Maestro journeys passed; actual VoiceOver remains open
+Status: Passed under ADR-059; native prototype, display matrix, and Creator/Business Maestro journeys passed; physical-iPhone VoiceOver is deferred to M16
 Date: 2026-08-26  
 Devices: iPhone SE (3rd generation), iPhone 17 Pro, and iPhone 17 Pro Max Simulators, iOS 26.5; controlled browser at 1440 px and 390 px widths
 
@@ -175,8 +175,8 @@ The inspected standard-size iPhone views show no horizontal overflow or clipped 
 - Semantic status never relies on color alone: each state has a visible label and icon or progress indicator. Offline and error explain preservation boundaries; the locked Business state says existing obligations continue; every synthetic action confirms that no request was sent.
 - Across the complete 12-cell display matrix, primary content wraps and scrolls vertically; decorative chrome and the welcome headline use bounded multipliers so brand, title, and tab labels remain operable. Creator account/payment, Business capacity/results, Venue Staff, semantic states, and the role entry points have representative exact-cell evidence. This does not claim actual VoiceOver gesture/focus proof.
 
-## Remaining M2 work
+## M2 gate result and deferred physical-device work
 
-M2 is not passed yet. The semantic palette, 12-cell display matrix, semantic states, shared touch-target contract, critical-control labels/test IDs, Xcode Accessibility Inspector checks, complete native lifecycle narration, and both actual Maestro Simulator journeys are proven. Actual VoiceOver gesture/focus testing remains the independent open gate because iOS 26.5 Simulator does not expose VoiceOver.
+M2 passes under ADR-059. The semantic palette, 12-cell display matrix, semantic states, shared touch-target contract, critical-control labels/test IDs, Xcode Accessibility Inspector checks, complete native lifecycle narration, and both actual Maestro Simulator journeys are proven. This evidence is sufficient to begin M3 without a physical iPhone.
 
-The target limitation was reconfirmed on 2026-08-27: Xcode found no connected physical iPhone, and the restarted iPhone 17 Pro/iOS 26.5 Simulator still omits VoiceOver from Settings → Accessibility. The retained [`device-gate runbook`](./voiceover-device-gate.md) defines the exact physical-device Creator and Business paths required to close M2; [`current Simulator evidence`](./screenshots/ios/voiceover-unavailable-iphone17pro.png) records why the checkbox remains open.
+Actual VoiceOver gesture/focus testing has not been performed. The target limitation was reconfirmed on 2026-08-27: Xcode found no connected physical iPhone, and the restarted iPhone 17 Pro/iOS 26.5 Simulator still omits VoiceOver from Settings → Accessibility. ADR-059 defers that truthful physical-device proof to M16. The retained [`device-gate runbook`](./voiceover-device-gate.md) defines the exact Creator and Business paths that must pass before M16 closes or external TestFlight testing begins; [`current Simulator evidence`](./screenshots/ios/voiceover-unavailable-iphone17pro.png) records the limitation.

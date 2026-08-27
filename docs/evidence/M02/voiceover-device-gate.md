@@ -1,6 +1,6 @@
-# M2 physical-iPhone VoiceOver gate
+# Deferred physical-iPhone VoiceOver gate
 
-Status: Waiting for a compatible physical iPhone
+Status: Deferred from M2 to M16 by ADR-059; mandatory before M16 closes or external TestFlight expansion begins
 
 Date last checked: 2026-08-27
 
@@ -62,11 +62,11 @@ Both paths pass only when:
 - no critical action depends only on color, placement, or sighted interpretation;
 - both paths complete without entering real personal data or contacting an external service.
 
-## Evidence required to close M2
+## Evidence required to close the deferred M16 gate
 
 - A dated test note containing only the iPhone model, iOS version, app/Expo version, tester role, and pass/fail result for each numbered step.
 - A screen recording or focused screenshots showing representative Creator consent/application, Creator Paid, Business budget, and Business published states. Review captures before committing them so no notifications, account details, identifiers, or other personal information are visible.
 - A defect-and-retest note for every failed step, including the repaired file and the successful rerun.
 - A fresh `pnpm verify`, `pnpm test:security`, `pnpm test:gitleaks`, and both Maestro Simulator runs after any repair.
 
-Only after all evidence passes may the broad M2 WCAG/touch-target/VoiceOver/Dynamic Type checkbox be checked and the current milestone advance to M3.
+ADR-059 allows M3 development to begin without this physical-device evidence. The gate is not optional: all evidence above must pass before M16 closes or the app expands from internal to external TestFlight testing. Any defect found during the physical run must be repaired, reverified, and reflected in the affected milestone evidence.

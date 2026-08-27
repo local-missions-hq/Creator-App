@@ -2,7 +2,7 @@
 
 Status: Founder-approved baseline, implementation not yet proven  
 Date: 2026-08-26  
-Authority: [architecture.md](../../architecture.md), [plans.md](../../plans.md), and [ADR-001 through ADR-058](../decisions/README.md)
+Authority: [architecture.md](../../architecture.md), [plans.md](../../plans.md), and [ADR-001 through ADR-059](../decisions/README.md)
 
 ## Product promise
 
