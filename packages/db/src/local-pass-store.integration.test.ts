@@ -8,7 +8,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { getLocalDatabaseUrl } from '../scripts/local-database.js';
 import { LocalPassStore } from './local-pass-store.js';
 
-const migrationsBeforeLocalPass = [
+const migrations = [
   '0000_giant_snowbird.sql',
   '0001_empty_tyrannus.sql',
   '0002_material_rachel_grey.sql',
@@ -16,10 +16,15 @@ const migrationsBeforeLocalPass = [
   '0004_handy_gideon.sql',
   '0005_huge_agent_brand.sql',
   '0006_dapper_mordo.sql',
+  '0007_thick_sharon_ventura.sql',
+  '0008_fair_sheva_callister.sql',
+  '0009_nifty_scorpion.sql',
+  '0010_wide_lady_ursula.sql',
+  '0011_perpetual_ender_wiggin.sql',
+  '0012_notification_preference_history_backfill.sql',
+  '0013_brave_maddog.sql',
+  '0014_serious_terror.sql',
 ].map((name) => fileURLToPath(new URL(`../drizzle/${name}`, import.meta.url)));
-const localPassMigration = fileURLToPath(
-  new URL('../drizzle/0007_thick_sharon_ventura.sql', import.meta.url),
-);
 const databaseName = `local_missions_m3_local_pass_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
 const adminUrl = new URL(baseUrl);
@@ -33,6 +38,7 @@ let templateId: string;
 
 type Fixture = {
   assignmentIds: [string, string];
+  businessId: string;
   campaignId: string;
   creatorIds: [string, string];
   linkTokens: [string, string];
@@ -41,6 +47,7 @@ type Fixture = {
   otherLocationId: string;
   outsiderId: string;
   ownerId: string;
+  reviewerId: string;
   staffId: string;
 };
 
@@ -57,6 +64,37 @@ function rawToken(prefix: string): string {
 
 function customerToken(label: string): string {
   return createHash('sha256').update(`synthetic-customer:${label}`).digest('hex');
+}
+
+function customerDestination(label: string): string {
+  const suffix = (
+    BigInt(`0x${createHash('sha256').update(label).digest('hex').slice(0, 12)}`) % 10_000_000n
+  )
+    .toString()
+    .padStart(7, '0');
+  return `+1407${suffix}`;
+}
+
+async function verifiedChallenge(input: {
+  claimPublicId?: string;
+  customer: string;
+  purpose: 'claim' | 'recovery' | 'refusal_report' | 'substitute_acceptance' | 'status_access';
+  rawLinkToken?: string;
+}) {
+  const publicId = `lpch_${randomUUID()}`;
+  const otp = '123456';
+  await store.issueCustomerChallenge({
+    claimPublicId: input.claimPublicId,
+    destinationCiphertext: `enc:v1:${Buffer.from(`synthetic:${input.customer}`).toString('base64')}`,
+    normalizedDestination: customerDestination(input.customer),
+    otp,
+    publicId,
+    purpose: input.purpose,
+    rawLinkToken: input.rawLinkToken,
+    riskSignal: `synthetic-risk:${input.customer}`,
+  });
+  await store.verifyCustomerChallenge({ otp, publicId });
+  return publicId;
 }
 
 async function insertUser(label: string): Promise<string> {
@@ -76,12 +114,18 @@ async function createFixture(totalQuantity = 2): Promise<Fixture> {
   const creatorTwoId = await insertUser(`creator_two_${label}`);
   const staffId = await insertUser(`staff_${label}`);
   const outsiderId = await insertUser(`outsider_${label}`);
+  const reviewerId = await insertUser(`reviewer_${label}`);
   const business = await pool.query<{ id: string }>(
     `INSERT INTO businesses (public_id, name) VALUES ($1, 'Synthetic Local Pass Cafe') RETURNING id`,
     [`biz_${label}`],
   );
   const businessId = business.rows[0]?.id;
   if (!businessId) throw new Error('Synthetic business insert failed.');
+  await pool.query(
+    `INSERT INTO platform_staff_memberships (public_id, user_id, role, status)
+     VALUES ($1,$2,'trust_safety_reviewer','active')`,
+    [`psm_${label}`, reviewerId],
+  );
   await pool.query(
     `INSERT INTO business_memberships (business_id, user_id, role, status)
      VALUES ($1,$2,'owner','active'), ($1,$3,'venue_staff','active')`,
@@ -216,6 +260,7 @@ async function createFixture(totalQuantity = 2): Promise<Fixture> {
   });
   return {
     assignmentIds: [assignmentOneId, assignmentTwoId],
+    businessId,
     campaignId,
     creatorIds: [creatorOneId, creatorTwoId],
     linkTokens,
@@ -224,6 +269,7 @@ async function createFixture(totalQuantity = 2): Promise<Fixture> {
     otherLocationId,
     outsiderId,
     ownerId,
+    reviewerId,
     staffId,
   };
 }
@@ -234,25 +280,34 @@ async function claim(
   customer: string,
   rawClaimToken = rawToken('claim'),
 ) {
+  const challengePublicId = await verifiedChallenge({
+    customer,
+    purpose: 'claim',
+    rawLinkToken: fixture.linkTokens[linkIndex],
+  });
   return store.claimPass({
     claimPublicId: `lpc_${randomUUID()}`,
     claimTokenPublicId: `lpct_${randomUUID()}`,
+    challengePublicId,
     correlationId: randomUUID(),
-    customerDedupToken: customerToken(customer),
     eventPublicId: `lpe_${randomUUID()}`,
     rawClaimToken,
     rawLinkToken: fixture.linkTokens[linkIndex],
-    tokenKeyVersion: 1,
   });
 }
 
 beforeAll(async () => {
   await adminPool.query(`CREATE DATABASE "${databaseName}"`);
   pool = new Pool({ connectionString: testUrl.toString(), max: 8 });
-  for (const migration of migrationsBeforeLocalPass) await applyMigration(migration);
+  for (const migration of migrations.slice(0, 7)) await applyMigration(migration);
   await pool.query(`INSERT INTO users (public_id) VALUES ('usr_local_pass_upgrade_proof')`);
-  await applyMigration(localPassMigration);
-  store = new LocalPassStore(pool);
+  for (const migration of migrations.slice(7)) await applyMigration(migration);
+  store = new LocalPassStore(pool, {
+    customerHmacKey: 'synthetic-customer-hmac-key-32-characters',
+    keyVersion: 1,
+    otpHmacKey: 'synthetic-otp-hmac-key-at-least-32-characters',
+    riskHmacKey: 'synthetic-risk-hmac-key-at-least-32-characters',
+  });
   const template = await pool.query<{ id: string }>(
     `INSERT INTO mission_templates (code, version, name, checklist_schema)
      VALUES ('visit_create', 907, 'Local Pass test template', '{"type":"object"}'::jsonb)
@@ -312,7 +367,16 @@ describe.sequential('LocalPassStore', () => {
       claim(fixture, 0, `same_${fixture.campaignId}`),
       claim(fixture, 1, `same_${fixture.campaignId}`),
     ]);
-    expect(attempts.filter((attempt) => attempt.status === 'fulfilled')).toHaveLength(1);
+    expect(
+      attempts.filter((attempt) => attempt.status === 'fulfilled'),
+      attempts
+        .map((attempt) =>
+          attempt.status === 'rejected'
+            ? `${String(attempt.reason?.code)}:${String(attempt.reason?.message)}`
+            : 'fulfilled',
+        )
+        .join(', '),
+    ).toHaveLength(1);
     const rejection = attempts.find((attempt) => attempt.status === 'rejected');
     expect((rejection as PromiseRejectedResult).reason).toMatchObject({
       code: 'LOCAL_PASS_ATTRIBUTION_LOCKED',
@@ -372,11 +436,16 @@ describe.sequential('LocalPassStore', () => {
     const oldToken = rawToken('old_claim');
     const activeClaim = await claim(fixture, 0, `rotation_${fixture.campaignId}`, oldToken);
     const newToken = rawToken('new_claim');
-    await store.rotateClaimToken({
-      claimId: activeClaim.id,
+    const recoveryChallenge = await verifiedChallenge({
+      claimPublicId: activeClaim.publicId,
+      customer: `rotation_${fixture.campaignId}`,
+      purpose: 'recovery',
+    });
+    await store.recoverActivePass({
+      challengePublicId: recoveryChallenge,
+      claimPublicId: activeClaim.publicId,
       claimTokenPublicId: `lpct_${randomUUID()}`,
       correlationId: randomUUID(),
-      customerDedupToken: customerToken(`rotation_${fixture.campaignId}`),
       rawClaimToken: newToken,
     });
     const baseRedeem = {
@@ -416,7 +485,16 @@ describe.sequential('LocalPassStore', () => {
         rawClaimToken: newToken,
       }),
     ]);
-    expect(attempts.filter((attempt) => attempt.status === 'fulfilled')).toHaveLength(1);
+    expect(
+      attempts.filter((attempt) => attempt.status === 'fulfilled'),
+      attempts
+        .map((attempt) =>
+          attempt.status === 'rejected'
+            ? `${String(attempt.reason?.code)}:${String(attempt.reason?.message)}`
+            : 'fulfilled',
+        )
+        .join(', '),
+    ).toHaveLength(1);
     expect(
       (attempts.find((attempt) => attempt.status === 'rejected') as PromiseRejectedResult).reason,
     ).toMatchObject({
@@ -443,6 +521,254 @@ describe.sequential('LocalPassStore', () => {
         )
       ).rowCount,
     ).toBe(0);
+  });
+
+  it('bounds OTP attempts and resends, rejects verification replay, and stores no raw destination', async () => {
+    const fixture = await createFixture();
+    const customer = `challenge_${fixture.campaignId}`;
+    const publicId = `lpch_${randomUUID()}`;
+    const rawDestination = customerDestination(customer);
+    await store.issueCustomerChallenge({
+      destinationCiphertext: `enc:v1:${Buffer.from('synthetic challenge destination').toString('base64')}`,
+      normalizedDestination: rawDestination,
+      otp: '654321',
+      publicId,
+      purpose: 'claim',
+      rawLinkToken: fixture.linkTokens[0],
+      riskSignal: `synthetic-risk:${customer}`,
+    });
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      await expect(
+        store.verifyCustomerChallenge({ otp: '000000', publicId }),
+      ).rejects.toMatchObject({ code: 'LOCAL_PASS_CHALLENGE_INVALID' });
+    }
+    await expect(store.verifyCustomerChallenge({ otp: '000000', publicId })).rejects.toMatchObject({
+      code: 'LOCAL_PASS_RATE_LIMITED',
+    });
+    const locked = await pool.query<{
+      destination_ciphertext: string;
+      destination_dedup_token: string;
+      marketing_consent: boolean;
+      status: string;
+      verify_attempt_count: number;
+    }>(
+      `SELECT destination_ciphertext, destination_dedup_token, marketing_consent,
+              status, verify_attempt_count
+         FROM local_pass_customer_challenges WHERE public_id = $1`,
+      [publicId],
+    );
+    expect(locked.rows[0]).toMatchObject({
+      marketing_consent: false,
+      status: 'locked',
+      verify_attempt_count: 5,
+    });
+    expect(locked.rows[0]?.destination_dedup_token).toMatch(/^[a-f0-9]{64}$/);
+    expect(locked.rows[0]?.destination_ciphertext).not.toContain(rawDestination);
+    await expect(
+      store.issueCustomerChallenge({
+        destinationCiphertext: `enc:v1:${Buffer.from('synthetic resend destination').toString('base64')}`,
+        normalizedDestination: rawDestination,
+        otp: '654321',
+        publicId: `lpch_${randomUUID()}`,
+        purpose: 'claim',
+        rawLinkToken: fixture.linkTokens[0],
+        riskSignal: `synthetic-risk:${customer}`,
+      }),
+    ).rejects.toMatchObject({ code: 'LOCAL_PASS_RATE_LIMITED' });
+
+    const replayFixture = await createFixture();
+    const replayId = await verifiedChallenge({
+      customer: `replay_${replayFixture.campaignId}`,
+      purpose: 'claim',
+      rawLinkToken: replayFixture.linkTokens[0],
+    });
+    await expect(
+      store.verifyCustomerChallenge({ otp: '123456', publicId: replayId }),
+    ).rejects.toMatchObject({ code: 'LOCAL_PASS_CHALLENGE_REPLAYED' });
+  });
+
+  it('requires fresh destination control for recovery and consumes the proof once', async () => {
+    const fixture = await createFixture();
+    const customer = `recovery_${fixture.campaignId}`;
+    const originalToken = rawToken('recovery_original');
+    const activeClaim = await claim(fixture, 0, customer, originalToken);
+    await expect(
+      store.issueCustomerChallenge({
+        claimPublicId: activeClaim.publicId,
+        destinationCiphertext: `enc:v1:${Buffer.from('synthetic wrong destination').toString('base64')}`,
+        normalizedDestination: customerDestination(`${customer}_wrong`),
+        otp: '123456',
+        publicId: `lpch_${randomUUID()}`,
+        purpose: 'recovery',
+        riskSignal: `synthetic-risk:${customer}:wrong`,
+      }),
+    ).rejects.toMatchObject({ code: 'LOCAL_PASS_ACCESS_DENIED' });
+    const recoveryChallenge = await verifiedChallenge({
+      claimPublicId: activeClaim.publicId,
+      customer,
+      purpose: 'recovery',
+    });
+    const recoveredToken = rawToken('recovery_new');
+    const recoveryInput = {
+      challengePublicId: recoveryChallenge,
+      claimPublicId: activeClaim.publicId,
+      claimTokenPublicId: `lpct_${randomUUID()}`,
+      correlationId: randomUUID(),
+      rawClaimToken: recoveredToken,
+    };
+    await store.recoverActivePass(recoveryInput);
+    await expect(
+      store.recoverActivePass({
+        ...recoveryInput,
+        claimTokenPublicId: `lpct_${randomUUID()}`,
+        correlationId: randomUUID(),
+        rawClaimToken: rawToken('recovery_replay'),
+      }),
+    ).rejects.toMatchObject({ code: 'LOCAL_PASS_CHALLENGE_INVALID' });
+    const tokens = await pool.query<{ status: string }>(
+      `SELECT status FROM local_pass_claim_tokens WHERE local_pass_claim_id = $1 ORDER BY rotation`,
+      [activeClaim.id],
+    );
+    expect(tokens.rows.map((row) => row.status)).toEqual(['revoked', 'active']);
+  });
+
+  it('preserves a refused pass through review and exposes aggregate-only tenant-scoped reporting', async () => {
+    const fixture = await createFixture();
+    const customer = `refusal_${fixture.campaignId}`;
+    const rawClaimToken = rawToken('refusal_claim');
+    const activeClaim = await claim(fixture, 0, customer, rawClaimToken);
+    const refusalChallenge = await verifiedChallenge({
+      claimPublicId: activeClaim.publicId,
+      customer,
+      purpose: 'refusal_report',
+    });
+    const incident = await store.reportFulfillmentProblem({
+      challengePublicId: refusalChallenge,
+      claimPublicId: activeClaim.publicId,
+      correlationId: randomUUID(),
+      publicId: `lpfi_${randomUUID()}`,
+      reason: 'offer_refused',
+      statement: 'The venue declined the active pass at the listed counter.',
+    });
+    const redeemInput = {
+      actorUserId: fixture.staffId,
+      businessLocationId: fixture.locationId,
+      correlationId: randomUUID(),
+      eventPublicId: `lpe_${randomUUID()}`,
+      fulfillmentKind: 'original_offer' as const,
+      offerConfirmed: true,
+      publicId: `lpr_${randomUUID()}`,
+      rawClaimToken,
+    };
+    await expect(store.redeemPass(redeemInput)).rejects.toMatchObject({
+      code: 'LOCAL_PASS_REVIEW_REQUIRED',
+    });
+    const statusChallenge = await verifiedChallenge({
+      claimPublicId: activeClaim.publicId,
+      customer,
+      purpose: 'status_access',
+    });
+    const customerStatus = await store.getCustomerStatus({
+      challengePublicId: statusChallenge,
+      claimPublicId: activeClaim.publicId,
+    });
+    expect(customerStatus).toMatchObject({
+      claimPublicId: activeClaim.publicId,
+      fulfillmentState: 'refusal_under_review',
+      venue: { city: 'Orlando', region: 'FL' },
+    });
+    expect(JSON.stringify(customerStatus)).not.toMatch(
+      /dedup|cipher|phone|customerStatement|businessId/,
+    );
+    await expect(
+      store.reviewFulfillmentProblem({
+        actorUserId: fixture.ownerId,
+        correlationId: randomUUID(),
+        incidentPublicId: incident.publicId,
+        intentional: true,
+        resolution: 'confirmed',
+        reviewReason: 'The owner cannot review their own fulfillment incident.',
+      }),
+    ).rejects.toMatchObject({ code: 'LOCAL_PASS_ACCESS_DENIED' });
+    const review = await store.reviewFulfillmentProblem({
+      actorUserId: fixture.reviewerId,
+      correlationId: randomUUID(),
+      incidentPublicId: incident.publicId,
+      intentional: true,
+      resolution: 'confirmed',
+      reviewReason: 'Venue evidence confirmed that staff intentionally refused the valid pass.',
+    });
+    expect(review).toEqual({ businessPaused: true, status: 'confirmed' });
+    await store.redeemPass({
+      ...redeemInput,
+      correlationId: randomUUID(),
+      eventPublicId: `lpe_${randomUUID()}`,
+      publicId: `lpr_${randomUUID()}`,
+    });
+    const businessReport = await store.getBusinessCampaignReport({
+      actorUserId: fixture.ownerId,
+      campaignId: fixture.campaignId,
+    });
+    expect(businessReport).toMatchObject({
+      claims: 1,
+      confirmedFulfillmentIncidents: 1,
+      verifiedRedemptions: 1,
+      verifiedRedemptionConversionBasisPoints: 10_000,
+    });
+    expect(JSON.stringify(businessReport)).not.toMatch(/customer|phone|destination|claimPublicId/);
+    const creatorReport = await store.getCreatorCampaignReport({
+      actorUserId: fixture.creatorIds[0],
+      campaignId: fixture.campaignId,
+    });
+    expect(creatorReport).toMatchObject({ claims: 1, verifiedRedemptions: 1 });
+    await expect(
+      store.getBusinessCampaignReport({
+        actorUserId: fixture.outsiderId,
+        campaignId: fixture.campaignId,
+      }),
+    ).rejects.toMatchObject({ code: 'LOCAL_PASS_ACCESS_DENIED' });
+    const otherTenant = await createFixture();
+    await expect(
+      store.getBusinessCampaignReport({
+        actorUserId: otherTenant.ownerId,
+        campaignId: fixture.campaignId,
+      }),
+    ).rejects.toMatchObject({ code: 'LOCAL_PASS_ACCESS_DENIED' });
+  });
+
+  it('requires verified customer acceptance for a non-preapproved substitute', async () => {
+    const fixture = await createFixture();
+    const customer = `substitute_${fixture.campaignId}`;
+    const rawClaimToken = rawToken('substitute_claim');
+    const activeClaim = await claim(fixture, 0, customer, rawClaimToken);
+    const redeemInput = {
+      actorUserId: fixture.staffId,
+      businessLocationId: fixture.locationId,
+      correlationId: randomUUID(),
+      eventPublicId: `lpe_${randomUUID()}`,
+      fulfillmentKind: 'customer_accepted_substitute' as const,
+      offerConfirmed: true,
+      publicId: `lpr_${randomUUID()}`,
+      rawClaimToken,
+      substituteDescription: 'A different synthetic meal accepted by the customer.',
+      substituteValueMinor: 2500,
+    };
+    await expect(store.redeemPass(redeemInput)).rejects.toMatchObject({
+      code: 'LOCAL_PASS_CHALLENGE_INVALID',
+    });
+    const acceptanceChallenge = await verifiedChallenge({
+      claimPublicId: activeClaim.publicId,
+      customer,
+      purpose: 'substitute_acceptance',
+    });
+    const redemption = await store.redeemPass({
+      ...redeemInput,
+      correlationId: randomUUID(),
+      customerAcceptanceChallengePublicId: acceptanceChallenge,
+      eventPublicId: `lpe_${randomUUID()}`,
+      publicId: `lpr_${randomUUID()}`,
+    });
+    expect(redemption.fulfillmentKind).toBe('customer_accepted_substitute');
   });
 
   it('releases inventory when a seven-day claim expires unredeemed', async () => {

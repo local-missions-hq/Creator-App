@@ -98,6 +98,13 @@
       "snapshotSha256": "ae043605ca0c635de568f3f291b2dffb47a7dc7c66bf315930412b2001c95997",
       "sqlSha256": "4b72c0d08d6a896da56f043e1e0380a7708385fab8d36ed0e295099f10cc70ac",
       "tag": "0013_brave_maddog"
+    },
+    {
+      "index": 14,
+      "journalTimestamp": 1787872077134,
+      "snapshotSha256": "ceb80e7648b9ab7c5362c2c3e2570cc4db8001a8a1b3c5f53be8f24223b978b6",
+      "sqlSha256": "1c0b0618264adb1003c27636c988272c2972d04cdaf49b6ae2bb38183cf24355",
+      "tag": "0014_serious_terror"
     }
   ],
   "hashAlgorithm": "sha256",

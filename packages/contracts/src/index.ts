@@ -289,6 +289,7 @@ export const platformStaffRoleSchema = z.enum([
   'dispute_reviewer',
   'finance_operator',
   'verification_reviewer',
+  'trust_safety_reviewer',
   'admin',
 ]);
 export const platformStaffStatusSchema = z.enum(['active', 'revoked']);
@@ -367,6 +368,27 @@ export const localPassFulfillmentKindSchema = z.enum([
   'preapproved_substitute',
   'customer_accepted_substitute',
 ]);
+export const localPassChallengePurposeSchema = z.enum([
+  'claim',
+  'recovery',
+  'refusal_report',
+  'substitute_acceptance',
+  'status_access',
+]);
+export const localPassChallengeStatusSchema = z.enum([
+  'pending',
+  'verified',
+  'consumed',
+  'superseded',
+  'locked',
+  'expired',
+]);
+export const localPassIncidentReasonSchema = z.enum([
+  'offer_refused',
+  'incorrect_substitute',
+  'incorrect_redemption',
+]);
+export const localPassIncidentStatusSchema = z.enum(['open', 'confirmed', 'dismissed']);
 export const legalDocumentTypeSchema = z.enum(['creator_terms', 'sponsorship_disclosure']);
 export const contentLicenseKindSchema = z.enum([
   'organic_owned_social_90d',
@@ -506,6 +528,11 @@ export const localPassConflictCodeSchema = z.enum([
   'LOCAL_PASS_TOKEN_INVALID',
   'LOCAL_PASS_TOKEN_REPLAYED',
   'LOCAL_PASS_WRONG_VENUE',
+  'LOCAL_PASS_CHALLENGE_EXPIRED',
+  'LOCAL_PASS_CHALLENGE_INVALID',
+  'LOCAL_PASS_CHALLENGE_REPLAYED',
+  'LOCAL_PASS_RATE_LIMITED',
+  'LOCAL_PASS_REVIEW_REQUIRED',
 ]);
 
 export const ledgerConflictCodeSchema = z.enum([
@@ -763,9 +790,13 @@ export type ContentLicenseStatus = z.infer<typeof contentLicenseStatusSchema>;
 export type LegalDocumentType = z.infer<typeof legalDocumentTypeSchema>;
 export type LocalPassClaimStatus = z.infer<typeof localPassClaimStatusSchema>;
 export type LocalPassClaimTokenStatus = z.infer<typeof localPassClaimTokenStatusSchema>;
+export type LocalPassChallengePurpose = z.infer<typeof localPassChallengePurposeSchema>;
+export type LocalPassChallengeStatus = z.infer<typeof localPassChallengeStatusSchema>;
 export type LocalPassConflictCode = z.infer<typeof localPassConflictCodeSchema>;
 export type LocalPassEvidenceKind = z.infer<typeof localPassEvidenceKindSchema>;
 export type LocalPassFulfillmentKind = z.infer<typeof localPassFulfillmentKindSchema>;
+export type LocalPassIncidentReason = z.infer<typeof localPassIncidentReasonSchema>;
+export type LocalPassIncidentStatus = z.infer<typeof localPassIncidentStatusSchema>;
 export type LocalPassLinkStatus = z.infer<typeof localPassLinkStatusSchema>;
 export type LocalPassOfferStatus = z.infer<typeof localPassOfferStatusSchema>;
 export type LocalityAppealReason = z.infer<typeof localityAppealReasonSchema>;

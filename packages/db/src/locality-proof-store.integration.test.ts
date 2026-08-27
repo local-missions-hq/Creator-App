@@ -155,7 +155,7 @@ describe.sequential('raw locality-proof lifecycle', () => {
     const migrationPool = new Pool({ connectionString: migrationUrl.toString(), max: 2 });
     try {
       const migrations = readMigrationFiles({ migrationsFolder: migrationsDirectory });
-      for (const migration of migrations.slice(0, -1)) {
+      for (const migration of migrations.slice(0, -2)) {
         const client = await migrationPool.connect();
         try {
           await client.query('BEGIN');
@@ -181,7 +181,7 @@ describe.sequential('raw locality-proof lifecycle', () => {
           'approved', 'verified', '32801', '2026-08-01T12:00:00Z', '2027-08-01T12:00:00Z'
         )
       `);
-      const latest = migrations.at(-1);
+      const latest = migrations.at(-2);
       if (!latest) throw new Error('Latest locality migration is missing.');
       const client = await migrationPool.connect();
       try {

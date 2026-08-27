@@ -166,6 +166,7 @@ export const platformStaffRole = pgEnum('platform_staff_role', [
   'dispute_reviewer',
   'finance_operator',
   'verification_reviewer',
+  'trust_safety_reviewer',
   'admin',
 ]);
 export const platformStaffStatus = pgEnum('platform_staff_status', ['active', 'revoked']);
@@ -269,6 +270,31 @@ export const localPassFulfillmentKind = pgEnum('local_pass_fulfillment_kind', [
   'original_offer',
   'preapproved_substitute',
   'customer_accepted_substitute',
+]);
+export const localPassChallengePurpose = pgEnum('local_pass_challenge_purpose', [
+  'claim',
+  'recovery',
+  'refusal_report',
+  'substitute_acceptance',
+  'status_access',
+]);
+export const localPassChallengeStatus = pgEnum('local_pass_challenge_status', [
+  'pending',
+  'verified',
+  'consumed',
+  'superseded',
+  'locked',
+  'expired',
+]);
+export const localPassIncidentReason = pgEnum('local_pass_incident_reason', [
+  'offer_refused',
+  'incorrect_substitute',
+  'incorrect_redemption',
+]);
+export const localPassIncidentStatus = pgEnum('local_pass_incident_status', [
+  'open',
+  'confirmed',
+  'dismissed',
 ]);
 export const legalDocumentType = pgEnum('legal_document_type', [
   'creator_terms',
@@ -1864,13 +1890,15 @@ export const localPassClaims = pgTable(
     creatorUserId: uuid('creator_user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
-    customerDedupToken: text('customer_dedup_token').notNull(),
-    tokenKeyVersion: integer('token_key_version').notNull(),
+    customerDedupToken: text('customer_dedup_token'),
+    tokenKeyVersion: integer('token_key_version'),
     status: localPassClaimStatus('status').default('active').notNull(),
     claimedAt: timestamp('claimed_at', { withTimezone: true }).defaultNow().notNull(),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     redeemedAt: timestamp('redeemed_at', { withTimezone: true }),
     expiredAt: timestamp('expired_at', { withTimezone: true }),
+    customerLinkageDeleteAfter: timestamp('customer_linkage_delete_after', { withTimezone: true }),
+    customerLinkageDeletedAt: timestamp('customer_linkage_deleted_at', { withTimezone: true }),
     version: integer('version').default(1).notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -1888,9 +1916,13 @@ export const localPassClaims = pgTable(
     index('local_pass_claims_creator_status_idx').on(table.creatorUserId, table.status),
     check(
       'local_pass_claims_customer_token_ck',
-      sql`${table.customerDedupToken} ~ '^[a-f0-9]{64}$'`,
+      sql`${table.customerDedupToken} IS NULL OR ${table.customerDedupToken} ~ '^[a-f0-9]{64}$'`,
     ),
-    check('local_pass_claims_key_version_ck', sql`${table.tokenKeyVersion} > 0`),
+    check(
+      'local_pass_claims_key_version_ck',
+      sql`(${table.customerDedupToken} IS NULL AND ${table.tokenKeyVersion} IS NULL) OR
+          (${table.customerDedupToken} IS NOT NULL AND ${table.tokenKeyVersion} > 0)`,
+    ),
     check(
       'local_pass_claims_seven_day_ck',
       sql`${table.expiresAt} = ${table.claimedAt} + interval '7 days'`,
@@ -2063,6 +2095,178 @@ export const localPassAttributionEvents = pgTable(
            AND ${table.localPassClaimId} IS NOT NULL AND ${table.localPassRedemptionId} IS NULL) OR
           (${table.kind} = 'verified_pass_redemption'
            AND ${table.localPassClaimId} IS NOT NULL AND ${table.localPassRedemptionId} IS NOT NULL)`,
+    ),
+  ],
+);
+
+export const localPassCustomerChallenges = pgTable(
+  'local_pass_customer_challenges',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    localPassLinkId: uuid('local_pass_link_id').references(() => localPassLinks.id, {
+      onDelete: 'restrict',
+    }),
+    localPassClaimId: uuid('local_pass_claim_id').references(() => localPassClaims.id, {
+      onDelete: 'restrict',
+    }),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'restrict' }),
+    purpose: localPassChallengePurpose('purpose').notNull(),
+    status: localPassChallengeStatus('status').default('pending').notNull(),
+    destinationDedupToken: text('destination_dedup_token'),
+    destinationTokenKeyVersion: integer('destination_token_key_version'),
+    destinationCiphertext: text('destination_ciphertext'),
+    riskDedupToken: text('risk_dedup_token'),
+    riskTokenKeyVersion: integer('risk_token_key_version'),
+    otpDigest: text('otp_digest'),
+    sendNumber: integer('send_number').notNull(),
+    verifyAttemptCount: integer('verify_attempt_count').default(0).notNull(),
+    maxVerifyAttempts: integer('max_verify_attempts').default(5).notNull(),
+    marketingConsent: boolean('marketing_consent').default(false).notNull(),
+    issuedAt: timestamp('issued_at', { withTimezone: true }).defaultNow().notNull(),
+    resendNotBefore: timestamp('resend_not_before', { withTimezone: true }).notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
+    consumedAt: timestamp('consumed_at', { withTimezone: true }),
+    contactDeleteAfter: timestamp('contact_delete_after', { withTimezone: true }).notNull(),
+    contactDeletedAt: timestamp('contact_deleted_at', { withTimezone: true }),
+    linkageDeleteAfter: timestamp('linkage_delete_after', { withTimezone: true }).notNull(),
+    linkageDeletedAt: timestamp('linkage_deleted_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('local_pass_customer_challenges_public_id_uq').on(table.publicId),
+    index('local_pass_customer_challenges_destination_rate_idx').on(
+      table.destinationDedupToken,
+      table.issuedAt,
+    ),
+    index('local_pass_customer_challenges_risk_rate_idx').on(table.riskDedupToken, table.issuedAt),
+    index('local_pass_customer_challenges_claim_idx').on(table.localPassClaimId, table.createdAt),
+    check(
+      'local_pass_customer_challenges_target_ck',
+      sql`(${table.purpose} = 'claim' AND ${table.localPassLinkId} IS NOT NULL AND ${table.localPassClaimId} IS NULL)
+          OR (${table.purpose} <> 'claim' AND ${table.localPassClaimId} IS NOT NULL)`,
+    ),
+    check(
+      'local_pass_customer_challenges_private_tokens_ck',
+      sql`(${table.destinationDedupToken} IS NULL AND ${table.destinationTokenKeyVersion} IS NULL
+           AND ${table.riskDedupToken} IS NULL AND ${table.riskTokenKeyVersion} IS NULL AND ${table.otpDigest} IS NULL)
+          OR (${table.destinationDedupToken} ~ '^[a-f0-9]{64}$' AND ${table.destinationTokenKeyVersion} > 0
+              AND ${table.riskDedupToken} ~ '^[a-f0-9]{64}$' AND ${table.riskTokenKeyVersion} > 0
+              AND ${table.otpDigest} ~ '^[a-f0-9]{64}$')`,
+    ),
+    check(
+      'local_pass_customer_challenges_ciphertext_ck',
+      sql`${table.destinationCiphertext} IS NULL OR
+          (${table.destinationCiphertext} ~ '^enc:v[0-9]+:[A-Za-z0-9_+/=-]+$'
+           AND length(${table.destinationCiphertext}) BETWEEN 23 AND 2060)`,
+    ),
+    check(
+      'local_pass_customer_challenges_attempts_ck',
+      sql`${table.sendNumber} BETWEEN 1 AND 3 AND ${table.maxVerifyAttempts} BETWEEN 1 AND 5
+          AND ${table.verifyAttemptCount} BETWEEN 0 AND ${table.maxVerifyAttempts}`,
+    ),
+    check(
+      'local_pass_customer_challenges_window_ck',
+      sql`${table.resendNotBefore} = ${table.issuedAt} + interval '60 seconds'
+          AND ${table.expiresAt} = ${table.issuedAt} + interval '5 minutes'
+          AND ${table.contactDeleteAfter} >= ${table.expiresAt} + interval '30 days'
+          AND ${table.linkageDeleteAfter} >= ${table.expiresAt} + interval '12 months'`,
+    ),
+    check(
+      'local_pass_customer_challenges_status_ck',
+      sql`(${table.status} = 'verified' AND ${table.verifiedAt} IS NOT NULL AND ${table.consumedAt} IS NULL)
+          OR (${table.status} = 'consumed' AND ${table.verifiedAt} IS NOT NULL AND ${table.consumedAt} IS NOT NULL)
+          OR (${table.status} NOT IN ('verified','consumed') AND ${table.consumedAt} IS NULL)`,
+    ),
+  ],
+);
+
+export const localPassFulfillmentIncidents = pgTable(
+  'local_pass_fulfillment_incidents',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    localPassClaimId: uuid('local_pass_claim_id')
+      .notNull()
+      .references(() => localPassClaims.id, { onDelete: 'restrict' }),
+    localPassOfferId: uuid('local_pass_offer_id')
+      .notNull()
+      .references(() => localPassOffers.id, { onDelete: 'restrict' }),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'restrict' }),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id, { onDelete: 'restrict' }),
+    businessLocationId: uuid('business_location_id')
+      .notNull()
+      .references(() => businessLocations.id, { onDelete: 'restrict' }),
+    customerChallengeId: uuid('customer_challenge_id')
+      .notNull()
+      .references(() => localPassCustomerChallenges.id, { onDelete: 'restrict' }),
+    reason: localPassIncidentReason('reason').notNull(),
+    status: localPassIncidentStatus('status').default('open').notNull(),
+    customerStatement: text('customer_statement').notNull(),
+    intentional: boolean('intentional'),
+    reviewedByUserId: uuid('reviewed_by_user_id').references(() => users.id, {
+      onDelete: 'restrict',
+    }),
+    reviewReason: text('review_reason'),
+    reportedAt: timestamp('reported_at', { withTimezone: true }).defaultNow().notNull(),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    version: integer('version').default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex('local_pass_fulfillment_incidents_public_id_uq').on(table.publicId),
+    uniqueIndex('local_pass_fulfillment_incidents_challenge_uq').on(table.customerChallengeId),
+    uniqueIndex('local_pass_fulfillment_incidents_one_open_claim_uq')
+      .on(table.localPassClaimId)
+      .where(sql`${table.status} = 'open'`),
+    index('local_pass_fulfillment_incidents_business_status_idx').on(
+      table.businessId,
+      table.status,
+      table.reportedAt,
+    ),
+    check(
+      'local_pass_fulfillment_incidents_statement_ck',
+      sql`length(btrim(${table.customerStatement})) BETWEEN 10 AND 1000`,
+    ),
+    check(
+      'local_pass_fulfillment_incidents_review_ck',
+      sql`(${table.status} = 'open' AND ${table.reviewedByUserId} IS NULL AND ${table.reviewedAt} IS NULL
+           AND ${table.reviewReason} IS NULL AND ${table.intentional} IS NULL)
+          OR (${table.status} <> 'open' AND ${table.reviewedByUserId} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL
+              AND length(btrim(${table.reviewReason})) BETWEEN 10 AND 1000 AND ${table.intentional} IS NOT NULL)`,
+    ),
+  ],
+);
+
+export const localPassFulfillmentIncidentHistory = pgTable(
+  'local_pass_fulfillment_incident_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    localPassFulfillmentIncidentId: uuid('local_pass_fulfillment_incident_id')
+      .notNull()
+      .references(() => localPassFulfillmentIncidents.id, { onDelete: 'restrict' }),
+    fromStatus: localPassIncidentStatus('from_status'),
+    toStatus: localPassIncidentStatus('to_status').notNull(),
+    incidentVersion: integer('incident_version').notNull(),
+    actorUserId: uuid('actor_user_id').references(() => users.id, { onDelete: 'restrict' }),
+    actorType: auditActorType('actor_type').notNull(),
+    reason: text('reason').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('local_pass_fulfillment_incident_history_version_uq').on(
+      table.localPassFulfillmentIncidentId,
+      table.incidentVersion,
+    ),
+    check(
+      'local_pass_fulfillment_incident_history_reason_ck',
+      sql`length(btrim(${table.reason})) > 0`,
     ),
   ],
 );
@@ -3014,6 +3218,9 @@ export const initialSchemaTables = [
   'local_pass_claim_status_history',
   'local_pass_redemptions',
   'local_pass_attribution_events',
+  'local_pass_customer_challenges',
+  'local_pass_fulfillment_incidents',
+  'local_pass_fulfillment_incident_history',
   'legal_document_versions',
   'mission_rights_offers',
   'mission_contract_acceptances',

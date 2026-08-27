@@ -209,7 +209,7 @@ describe.sequential('latest schema and roll-forward recovery', () => {
           hash: entry.sqlSha256,
         })),
       );
-      expect(tracked).toHaveLength(14);
+      expect(tracked).toHaveLength(migrations.length);
     });
   }, 30_000);
 
@@ -218,7 +218,7 @@ describe.sequential('latest schema and roll-forward recovery', () => {
       await applyTrackedMigrations(pool, migrations.length - 1);
       await insertNMinusOneFixture(pool);
       await expectFixtureIntact(pool);
-      expect(await trackedMigrations(pool)).toHaveLength(13);
+      expect(await trackedMigrations(pool)).toHaveLength(migrations.length - 1);
 
       const latest = migrations.at(-1);
       if (!latest) throw new Error('Latest migration is missing.');
@@ -234,36 +234,30 @@ describe.sequential('latest schema and roll-forward recovery', () => {
         client.release();
       }
 
-      expect(await trackedMigrations(pool)).toHaveLength(13);
+      expect(await trackedMigrations(pool)).toHaveLength(migrations.length - 1);
       expect(
-        await pool.query(`SELECT to_regclass('public.locality_verifications') AS relation`),
+        await pool.query(`SELECT to_regclass('public.local_pass_customer_challenges') AS relation`),
       ).toMatchObject({ rows: [{ relation: null }] });
       await expectFixtureIntact(pool);
 
       await migrate(drizzle(pool), { migrationsFolder: migrationsDirectory });
-      expect(await trackedMigrations(pool)).toHaveLength(14);
+      expect(await trackedMigrations(pool)).toHaveLength(migrations.length);
       await expectFixtureIntact(pool);
-      const backfilled = await pool.query<{
-        attempt_count: number;
-        evidence_reference: string | null;
-        job_status: string;
-        status: string;
+      const claimEdgeSchema = await pool.query<{
+        challenges: string;
+        incident_history: string;
+        incidents: string;
       }>(`
-        SELECT verification.status, verification.evidence_reference,
-               job.status AS job_status, job.attempt_count
-          FROM locality_verifications verification
-          JOIN locality_evidence_deletion_jobs job
-            ON job.locality_verification_id = verification.id
-         WHERE verification.creator_user_id = '10000000-0000-4000-8000-000000000091'
+        SELECT
+          to_regclass('public.local_pass_customer_challenges')::text AS challenges,
+          to_regclass('public.local_pass_fulfillment_incidents')::text AS incidents,
+          to_regclass('public.local_pass_fulfillment_incident_history')::text AS incident_history
       `);
-      expect(backfilled.rows).toEqual([
-        {
-          attempt_count: 0,
-          evidence_reference: null,
-          job_status: 'completed',
-          status: 'verified',
-        },
-      ]);
+      expect(claimEdgeSchema.rows[0]).toEqual({
+        challenges: 'local_pass_customer_challenges',
+        incident_history: 'local_pass_fulfillment_incident_history',
+        incidents: 'local_pass_fulfillment_incidents',
+      });
 
       await pool.query(`
         UPDATE notification_preferences
