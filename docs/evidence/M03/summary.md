@@ -2,7 +2,7 @@
 
 Status: First campaign-lifecycle slice passed; M3 overall remains in progress  
 Date: 2026-08-27  
-Checkpoint: `M03-campaign-lifecycle-001`  
+Checkpoint: `M03-campaign-lifecycle-001`, implementation commit `87ba940`
 Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Implemented in this checkpoint

@@ -107,6 +107,7 @@ Actual physical-iPhone VoiceOver gesture testing is intentionally deferred by AD
 
 ### M3 — Database, API contract, and domain state machines
 
+- [x] Complete checkpoint `M03-campaign-lifecycle-001`: first real-PostgreSQL campaign migration, integer-minor-unit money and pilot-cap constraints, legal/illegal campaign transitions, same-transaction history/audit, idempotent retries, and one-winner concurrency proof.
 - [ ] Create the transactional PostgreSQL schema, migrations, indexes, constraints, UTC timestamps, integer-minor-unit money fields, stable public IDs, and deterministic synthetic seed.
 - [ ] Define the `/v1` REST contract, standard errors, pagination, request IDs, structured logs, health/build endpoints, and a production-impossible local dev-token boundary.
 - [ ] Generate and intentionally review the OpenAPI artifact and typed mobile/dashboard client contract.
@@ -3923,3 +3924,13 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Decisions: ADR-059 defers actual iOS VoiceOver focus/gesture testing to M16 without treating Simulator tooling as equivalent proof. The physical Creator and Business paths must pass before M16 closes or external TestFlight testing begins.
 - Blockers: None for beginning M3. A compatible physical iPhone remains a later M16 release gate, not a current development prerequisite.
 - Next exact task: Start M3 with the smallest complete transactional slice: inspect the current database/API packages, define the schema and state-machine boundary, then add the first real-PostgreSQL migration and positive/negative transition tests.
+
+### 2026-08-27 — First M3 campaign lifecycle slice passed
+
+- Milestone: M3 database, API contract, and domain state machines in progress
+- Completed: Committed checkpoint `87ba940` with the first Drizzle/PostgreSQL migration and a transactional campaign store. Added businesses, campaigns, campaign status history, audit events, and idempotency records; integer-minor-unit campaign money; the 20-slot pilot ceiling; stable public IDs; UTC timestamps; optimistic versions; the `draft → submitted → approved → funded → published` path; bounded cancellation; same-transaction history/audit; and safe local migrate/seed/check commands.
+- Verification: `pnpm verify` passed formatting, prerequisite policy, lint, strict type checks, unit tests, contract checks, and all eight workspace builds. Four real-PostgreSQL integration tests passed the empty migration/constraint, idempotency/key-reuse, positive/illegal transition, and two-writer concurrency cases. Repeated `pnpm db:seed` remained at version 1, `pnpm db:check` verified five tables and the synthetic campaign, the local security scan passed 242 text files, and Gitleaks found no leaks in approximately 5.99 MB.
+- Evidence: `docs/evidence/M03/summary.md`, `docs/evidence/M03/commands.txt`, `docs/evidence/M03/test-results/campaign-store-junit.xml`, and `packages/db/drizzle/0000_giant_snowbird.sql`.
+- Decisions: Existing ADR-003 and ADR-008 govern this slice: PostgreSQL is authoritative, and retryable writes use idempotent same-transaction records. Local database commands reject non-loopback targets; committed migrations are append-only and recovery is forward-only.
+- Blockers: None for the next local slice. M3 overall remains open because most domain tables, the `/v1` API/OpenAPI clients, prior-schema upgrade proof, and the complete state/concurrency matrix are not implemented.
+- Next exact task: Add the next schema slice for root users/external identities, creator profiles, business memberships, business locations, and their tenant-scoping constraints; generate a forward migration and prove duplicate identity and cross-business isolation failures against real PostgreSQL.
