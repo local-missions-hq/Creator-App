@@ -8,7 +8,7 @@ import type {
 import type { Pool, PoolClient, QueryResultRow } from 'pg';
 
 const allowedTransitions: Readonly<Record<CampaignStatus, readonly CampaignStatus[]>> = {
-  approved: ['funded', 'canceled'],
+  approved: ['canceled'],
   canceled: [],
   draft: ['submitted', 'canceled'],
   funded: ['published'],

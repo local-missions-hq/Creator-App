@@ -229,3 +229,50 @@ PASS — no leaks found in approximately 6.95 MB.
 
 pnpm --filter @local-missions/db exec vitest run src/dispute-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/dispute-store-junit.xml
 PASS — retained eight dispute/resolution tests with no failures or errors; machine hostname replaced by local-development-host.
+
+M03-immutable-ledger-007 — 2026-08-27
+
+pnpm db:generate
+PASS — generated append-only drizzle/0006_dapper_mordo.sql; schema now contains 41 tables. The migration was hardened with deferred balance/allocation constraint triggers, append-only financial-record triggers, and one-way financial-intent posting protection.
+
+pnpm --filter @local-missions/db exec vitest run src/ledger-store.integration.test.ts
+PASS — all nine immutable-ledger/provider-reference tests passed against real PostgreSQL.
+
+pnpm test:integration
+PASS — 47 tests passed across seven campaign, identity/tenant, mission/capacity, check-in, submission/review, dispute/resolution, and ledger suites against real PostgreSQL.
+
+pnpm db:migrate
+INITIAL FAIL — the retained local migration runner wrapped migration 0006 in a transaction, so PostgreSQL rejected a same-transaction check that compared against the newly added `posted` enum value. The isolated test runner had committed each statement and therefore did not expose this runner-specific rule.
+RESOLUTION — changed the migration-only check and protection function to compare the enum's text representation. No table or data was partially applied because the migration transaction rolled back.
+
+pnpm db:migrate
+PASS — migration 0006 applied to the retained local database and preserved the synthetic identity, business, draft campaign, mission contract, and prior schema.
+
+pnpm db:seed
+pnpm db:seed
+PASS — both reruns retained the deterministic identity, business, campaign, four templates, one brief, two deliverable requirements, and 10 Community Slots.
+
+pnpm db:check
+PASS — all 41 tables and the deterministic mission contract were verified.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — the seven-entry Drizzle journal and all snapshots are internally consistent.
+
+pnpm verify
+INITIAL FAIL — formatting check identified generated JSON formatting drift in the migration journal and snapshot; no behavioral command ran after that gate.
+RESOLUTION — formatted both generated metadata files and restarted the complete verification sequence.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, contract checks, and all eight workspace builds passed.
+
+pnpm test:integration
+PASS — the final combined rerun passed 47 tests with zero failures or unhandled errors.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 278 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 7.29 MB.
+
+pnpm --filter @local-missions/db exec vitest run src/ledger-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/ledger-store-junit.xml
+PASS — retained nine immutable-ledger/provider-reference tests with no failures or errors; machine hostname replaced by local-development-host.

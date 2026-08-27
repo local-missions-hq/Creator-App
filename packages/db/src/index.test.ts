@@ -38,6 +38,12 @@ describe('initial schema', () => {
       'dispute_status_history',
       'dispute_resolutions',
       'financial_action_intents',
+      'payment_provider_references',
+      'campaign_funding_snapshots',
+      'slot_funding_allocations',
+      'ledger_accounts',
+      'ledger_transactions',
+      'ledger_entries',
       'audit_events',
       'idempotency_records',
     ]);

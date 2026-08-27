@@ -7,6 +7,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { getLocalDatabaseUrl } from '../scripts/local-database.js';
 import { CampaignStore } from './campaign-store.js';
+import { LedgerStore } from './ledger-store.js';
 import { type CampaignSlotInput, MissionApplicationStore } from './mission-application-store.js';
 import { SubmissionStore } from './submission-store.js';
 import { IdentityTenantStore } from './tenant-store.js';
@@ -21,6 +22,7 @@ const migration0004 = fileURLToPath(new URL('../drizzle/0004_handy_gideon.sql', 
 const migration0005 = fileURLToPath(
   new URL('../drizzle/0005_huge_agent_brand.sql', import.meta.url),
 );
+const migration0006 = fileURLToPath(new URL('../drizzle/0006_dapper_mordo.sql', import.meta.url));
 const databaseName = `local_missions_m3_capacity_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
 const adminUrl = new URL(baseUrl);
@@ -31,6 +33,7 @@ testUrl.pathname = `/${databaseName}`;
 const adminPool = new Pool({ connectionString: adminUrl.toString(), max: 1 });
 let pool: Pool;
 let campaignStore: CampaignStore;
+let ledgerStore: LedgerStore;
 let missionStore: MissionApplicationStore;
 let submissionStore: SubmissionStore;
 let tenantStore: IdentityTenantStore;
@@ -132,7 +135,7 @@ async function createPublishedCampaign(slotCount: number): Promise<{
       },
     ],
   });
-  for (const toStatus of ['submitted', 'approved', 'funded', 'published'] as const) {
+  for (const toStatus of ['submitted', 'approved'] as const) {
     campaign = await campaignStore.transitionCampaign({
       actorId: ownerUserId,
       campaignId: campaign.id,
@@ -142,6 +145,29 @@ async function createPublishedCampaign(slotCount: number): Promise<{
       toStatus,
     });
   }
+  const fundingSuffix = randomUUID();
+  await ledgerStore.recordCampaignFunding({
+    campaignId: campaign.id,
+    correlationId: randomUUID(),
+    fundedAt: new Date(),
+    fundingPublicId: `fund_${fundingSuffix}`,
+    ledgerTransactionPublicId: `ledger_fund_${fundingSuffix}`,
+    provider: 'stripe',
+    providerAccountReference: 'acct_platform_test',
+    providerEventId: `evt_${fundingSuffix}`,
+    providerObjectId: `pi_${fundingSuffix}`,
+    providerReferencePublicId: `provider_${fundingSuffix}`,
+    transferGroup: `transfer_group_${fundingSuffix}`,
+  });
+  campaign = await campaignStore.getCampaign(campaign.id, ownerUserId);
+  campaign = await campaignStore.transitionCampaign({
+    actorId: ownerUserId,
+    campaignId: campaign.id,
+    correlationId: randomUUID(),
+    expectedVersion: campaign.version,
+    idempotencyKey: `published_${randomUUID()}`,
+    toStatus: 'published',
+  });
   return { businessId, campaignId: campaign.id, ownerUserId };
 }
 
@@ -188,8 +214,10 @@ beforeAll(async () => {
   await applyMigration(migration0003);
   await applyMigration(migration0004);
   await applyMigration(migration0005);
+  await applyMigration(migration0006);
 
   campaignStore = new CampaignStore(pool);
+  ledgerStore = new LedgerStore(pool);
   missionStore = new MissionApplicationStore(pool);
   submissionStore = new SubmissionStore(pool);
   tenantStore = new IdentityTenantStore(pool);

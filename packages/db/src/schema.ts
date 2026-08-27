@@ -162,7 +162,11 @@ export const correctionReasonCode = pgEnum('correction_reason_code', [
   'unrelated_brand_watermark',
   'missing_disclosure',
 ]);
-export const platformStaffRole = pgEnum('platform_staff_role', ['dispute_reviewer', 'admin']);
+export const platformStaffRole = pgEnum('platform_staff_role', [
+  'dispute_reviewer',
+  'finance_operator',
+  'admin',
+]);
 export const platformStaffStatus = pgEnum('platform_staff_status', ['active', 'revoked']);
 export const disputeOpenedBy = pgEnum('dispute_opened_by', ['creator', 'business']);
 export const disputeReasonCode = pgEnum('dispute_reason_code', [
@@ -206,7 +210,37 @@ export const financialActionIntentType = pgEnum('financial_action_intent_type', 
 ]);
 export const financialActionIntentStatus = pgEnum('financial_action_intent_status', [
   'pending_ledger',
+  'posted',
 ]);
+export const paymentProvider = pgEnum('payment_provider', ['stripe']);
+export const paymentProviderObjectType = pgEnum('payment_provider_object_type', [
+  'payment_intent',
+  'charge',
+  'transfer',
+  'refund',
+  'payout',
+  'dispute',
+]);
+export const ledgerAccountCode = pgEnum('ledger_account_code', [
+  'provider_clearing',
+  'campaign_funds',
+  'creator_payable',
+  'business_refund_payable',
+  'platform_fee_revenue',
+  'finance_adjustment_control',
+]);
+export const ledgerTransactionType = pgEnum('ledger_transaction_type', [
+  'campaign_funding',
+  'slot_completion',
+  'slot_refund',
+  'finance_adjustment',
+]);
+export const ledgerTransactionSourceType = pgEnum('ledger_transaction_source_type', [
+  'provider_funding',
+  'financial_action_intent',
+  'finance_adjustment',
+]);
+export const ledgerEntryDirection = pgEnum('ledger_entry_direction', ['debit', 'credit']);
 
 export const users = pgTable(
   'users',
@@ -1249,6 +1283,9 @@ export const financialActionIntents = pgTable(
     action: financialActionIntentType('action').notNull(),
     status: financialActionIntentStatus('status').default('pending_ledger').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    postedAt: timestamp('posted_at', { withTimezone: true }),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    version: integer('version').default(1).notNull(),
   },
   (table) => [
     uniqueIndex('financial_action_intents_public_id_uq').on(table.publicId),
@@ -1260,6 +1297,273 @@ export const financialActionIntents = pgTable(
       sql`(${table.sourceType} = 'submission_approval' AND ${table.action} = 'creator_payable_full') OR
           (${table.sourceType} = 'dispute_resolution')`,
     ),
+    check(
+      'financial_action_intents_posted_shape_ck',
+      sql`(${table.status} = 'pending_ledger' AND ${table.postedAt} IS NULL) OR
+          (${table.status} = 'posted' AND ${table.postedAt} IS NOT NULL)`,
+    ),
+    check('financial_action_intents_version_positive_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const paymentProviderReferences = pgTable(
+  'payment_provider_references',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    provider: paymentProvider('provider').notNull(),
+    providerAccountReference: text('provider_account_reference').notNull(),
+    objectType: paymentProviderObjectType('object_type').notNull(),
+    providerObjectId: text('provider_object_id').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('payment_provider_references_public_id_uq').on(table.publicId),
+    uniqueIndex('payment_provider_references_object_uq').on(
+      table.provider,
+      table.providerAccountReference,
+      table.objectType,
+      table.providerObjectId,
+    ),
+    check(
+      'payment_provider_references_account_nonempty_ck',
+      sql`length(btrim(${table.providerAccountReference})) > 0`,
+    ),
+    check(
+      'payment_provider_references_object_nonempty_ck',
+      sql`length(btrim(${table.providerObjectId})) > 0`,
+    ),
+  ],
+);
+
+export const campaignFundingSnapshots = pgTable(
+  'campaign_funding_snapshots',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'restrict' }),
+    paymentProviderReferenceId: uuid('payment_provider_reference_id')
+      .notNull()
+      .references(() => paymentProviderReferences.id, { onDelete: 'restrict' }),
+    providerEventId: text('provider_event_id').notNull(),
+    transferGroup: text('transfer_group').notNull(),
+    creatorRewardPoolMinor: integer('creator_reward_pool_minor').notNull(),
+    platformFeeMinor: integer('platform_fee_minor').notNull(),
+    totalDueMinor: integer('total_due_minor').notNull(),
+    currency: text('currency').notNull(),
+    fundedAt: timestamp('funded_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('campaign_funding_snapshots_public_id_uq').on(table.publicId),
+    uniqueIndex('campaign_funding_snapshots_campaign_uq').on(table.campaignId),
+    uniqueIndex('campaign_funding_snapshots_provider_reference_uq').on(
+      table.paymentProviderReferenceId,
+    ),
+    uniqueIndex('campaign_funding_snapshots_provider_event_uq').on(table.providerEventId),
+    uniqueIndex('campaign_funding_snapshots_transfer_group_uq').on(table.transferGroup),
+    check(
+      'campaign_funding_snapshots_total_ck',
+      sql`${table.totalDueMinor} = ${table.creatorRewardPoolMinor} + ${table.platformFeeMinor}`,
+    ),
+    check(
+      'campaign_funding_snapshots_amounts_positive_ck',
+      sql`${table.creatorRewardPoolMinor} > 0 AND ${table.platformFeeMinor} > 0`,
+    ),
+    check('campaign_funding_snapshots_currency_ck', sql`${table.currency} ~ '^[A-Z]{3}$'`),
+    check(
+      'campaign_funding_snapshots_provider_event_nonempty_ck',
+      sql`length(btrim(${table.providerEventId})) > 0`,
+    ),
+    check(
+      'campaign_funding_snapshots_transfer_group_nonempty_ck',
+      sql`length(btrim(${table.transferGroup})) > 0`,
+    ),
+  ],
+);
+
+export const slotFundingAllocations = pgTable(
+  'slot_funding_allocations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    campaignFundingSnapshotId: uuid('campaign_funding_snapshot_id')
+      .notNull()
+      .references(() => campaignFundingSnapshots.id, { onDelete: 'restrict' }),
+    missionSlotId: uuid('mission_slot_id')
+      .notNull()
+      .references(() => missionSlots.id, { onDelete: 'restrict' }),
+    creatorRewardMinor: integer('creator_reward_minor').notNull(),
+    platformFeeMinor: integer('platform_fee_minor').notNull(),
+    totalMinor: integer('total_minor').notNull(),
+    currency: text('currency').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('slot_funding_allocations_public_id_uq').on(table.publicId),
+    uniqueIndex('slot_funding_allocations_slot_uq').on(table.missionSlotId),
+    uniqueIndex('slot_funding_allocations_snapshot_slot_uq').on(
+      table.campaignFundingSnapshotId,
+      table.missionSlotId,
+    ),
+    index('slot_funding_allocations_snapshot_idx').on(table.campaignFundingSnapshotId),
+    check(
+      'slot_funding_allocations_total_ck',
+      sql`${table.totalMinor} = ${table.creatorRewardMinor} + ${table.platformFeeMinor}`,
+    ),
+    check(
+      'slot_funding_allocations_amounts_positive_ck',
+      sql`${table.creatorRewardMinor} > 0 AND ${table.platformFeeMinor} > 0`,
+    ),
+    check('slot_funding_allocations_currency_ck', sql`${table.currency} ~ '^[A-Z]{3}$'`),
+  ],
+);
+
+export const ledgerAccounts = pgTable(
+  'ledger_accounts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    code: ledgerAccountCode('code').notNull(),
+    campaignId: uuid('campaign_id').references(() => campaigns.id, { onDelete: 'restrict' }),
+    creatorUserId: uuid('creator_user_id').references(() => users.id, { onDelete: 'restrict' }),
+    businessId: uuid('business_id').references(() => businesses.id, { onDelete: 'restrict' }),
+    currency: text('currency').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('ledger_accounts_public_id_uq').on(table.publicId),
+    uniqueIndex('ledger_accounts_platform_code_currency_uq')
+      .on(table.code, table.currency)
+      .where(
+        sql`${table.campaignId} IS NULL AND ${table.creatorUserId} IS NULL AND ${table.businessId} IS NULL`,
+      ),
+    uniqueIndex('ledger_accounts_campaign_code_currency_uq')
+      .on(table.code, table.campaignId, table.currency)
+      .where(sql`${table.campaignId} IS NOT NULL`),
+    uniqueIndex('ledger_accounts_creator_code_currency_uq')
+      .on(table.code, table.creatorUserId, table.currency)
+      .where(sql`${table.creatorUserId} IS NOT NULL`),
+    uniqueIndex('ledger_accounts_business_code_currency_uq')
+      .on(table.code, table.businessId, table.currency)
+      .where(sql`${table.businessId} IS NOT NULL`),
+    check('ledger_accounts_currency_ck', sql`${table.currency} ~ '^[A-Z]{3}$'`),
+    check(
+      'ledger_accounts_scope_ck',
+      sql`(
+        ${table.code} IN ('provider_clearing', 'platform_fee_revenue', 'finance_adjustment_control')
+        AND ${table.campaignId} IS NULL AND ${table.creatorUserId} IS NULL AND ${table.businessId} IS NULL
+      ) OR (
+        ${table.code} = 'campaign_funds' AND ${table.campaignId} IS NOT NULL
+        AND ${table.creatorUserId} IS NULL AND ${table.businessId} IS NULL
+      ) OR (
+        ${table.code} = 'creator_payable' AND ${table.creatorUserId} IS NOT NULL
+        AND ${table.campaignId} IS NULL AND ${table.businessId} IS NULL
+      ) OR (
+        ${table.code} = 'business_refund_payable' AND ${table.businessId} IS NOT NULL
+        AND ${table.campaignId} IS NULL AND ${table.creatorUserId} IS NULL
+      )`,
+    ),
+  ],
+);
+
+export const ledgerTransactions = pgTable(
+  'ledger_transactions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    type: ledgerTransactionType('type').notNull(),
+    sourceType: ledgerTransactionSourceType('source_type').notNull(),
+    sourcePublicId: text('source_public_id').notNull(),
+    requestHash: text('request_hash').notNull(),
+    paymentProviderReferenceId: uuid('payment_provider_reference_id').references(
+      () => paymentProviderReferences.id,
+      { onDelete: 'restrict' },
+    ),
+    campaignId: uuid('campaign_id').references(() => campaigns.id, { onDelete: 'restrict' }),
+    missionAssignmentId: uuid('mission_assignment_id').references(() => missionAssignments.id, {
+      onDelete: 'restrict',
+    }),
+    totalMinor: integer('total_minor').notNull(),
+    currency: text('currency').notNull(),
+    correlationId: uuid('correlation_id').notNull(),
+    createdByUserId: uuid('created_by_user_id').references(() => users.id, {
+      onDelete: 'restrict',
+    }),
+    reason: text('reason'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('ledger_transactions_public_id_uq').on(table.publicId),
+    uniqueIndex('ledger_transactions_source_uq').on(table.sourceType, table.sourcePublicId),
+    index('ledger_transactions_campaign_created_idx').on(table.campaignId, table.createdAt),
+    index('ledger_transactions_assignment_created_idx').on(
+      table.missionAssignmentId,
+      table.createdAt,
+    ),
+    check('ledger_transactions_total_positive_ck', sql`${table.totalMinor} > 0`),
+    check('ledger_transactions_currency_ck', sql`${table.currency} ~ '^[A-Z]{3}$'`),
+    check(
+      'ledger_transactions_source_nonempty_ck',
+      sql`length(btrim(${table.sourcePublicId})) > 0 AND length(btrim(${table.requestHash})) > 0`,
+    ),
+    check(
+      'ledger_transactions_shape_ck',
+      sql`(
+        ${table.type} = 'campaign_funding' AND ${table.sourceType} = 'provider_funding'
+        AND ${table.paymentProviderReferenceId} IS NOT NULL AND ${table.campaignId} IS NOT NULL
+        AND ${table.missionAssignmentId} IS NULL AND ${table.createdByUserId} IS NULL
+      ) OR (
+        ${table.type} IN ('slot_completion', 'slot_refund')
+        AND ${table.sourceType} = 'financial_action_intent'
+        AND ${table.paymentProviderReferenceId} IS NULL AND ${table.campaignId} IS NOT NULL
+        AND ${table.missionAssignmentId} IS NOT NULL AND ${table.createdByUserId} IS NULL
+      ) OR (
+        ${table.type} = 'finance_adjustment' AND ${table.sourceType} = 'finance_adjustment'
+        AND ${table.paymentProviderReferenceId} IS NULL AND ${table.createdByUserId} IS NOT NULL
+        AND length(btrim(${table.reason})) > 0
+      )`,
+    ),
+  ],
+);
+
+export const ledgerEntries = pgTable(
+  'ledger_entries',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    ledgerTransactionId: uuid('ledger_transaction_id')
+      .notNull()
+      .references(() => ledgerTransactions.id, { onDelete: 'restrict' }),
+    position: integer('position').notNull(),
+    ledgerAccountId: uuid('ledger_account_id')
+      .notNull()
+      .references(() => ledgerAccounts.id, { onDelete: 'restrict' }),
+    direction: ledgerEntryDirection('direction').notNull(),
+    amountMinor: integer('amount_minor').notNull(),
+    currency: text('currency').notNull(),
+    slotFundingAllocationId: uuid('slot_funding_allocation_id').references(
+      () => slotFundingAllocations.id,
+      { onDelete: 'restrict' },
+    ),
+    missionAssignmentId: uuid('mission_assignment_id').references(() => missionAssignments.id, {
+      onDelete: 'restrict',
+    }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('ledger_entries_public_id_uq').on(table.publicId),
+    uniqueIndex('ledger_entries_transaction_position_uq').on(
+      table.ledgerTransactionId,
+      table.position,
+    ),
+    index('ledger_entries_account_created_idx').on(table.ledgerAccountId, table.createdAt),
+    index('ledger_entries_allocation_idx').on(table.slotFundingAllocationId),
+    check('ledger_entries_position_positive_ck', sql`${table.position} > 0`),
+    check('ledger_entries_amount_positive_ck', sql`${table.amountMinor} > 0`),
+    check('ledger_entries_currency_ck', sql`${table.currency} ~ '^[A-Z]{3}$'`),
   ],
 );
 
@@ -1334,6 +1638,12 @@ export const initialSchemaTables = [
   'dispute_status_history',
   'dispute_resolutions',
   'financial_action_intents',
+  'payment_provider_references',
+  'campaign_funding_snapshots',
+  'slot_funding_allocations',
+  'ledger_accounts',
+  'ledger_transactions',
+  'ledger_entries',
   'audit_events',
   'idempotency_records',
 ] as const;

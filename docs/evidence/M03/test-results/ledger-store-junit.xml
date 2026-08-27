@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="9" failures="0" errors="0" time="0.953990875">
+    <testsuite name="src/ledger-store.integration.test.ts" timestamp="2026-08-27T16:24:14.112Z" hostname="local-development-host" tests="9" failures="0" errors="0" skipped="0" time="0.953990875">
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; preserves the prior intent and installs immutable provider, allocation, and ledger tables" time="0.03306525">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; records one authoritative campaign funding snapshot and prevents business self-funding" time="0.079604542">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; allocates the disclosed 15 percent fee deterministically in integer minor units" time="0.058342875">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; makes funding replay idempotent while different provider events have one race winner" time="0.094861625">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; posts a completed slot once as full creator payable plus earned platform fee" time="0.072590583">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; posts a no-payout slot once as the full reward-and-fee business refund payable" time="0.06742725">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; includes the full Reach bonus and its fee allocation in a no-payout refund" time="0.066495417">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; rejects unfunded and state-mismatched intents without partial financial rows" time="0.084299458">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; separates finance authority and rejects rewrites or unbalanced direct journals" time="0.074868708">
+        </testcase>
+    </testsuite>
+</testsuites>

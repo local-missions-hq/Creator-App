@@ -7,6 +7,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { getLocalDatabaseUrl } from '../scripts/local-database.js';
 import { CampaignStore } from './campaign-store.js';
+import { LedgerStore } from './ledger-store.js';
 import { MissionApplicationStore } from './mission-application-store.js';
 import { SubmissionStore } from './submission-store.js';
 import { IdentityTenantStore } from './tenant-store.js';
@@ -18,6 +19,7 @@ const migrationPaths = [
   fileURLToPath(new URL('../drizzle/0003_orange_tempest.sql', import.meta.url)),
   fileURLToPath(new URL('../drizzle/0004_handy_gideon.sql', import.meta.url)),
   fileURLToPath(new URL('../drizzle/0005_huge_agent_brand.sql', import.meta.url)),
+  fileURLToPath(new URL('../drizzle/0006_dapper_mordo.sql', import.meta.url)),
 ];
 const databaseName = `local_missions_m3_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
@@ -29,6 +31,7 @@ testUrl.pathname = `/${databaseName}`;
 const adminPool = new Pool({ connectionString: adminUrl.toString(), max: 1 });
 let pool: Pool;
 let store: CampaignStore;
+let ledgerStore: LedgerStore;
 let missionStore: MissionApplicationStore;
 let submissionStore: SubmissionStore;
 let tenantStore: IdentityTenantStore;
@@ -133,6 +136,7 @@ beforeAll(async () => {
     }
   }
   store = new CampaignStore(pool);
+  ledgerStore = new LedgerStore(pool);
   missionStore = new MissionApplicationStore(pool);
   submissionStore = new SubmissionStore(pool);
   tenantStore = new IdentityTenantStore(pool);
@@ -231,7 +235,7 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
     const created = await createCampaign();
     const { actorId } = created;
     let { campaign } = created;
-    const states = ['submitted', 'approved', 'funded', 'published'] as const;
+    const states = ['submitted', 'approved'] as const;
     for (const [index, toStatus] of states.entries()) {
       const transition = {
         actorId,
@@ -251,9 +255,32 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
       }
     }
 
+    await ledgerStore.recordCampaignFunding({
+      campaignId: campaign.id,
+      correlationId: randomUUID(),
+      fundedAt: new Date('2026-08-27T12:00:00.000Z'),
+      fundingPublicId: 'fund_publish_path',
+      ledgerTransactionPublicId: 'ledger_fund_publish_path',
+      provider: 'stripe',
+      providerAccountReference: 'acct_platform_test',
+      providerEventId: 'evt_publish_path',
+      providerObjectId: 'pi_publish_path',
+      providerReferencePublicId: 'provider_publish_path',
+      transferGroup: 'transfer_group_publish_path',
+    });
+    campaign = await store.getCampaign(campaign.id, actorId);
+    campaign = await store.transitionCampaign({
+      actorId,
+      campaignId: campaign.id,
+      correlationId: randomUUID(),
+      expectedVersion: campaign.version,
+      idempotencyKey: 'transition_publish',
+      toStatus: 'published',
+    });
+
     expect(campaign).toMatchObject({ status: 'published', version: 5 });
     expect(await countRows('campaign_status_history', campaign.id)).toBe(5);
-    expect(await countCampaignAudits(campaign.id)).toBe(7);
+    expect(await countCampaignAudits(campaign.id)).toBe(6);
 
     await expect(
       store.transitionCampaign({
@@ -272,8 +299,8 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
       version: 5,
     });
     expect(await countRows('campaign_status_history', campaign.id)).toBe(5);
-    expect(await countCampaignAudits(campaign.id)).toBe(7);
-    expect(await countRows('idempotency_records')).toBe(5);
+    expect(await countCampaignAudits(campaign.id)).toBe(6);
+    expect(await countRows('idempotency_records')).toBe(4);
   });
 
   it('allows only one writer to win an optimistic-concurrency race', async () => {

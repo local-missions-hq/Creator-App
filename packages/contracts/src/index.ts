@@ -164,7 +164,7 @@ export const correctionReasonCodeSchema = z.enum([
   'unrelated_brand_watermark',
   'missing_disclosure',
 ]);
-export const platformStaffRoleSchema = z.enum(['dispute_reviewer', 'admin']);
+export const platformStaffRoleSchema = z.enum(['dispute_reviewer', 'finance_operator', 'admin']);
 export const platformStaffStatusSchema = z.enum(['active', 'revoked']);
 export const disputeOpenedBySchema = z.enum(['creator', 'business']);
 export const disputeReasonCodeSchema = z.enum([
@@ -192,7 +192,49 @@ export const disputeEvidenceKindSchema = z.enum([
 export const disputeStatusSchema = z.enum(['open', 'resolved_earned_full', 'resolved_no_payout']);
 export const disputeResolutionOutcomeSchema = z.enum(['earned_full', 'no_payout']);
 export const financialActionIntentTypeSchema = z.enum(['creator_payable_full', 'slot_refund_full']);
-export const financialActionIntentStatusSchema = z.enum(['pending_ledger']);
+export const financialActionIntentStatusSchema = z.enum(['pending_ledger', 'posted']);
+export const paymentProviderSchema = z.enum(['stripe']);
+export const paymentProviderObjectTypeSchema = z.enum([
+  'payment_intent',
+  'charge',
+  'transfer',
+  'refund',
+  'payout',
+  'dispute',
+]);
+export const ledgerAccountCodeSchema = z.enum([
+  'provider_clearing',
+  'campaign_funds',
+  'creator_payable',
+  'business_refund_payable',
+  'platform_fee_revenue',
+  'finance_adjustment_control',
+]);
+export const ledgerTransactionTypeSchema = z.enum([
+  'campaign_funding',
+  'slot_completion',
+  'slot_refund',
+  'finance_adjustment',
+]);
+export const ledgerTransactionSourceTypeSchema = z.enum([
+  'provider_funding',
+  'financial_action_intent',
+  'finance_adjustment',
+]);
+export const ledgerEntryDirectionSchema = z.enum(['debit', 'credit']);
+
+export const ledgerConflictCodeSchema = z.enum([
+  'LEDGER_ACCESS_DENIED',
+  'LEDGER_ADJUSTMENT_INVALID',
+  'LEDGER_ALLOCATION_INVALID',
+  'LEDGER_ALREADY_FUNDED',
+  'LEDGER_CURRENCY_MISMATCH',
+  'LEDGER_IDEMPOTENCY_CONFLICT',
+  'LEDGER_INTENT_NOT_FOUND',
+  'LEDGER_INTENT_NOT_READY',
+  'LEDGER_PROVIDER_CONFLICT',
+  'LEDGER_TRANSITION_CONFLICT',
+]);
 
 export const disputeConflictCodeSchema = z.enum([
   'DISPUTE_ACCESS_DENIED',
@@ -313,6 +355,13 @@ export type DisputeResolutionOutcome = z.infer<typeof disputeResolutionOutcomeSc
 export type DisputeStatus = z.infer<typeof disputeStatusSchema>;
 export type FinancialActionIntentStatus = z.infer<typeof financialActionIntentStatusSchema>;
 export type FinancialActionIntentType = z.infer<typeof financialActionIntentTypeSchema>;
+export type LedgerAccountCode = z.infer<typeof ledgerAccountCodeSchema>;
+export type LedgerConflictCode = z.infer<typeof ledgerConflictCodeSchema>;
+export type LedgerEntryDirection = z.infer<typeof ledgerEntryDirectionSchema>;
+export type LedgerTransactionSourceType = z.infer<typeof ledgerTransactionSourceTypeSchema>;
+export type LedgerTransactionType = z.infer<typeof ledgerTransactionTypeSchema>;
+export type PaymentProvider = z.infer<typeof paymentProviderSchema>;
+export type PaymentProviderObjectType = z.infer<typeof paymentProviderObjectTypeSchema>;
 export type HealthStatus = z.infer<typeof healthStatusSchema>;
 export type IdentityProvider = z.infer<typeof identityProviderSchema>;
 export type IdentityTenantConflictCode = z.infer<typeof identityTenantConflictCodeSchema>;

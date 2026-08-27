@@ -5,9 +5,13 @@ import {
   campaignRecordSchema,
   disputeReasonCodeSchema,
   disputeResolutionOutcomeSchema,
+  financialActionIntentStatusSchema,
   financialActionIntentTypeSchema,
   healthStatusSchema,
   identityProviderSchema,
+  ledgerEntryDirectionSchema,
+  ledgerTransactionTypeSchema,
+  paymentProviderObjectTypeSchema,
 } from './index.js';
 
 describe('healthStatusSchema', () => {
@@ -115,5 +119,19 @@ describe('objective dispute and all-or-nothing outcome contracts', () => {
       'creator_payable_full',
       'slot_refund_full',
     ]);
+  });
+
+  it('keeps ledger actions balanced, provider-linked, and free of prorated outcomes', () => {
+    expect(financialActionIntentStatusSchema.options).toEqual(['pending_ledger', 'posted']);
+    expect(ledgerEntryDirectionSchema.options).toEqual(['debit', 'credit']);
+    expect(ledgerTransactionTypeSchema.options).toEqual([
+      'campaign_funding',
+      'slot_completion',
+      'slot_refund',
+      'finance_adjustment',
+    ]);
+    expect(paymentProviderObjectTypeSchema.options).toContain('payment_intent');
+    expect(ledgerTransactionTypeSchema.safeParse('partial_creator_payable').success).toBe(false);
+    expect(ledgerTransactionTypeSchema.safeParse('stored_value_wallet').success).toBe(false);
   });
 });

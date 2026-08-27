@@ -10,6 +10,7 @@ import { getLocalDatabaseUrl } from '../scripts/local-database.js';
 import { CampaignStore } from './campaign-store.js';
 import { CheckInStore } from './check-in-store.js';
 import { DisputeStore } from './dispute-store.js';
+import { LedgerStore } from './ledger-store.js';
 import { MissionApplicationStore } from './mission-application-store.js';
 import { type SubmissionGroupInput, SubmissionStore } from './submission-store.js';
 import { IdentityTenantStore } from './tenant-store.js';
@@ -24,6 +25,7 @@ const migrationPaths = [
 const migration0005 = fileURLToPath(
   new URL('../drizzle/0005_huge_agent_brand.sql', import.meta.url),
 );
+const migration0006 = fileURLToPath(new URL('../drizzle/0006_dapper_mordo.sql', import.meta.url));
 const databaseName = `local_missions_m3_dispute_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
 const adminUrl = new URL(baseUrl);
@@ -36,6 +38,7 @@ let pool: Pool;
 let campaignStore: CampaignStore;
 let checkInStore: CheckInStore;
 let disputeStore: DisputeStore;
+let ledgerStore: LedgerStore | undefined;
 let missionStore: MissionApplicationStore;
 let submissionStore: SubmissionStore;
 let tenantStore: IdentityTenantStore;
@@ -181,7 +184,7 @@ async function createMission(label: string): Promise<MissionFixture> {
       },
     ],
   });
-  for (const toStatus of ['submitted', 'approved', 'funded', 'published'] as const) {
+  for (const toStatus of ['submitted', 'approved'] as const) {
     campaign = await campaignStore.transitionCampaign({
       actorId: ownerUserId,
       campaignId: campaign.id,
@@ -191,6 +194,43 @@ async function createMission(label: string): Promise<MissionFixture> {
       toStatus,
     });
   }
+  if (ledgerStore) {
+    const fundingSuffix = randomUUID();
+    await ledgerStore.recordCampaignFunding({
+      campaignId: campaign.id,
+      correlationId: randomUUID(),
+      fundedAt: new Date(),
+      fundingPublicId: `fund_${fundingSuffix}`,
+      ledgerTransactionPublicId: `ledger_fund_${fundingSuffix}`,
+      provider: 'stripe',
+      providerAccountReference: 'acct_platform_test',
+      providerEventId: `evt_${fundingSuffix}`,
+      providerObjectId: `pi_${fundingSuffix}`,
+      providerReferencePublicId: `provider_${fundingSuffix}`,
+      transferGroup: `transfer_group_${fundingSuffix}`,
+    });
+  } else {
+    const legacyFunding = await pool.query<{ version: number }>(
+      `UPDATE campaigns SET status = 'funded', version = version + 1, updated_at = now()
+        WHERE id = $1 AND status = 'approved' RETURNING version`,
+      [campaign.id],
+    );
+    await pool.query(
+      `INSERT INTO campaign_status_history (
+         campaign_id, from_status, to_status, campaign_version, actor_id, reason
+       ) VALUES ($1, 'approved', 'funded', $2, NULL, 'Pre-ledger migration fixture')`,
+      [campaign.id, legacyFunding.rows[0]?.version],
+    );
+  }
+  campaign = await campaignStore.getCampaign(campaign.id, ownerUserId);
+  campaign = await campaignStore.transitionCampaign({
+    actorId: ownerUserId,
+    campaignId: campaign.id,
+    correlationId: randomUUID(),
+    expectedVersion: campaign.version,
+    idempotencyKey: `published_${randomUUID()}`,
+    toStatus: 'published',
+  });
   const application = await missionStore.applyForCommunityMission({
     campaignId: campaign.id,
     correlationId: randomUUID(),
@@ -427,6 +467,8 @@ beforeAll(async () => {
     status: row.status,
     submissionPublicId: row.submission_public_id,
   };
+  await applyMigration(migration0006);
+  ledgerStore = new LedgerStore(pool);
   disputeStore = new DisputeStore(pool);
 }, 30_000);
 
