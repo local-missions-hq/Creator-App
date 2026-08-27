@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="7" failures="0" errors="0" time="0.91565225">
+    <testsuite name="src/submission-store.integration.test.ts" timestamp="2026-08-27T15:33:14.840Z" hostname="local-development-host" tests="7" failures="0" errors="0" skipped="0" time="0.91565225">
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; preserves an existing checked-in assignment and adds privacy-safe submission tables" time="0.025646583">
+        </testcase>
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; requires locked objective deliverables before campaign submission" time="0.041155625">
+        </testcase>
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; rejects all upload and completion activity before verified check-in atomically" time="0.073300625">
+        </testcase>
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; rejects missing, quarantined, and objectively invalid media without a partial submission" time="0.1179765">
+        </testcase>
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; starts exactly one 48-hour review when duplicate completion requests race" time="0.10028575">
+        </testcase>
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; allows one objective correction, rejects a second correction, and completes all mission state" time="0.122599792">
+        </testcase>
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; uses database time for auto-approval and permits exactly one service winner" time="0.101865">
+        </testcase>
+    </testsuite>
+</testsuites>

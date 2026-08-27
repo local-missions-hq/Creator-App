@@ -80,6 +80,7 @@ try {
   const contract = await pool.query<{
     brief_count: number;
     community_count: number;
+    deliverable_count: number;
     reward_total: number;
     slot_count: number;
     template_count: number;
@@ -87,6 +88,10 @@ try {
     `SELECT
        (SELECT count(*)::int FROM mission_templates) AS template_count,
        (SELECT count(*)::int FROM campaign_brief_versions b WHERE b.campaign_id = c.id) AS brief_count,
+       (SELECT count(*)::int
+          FROM deliverable_requirements dr
+          JOIN campaign_brief_versions b ON b.id = dr.campaign_brief_version_id
+         WHERE b.campaign_id = c.id) AS deliverable_count,
        count(s.id)::int AS slot_count,
        count(s.id) FILTER (WHERE s.type = 'community')::int AS community_count,
        coalesce(sum(s.reward_minor), 0)::int AS reward_total
@@ -100,6 +105,7 @@ try {
     !contractRow ||
     contractRow.template_count !== 4 ||
     contractRow.brief_count !== 1 ||
+    contractRow.deliverable_count !== 2 ||
     contractRow.slot_count !== 10 ||
     contractRow.community_count !== 10 ||
     contractRow.reward_total !== 50_000
@@ -108,7 +114,7 @@ try {
   }
 
   process.stdout.write(
-    `Database check passed for ${actual.length} tables and the synthetic identity, business, campaign, four templates, versioned brief, and 10 Community Slots.\n`,
+    `Database check passed for ${actual.length} tables and the synthetic identity, business, campaign, four templates, versioned brief, two deliverable requirements, and 10 Community Slots.\n`,
   );
 } finally {
   await pool.end();

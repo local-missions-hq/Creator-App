@@ -8,12 +8,15 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { getLocalDatabaseUrl } from '../scripts/local-database.js';
 import { CampaignStore } from './campaign-store.js';
 import { MissionApplicationStore } from './mission-application-store.js';
+import { SubmissionStore } from './submission-store.js';
 import { IdentityTenantStore } from './tenant-store.js';
 
 const migrationPaths = [
   fileURLToPath(new URL('../drizzle/0000_giant_snowbird.sql', import.meta.url)),
   fileURLToPath(new URL('../drizzle/0001_empty_tyrannus.sql', import.meta.url)),
   fileURLToPath(new URL('../drizzle/0002_material_rachel_grey.sql', import.meta.url)),
+  fileURLToPath(new URL('../drizzle/0003_orange_tempest.sql', import.meta.url)),
+  fileURLToPath(new URL('../drizzle/0004_handy_gideon.sql', import.meta.url)),
 ];
 const databaseName = `local_missions_m3_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
@@ -26,6 +29,7 @@ const adminPool = new Pool({ connectionString: adminUrl.toString(), max: 1 });
 let pool: Pool;
 let store: CampaignStore;
 let missionStore: MissionApplicationStore;
+let submissionStore: SubmissionStore;
 let tenantStore: IdentityTenantStore;
 
 async function createCampaign(overrides: { idempotencyKey?: string; publicId?: string } = {}) {
@@ -59,6 +63,23 @@ async function createCampaign(overrides: { idempotencyKey?: string; publicId?: s
       publicId: `slot_${campaign.id}_${index + 1}`,
       type: 'community' as const,
     })),
+  });
+  await submissionStore.configureDeliverableRequirements({
+    actorUserId: actorId,
+    campaignId: campaign.id,
+    correlationId: randomUUID(),
+    requirements: [
+      {
+        allowedMimeTypes: ['image/jpeg'],
+        minHeightPixels: 1080,
+        minWidthPixels: 1080,
+        objectiveDescription: 'Provide five clear original photos from the visit.',
+        ordinal: 1,
+        publicId: `req_${campaign.id}_photos`,
+        requiredCount: 5,
+        type: 'photo',
+      },
+    ],
   });
   return { actorId, campaign };
 }
@@ -112,13 +133,18 @@ beforeAll(async () => {
   }
   store = new CampaignStore(pool);
   missionStore = new MissionApplicationStore(pool);
+  submissionStore = new SubmissionStore(pool);
   tenantStore = new IdentityTenantStore(pool);
 }, 30_000);
 
 beforeEach(async () => {
   await pool.query(
-    `TRUNCATE idempotency_records, audit_events, mission_application_status_history,
+    `TRUNCATE idempotency_records, audit_events, submission_review_decisions,
+              correction_requests, submission_status_history, submission_evidence,
+              submission_assets, submission_attempts, media_assets,
+              mission_application_status_history,
               slot_reservations, mission_applications, mission_slots, campaign_brief_versions,
+              deliverable_requirements,
               campaign_status_history, campaigns, mission_templates,
               business_locations, business_memberships, creator_profiles, external_identities,
               businesses, users CASCADE`,
@@ -226,7 +252,7 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
 
     expect(campaign).toMatchObject({ status: 'published', version: 5 });
     expect(await countRows('campaign_status_history', campaign.id)).toBe(5);
-    expect(await countCampaignAudits(campaign.id)).toBe(6);
+    expect(await countCampaignAudits(campaign.id)).toBe(7);
 
     await expect(
       store.transitionCampaign({
@@ -245,7 +271,7 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
       version: 5,
     });
     expect(await countRows('campaign_status_history', campaign.id)).toBe(5);
-    expect(await countCampaignAudits(campaign.id)).toBe(6);
+    expect(await countCampaignAudits(campaign.id)).toBe(7);
     expect(await countRows('idempotency_records')).toBe(5);
   });
 
@@ -275,7 +301,7 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
       version: 2,
     });
     expect(await countRows('campaign_status_history', campaign.id)).toBe(2);
-    expect(await countCampaignAudits(campaign.id)).toBe(3);
+    expect(await countCampaignAudits(campaign.id)).toBe(4);
     expect(await countRows('idempotency_records')).toBe(2);
   });
 });

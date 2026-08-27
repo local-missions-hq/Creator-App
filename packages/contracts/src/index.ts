@@ -100,6 +100,7 @@ export const reachLevelSchema = z.enum(['level_1', 'level_2', 'level_3']);
 export const missionApplicationStatusSchema = z.enum([
   'submitted',
   'accepted',
+  'completed',
   'withdrawn',
   'rejected',
   'expired',
@@ -116,6 +117,63 @@ export const venueStaffAssignmentStatusSchema = z.enum(['active', 'revoked']);
 export const checkInChallengeMethodSchema = z.enum(['qr', 'staff_code']);
 export const checkInChallengeStatusSchema = z.enum(['active', 'consumed', 'expired', 'revoked']);
 export const checkInAccuracyClassSchema = z.enum(['unavailable', 'coarse', 'precise']);
+export const deliverableRequirementTypeSchema = z.enum([
+  'photo',
+  'raw_clip',
+  'edited_video',
+  'social_post',
+  'private_response',
+  'attendance_proof',
+]);
+export const mediaOrientationSchema = z.enum(['any', 'portrait_9_16']);
+export const mediaAssetStatusSchema = z.enum([
+  'pending_scan',
+  'verified',
+  'quarantined',
+  'rejected',
+]);
+export const submissionEvidenceKindSchema = z.enum([
+  'platform_post',
+  'structured_response',
+  'check_in_reference',
+]);
+export const submissionStatusSchema = z.enum([
+  'under_review',
+  'correction_requested',
+  'approved',
+  'auto_approved',
+  'disputed',
+]);
+export const submissionReviewDecisionTypeSchema = z.enum([
+  'approved',
+  'correction_requested',
+  'auto_approved',
+]);
+export const correctionReasonCodeSchema = z.enum([
+  'missing_count',
+  'corrupt_file',
+  'duration_out_of_range',
+  'wrong_orientation',
+  'insufficient_resolution',
+  'wrong_subject',
+  'unrelated_brand_watermark',
+  'missing_disclosure',
+]);
+
+export const submissionConflictCodeSchema = z.enum([
+  'MEDIA_ASSET_CONFLICT',
+  'SUBMISSION_ACCESS_DENIED',
+  'SUBMISSION_ALREADY_EXISTS',
+  'SUBMISSION_ASSET_INVALID',
+  'SUBMISSION_ASSET_NOT_VERIFIED',
+  'SUBMISSION_CHECK_IN_REQUIRED',
+  'SUBMISSION_CONTRACT_INCOMPLETE',
+  'SUBMISSION_NOT_FOUND',
+  'SUBMISSION_REVIEW_EXPIRED',
+  'SUBMISSION_REVIEW_NOT_DUE',
+  'SUBMISSION_SECOND_CORRECTION_NOT_ALLOWED',
+  'SUBMISSION_TRANSITION_CONFLICT',
+]);
 
 export const checkInConflictCodeSchema = z.enum([
   'CHECK_IN_ACCESS_DENIED',
@@ -133,6 +191,7 @@ export const checkInConflictCodeSchema = z.enum([
 export const missionAssignmentRecordSchema = z.object({
   applicationId: z.uuid(),
   businessLocationId: z.uuid(),
+  campaignBriefVersionId: z.uuid(),
   campaignId: z.uuid(),
   creatorUserId: z.uuid(),
   id: z.uuid(),
@@ -200,11 +259,16 @@ export type CheckInChallengeMethod = z.infer<typeof checkInChallengeMethodSchema
 export type CheckInChallengeStatus = z.infer<typeof checkInChallengeStatusSchema>;
 export type CheckInConflictCode = z.infer<typeof checkInConflictCodeSchema>;
 export type CheckInEventRecord = z.infer<typeof checkInEventRecordSchema>;
+export type CorrectionReasonCode = z.infer<typeof correctionReasonCodeSchema>;
 export type CreatorProfileStatus = z.infer<typeof creatorProfileStatusSchema>;
 export type HealthStatus = z.infer<typeof healthStatusSchema>;
 export type IdentityProvider = z.infer<typeof identityProviderSchema>;
 export type IdentityTenantConflictCode = z.infer<typeof identityTenantConflictCodeSchema>;
 export type LocalityStatus = z.infer<typeof localityStatusSchema>;
+export type DeliverableRequirementType = z.infer<typeof deliverableRequirementTypeSchema>;
+export type MediaAssetStatus = z.infer<typeof mediaAssetStatusSchema>;
+export type MediaOrientation = z.infer<typeof mediaOrientationSchema>;
+export type SubmissionEvidenceKind = z.infer<typeof submissionEvidenceKindSchema>;
 export type MissionApplicationConflictCode = z.infer<typeof missionApplicationConflictCodeSchema>;
 export type MissionApplicationRecord = z.infer<typeof missionApplicationRecordSchema>;
 export type MissionApplicationStatus = z.infer<typeof missionApplicationStatusSchema>;
@@ -216,5 +280,8 @@ export type MissionTemplateCode = z.infer<typeof missionTemplateCodeSchema>;
 export type PayoutOnboardingStatus = z.infer<typeof payoutOnboardingStatusSchema>;
 export type ReachLevel = z.infer<typeof reachLevelSchema>;
 export type SlotReservationStatus = z.infer<typeof slotReservationStatusSchema>;
+export type SubmissionConflictCode = z.infer<typeof submissionConflictCodeSchema>;
+export type SubmissionReviewDecisionType = z.infer<typeof submissionReviewDecisionTypeSchema>;
+export type SubmissionStatus = z.infer<typeof submissionStatusSchema>;
 export type UserStatus = z.infer<typeof userStatusSchema>;
 export type VenueStaffAssignmentStatus = z.infer<typeof venueStaffAssignmentStatusSchema>;

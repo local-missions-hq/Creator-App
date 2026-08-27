@@ -9,6 +9,7 @@ import { getLocalDatabaseUrl } from '../scripts/local-database.js';
 import { CampaignStore } from './campaign-store.js';
 import { CheckInStore } from './check-in-store.js';
 import { MissionApplicationStore } from './mission-application-store.js';
+import { SubmissionStore } from './submission-store.js';
 import { IdentityTenantStore } from './tenant-store.js';
 
 const migrationPaths = [
@@ -17,6 +18,7 @@ const migrationPaths = [
   fileURLToPath(new URL('../drizzle/0002_material_rachel_grey.sql', import.meta.url)),
 ];
 const migration0003 = fileURLToPath(new URL('../drizzle/0003_orange_tempest.sql', import.meta.url));
+const migration0004 = fileURLToPath(new URL('../drizzle/0004_handy_gideon.sql', import.meta.url));
 const databaseName = `local_missions_m3_check_in_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
 const adminUrl = new URL(baseUrl);
@@ -29,6 +31,7 @@ let pool: Pool;
 let campaignStore: CampaignStore;
 let checkInStore: CheckInStore;
 let missionStore: MissionApplicationStore;
+let submissionStore: SubmissionStore;
 let tenantStore: IdentityTenantStore;
 let upgradeProof: { campaignTitle: string; totalDueMinor: number };
 
@@ -141,6 +144,23 @@ async function createScheduledMission(overrides?: {
       },
     ],
   });
+  await submissionStore.configureDeliverableRequirements({
+    actorUserId: ownerUserId,
+    campaignId: campaign.id,
+    correlationId: randomUUID(),
+    requirements: [
+      {
+        allowedMimeTypes: ['image/jpeg'],
+        minHeightPixels: 1080,
+        minWidthPixels: 1080,
+        objectiveDescription: 'Provide five clear original photos from the visit.',
+        ordinal: 1,
+        publicId: `req_${campaign.publicId}_photos`,
+        requiredCount: 5,
+        type: 'photo',
+      },
+    ],
+  });
   for (const toStatus of ['submitted', 'approved', 'funded', 'published'] as const) {
     campaign = await campaignStore.transitionCampaign({
       actorId: ownerUserId,
@@ -242,19 +262,25 @@ beforeAll(async () => {
   const row = preserved.rows[0];
   if (!row) throw new Error('Check-in migration did not preserve the baseline campaign.');
   upgradeProof = { campaignTitle: row.campaign_title, totalDueMinor: row.total_due_minor };
+  await applyMigration(migration0004);
 
   campaignStore = new CampaignStore(pool);
   checkInStore = new CheckInStore(pool);
   missionStore = new MissionApplicationStore(pool);
+  submissionStore = new SubmissionStore(pool);
   tenantStore = new IdentityTenantStore(pool);
 }, 30_000);
 
 beforeEach(async () => {
   await pool.query(
-    `TRUNCATE idempotency_records, audit_events, check_in_events, check_in_challenges,
+    `TRUNCATE idempotency_records, audit_events, submission_review_decisions,
+              correction_requests, submission_status_history, submission_evidence,
+              submission_assets, submission_attempts, media_assets,
+              check_in_events, check_in_challenges,
               venue_staff_assignments, mission_assignment_status_history, mission_assignments,
               mission_application_status_history, slot_reservations, mission_applications,
-              mission_slots, campaign_brief_versions, campaign_status_history, campaigns,
+              mission_slots, deliverable_requirements, campaign_brief_versions,
+              campaign_status_history, campaigns,
               mission_templates, business_locations, business_memberships, creator_profiles,
               external_identities, businesses, users CASCADE`,
   );

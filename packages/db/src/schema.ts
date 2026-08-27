@@ -81,6 +81,7 @@ export const reachLevel = pgEnum('reach_level', ['level_1', 'level_2', 'level_3'
 export const missionApplicationStatus = pgEnum('mission_application_status', [
   'submitted',
   'accepted',
+  'completed',
   'withdrawn',
   'rejected',
   'expired',
@@ -113,6 +114,48 @@ export const checkInAccuracyClass = pgEnum('check_in_accuracy_class', [
   'unavailable',
   'coarse',
   'precise',
+]);
+export const deliverableRequirementType = pgEnum('deliverable_requirement_type', [
+  'photo',
+  'raw_clip',
+  'edited_video',
+  'social_post',
+  'private_response',
+  'attendance_proof',
+]);
+export const mediaOrientation = pgEnum('media_orientation', ['any', 'portrait_9_16']);
+export const mediaAssetStatus = pgEnum('media_asset_status', [
+  'pending_scan',
+  'verified',
+  'quarantined',
+  'rejected',
+]);
+export const submissionEvidenceKind = pgEnum('submission_evidence_kind', [
+  'platform_post',
+  'structured_response',
+  'check_in_reference',
+]);
+export const submissionStatus = pgEnum('submission_status', [
+  'under_review',
+  'correction_requested',
+  'approved',
+  'auto_approved',
+  'disputed',
+]);
+export const submissionReviewDecisionType = pgEnum('submission_review_decision_type', [
+  'approved',
+  'correction_requested',
+  'auto_approved',
+]);
+export const correctionReasonCode = pgEnum('correction_reason_code', [
+  'missing_count',
+  'corrupt_file',
+  'duration_out_of_range',
+  'wrong_orientation',
+  'insufficient_resolution',
+  'wrong_subject',
+  'unrelated_brand_watermark',
+  'missing_disclosure',
 ]);
 
 export const users = pgTable(
@@ -363,6 +406,56 @@ export const campaignBriefVersions = pgTable(
   ],
 );
 
+export const deliverableRequirements = pgTable(
+  'deliverable_requirements',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    campaignBriefVersionId: uuid('campaign_brief_version_id')
+      .notNull()
+      .references(() => campaignBriefVersions.id, { onDelete: 'restrict' }),
+    ordinal: integer('ordinal').notNull(),
+    type: deliverableRequirementType('type').notNull(),
+    requiredCount: integer('required_count').notNull(),
+    allowedMimeTypes: jsonb('allowed_mime_types').$type<string[]>().notNull(),
+    minDurationSeconds: integer('min_duration_seconds'),
+    maxDurationSeconds: integer('max_duration_seconds'),
+    orientation: mediaOrientation('orientation').default('any').notNull(),
+    minWidthPixels: integer('min_width_pixels').default(0).notNull(),
+    minHeightPixels: integer('min_height_pixels').default(0).notNull(),
+    requiresDisclosure: boolean('requires_disclosure').default(false).notNull(),
+    objectiveDescription: text('objective_description').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('deliverable_requirements_public_id_uq').on(table.publicId),
+    uniqueIndex('deliverable_requirements_brief_ordinal_uq').on(
+      table.campaignBriefVersionId,
+      table.ordinal,
+    ),
+    index('deliverable_requirements_brief_type_idx').on(table.campaignBriefVersionId, table.type),
+    check('deliverable_requirements_ordinal_positive_ck', sql`${table.ordinal} > 0`),
+    check('deliverable_requirements_count_positive_ck', sql`${table.requiredCount} > 0`),
+    check(
+      'deliverable_requirements_mime_types_ck',
+      sql`jsonb_typeof(${table.allowedMimeTypes}) = 'array' AND jsonb_array_length(${table.allowedMimeTypes}) > 0`,
+    ),
+    check(
+      'deliverable_requirements_duration_ck',
+      sql`(${table.minDurationSeconds} IS NULL AND ${table.maxDurationSeconds} IS NULL) OR
+          (${table.minDurationSeconds} > 0 AND ${table.maxDurationSeconds} >= ${table.minDurationSeconds})`,
+    ),
+    check(
+      'deliverable_requirements_dimensions_ck',
+      sql`${table.minWidthPixels} >= 0 AND ${table.minHeightPixels} >= 0`,
+    ),
+    check(
+      'deliverable_requirements_description_nonempty_ck',
+      sql`length(btrim(${table.objectiveDescription})) > 0`,
+    ),
+  ],
+);
+
 export const missionSlots = pgTable(
   'mission_slots',
   {
@@ -480,7 +573,8 @@ export const missionApplicationStatusHistory = pgTable(
     fromStatus: missionApplicationStatus('from_status'),
     toStatus: missionApplicationStatus('to_status').notNull(),
     applicationVersion: integer('application_version').notNull(),
-    actorId: uuid('actor_id').notNull(),
+    actorId: uuid('actor_id'),
+    actorType: auditActorType('actor_type').default('user').notNull(),
     reason: text('reason'),
     occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -511,6 +605,9 @@ export const missionAssignments = pgTable(
     campaignId: uuid('campaign_id')
       .notNull()
       .references(() => campaigns.id, { onDelete: 'restrict' }),
+    campaignBriefVersionId: uuid('campaign_brief_version_id')
+      .notNull()
+      .references(() => campaignBriefVersions.id, { onDelete: 'restrict' }),
     missionSlotId: uuid('mission_slot_id')
       .notNull()
       .references(() => missionSlots.id, { onDelete: 'restrict' }),
@@ -557,7 +654,8 @@ export const missionAssignmentStatusHistory = pgTable(
     fromStatus: missionAssignmentStatus('from_status'),
     toStatus: missionAssignmentStatus('to_status').notNull(),
     assignmentVersion: integer('assignment_version').notNull(),
-    actorId: uuid('actor_id').notNull(),
+    actorId: uuid('actor_id'),
+    actorType: auditActorType('actor_type').default('user').notNull(),
     reason: text('reason'),
     occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -704,6 +802,241 @@ export const checkInEvents = pgTable(
   ],
 );
 
+export const mediaAssets = pgTable(
+  'media_assets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    missionAssignmentId: uuid('mission_assignment_id')
+      .notNull()
+      .references(() => missionAssignments.id, { onDelete: 'restrict' }),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    storageObjectKey: text('storage_object_key').notNull(),
+    checksumSha256: text('checksum_sha256').notNull(),
+    mimeType: text('mime_type').notNull(),
+    byteSize: integer('byte_size').notNull(),
+    durationSeconds: integer('duration_seconds'),
+    widthPixels: integer('width_pixels').notNull(),
+    heightPixels: integer('height_pixels').notNull(),
+    orientation: mediaOrientation('orientation').notNull(),
+    status: mediaAssetStatus('status').default('pending_scan').notNull(),
+    validationReason: text('validation_reason'),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('media_assets_public_id_uq').on(table.publicId),
+    uniqueIndex('media_assets_creator_object_uq').on(table.creatorUserId, table.storageObjectKey),
+    uniqueIndex('media_assets_assignment_checksum_uq').on(
+      table.missionAssignmentId,
+      table.checksumSha256,
+    ),
+    index('media_assets_assignment_status_idx').on(table.missionAssignmentId, table.status),
+    check('media_assets_object_key_nonempty_ck', sql`length(btrim(${table.storageObjectKey})) > 0`),
+    check('media_assets_checksum_sha256_ck', sql`${table.checksumSha256} ~ '^[a-f0-9]{64}$'`),
+    check('media_assets_mime_type_nonempty_ck', sql`length(btrim(${table.mimeType})) > 0`),
+    check('media_assets_byte_size_positive_ck', sql`${table.byteSize} > 0`),
+    check(
+      'media_assets_duration_positive_ck',
+      sql`${table.durationSeconds} IS NULL OR ${table.durationSeconds} > 0`,
+    ),
+    check(
+      'media_assets_dimensions_positive_ck',
+      sql`${table.widthPixels} > 0 AND ${table.heightPixels} > 0`,
+    ),
+    check(
+      'media_assets_validation_state_ck',
+      sql`(${table.status} = 'pending_scan' AND ${table.validationReason} IS NULL AND ${table.verifiedAt} IS NULL) OR
+          (${table.status} = 'verified' AND ${table.validationReason} IS NULL AND ${table.verifiedAt} IS NOT NULL) OR
+          (${table.status} IN ('quarantined', 'rejected') AND length(btrim(${table.validationReason})) > 0 AND ${table.verifiedAt} IS NULL)`,
+    ),
+  ],
+);
+
+export const submissionAttempts = pgTable(
+  'submission_attempts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    missionAssignmentId: uuid('mission_assignment_id')
+      .notNull()
+      .references(() => missionAssignments.id, { onDelete: 'restrict' }),
+    attemptNumber: integer('attempt_number').notNull(),
+    status: submissionStatus('status').default('under_review').notNull(),
+    submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull(),
+    reviewDeadlineAt: timestamp('review_deadline_at', { withTimezone: true }).notNull(),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('submission_attempts_public_id_uq').on(table.publicId),
+    uniqueIndex('submission_attempts_assignment_number_uq').on(
+      table.missionAssignmentId,
+      table.attemptNumber,
+    ),
+    index('submission_attempts_review_queue_idx').on(table.status, table.reviewDeadlineAt),
+    check('submission_attempts_number_ck', sql`${table.attemptNumber} BETWEEN 1 AND 2`),
+    check(
+      'submission_attempts_review_deadline_ck',
+      sql`${table.reviewDeadlineAt} = ${table.submittedAt} + interval '48 hours'`,
+    ),
+    check('submission_attempts_version_positive_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const submissionAssets = pgTable(
+  'submission_assets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    submissionAttemptId: uuid('submission_attempt_id')
+      .notNull()
+      .references(() => submissionAttempts.id, { onDelete: 'restrict' }),
+    deliverableRequirementId: uuid('deliverable_requirement_id')
+      .notNull()
+      .references(() => deliverableRequirements.id, { onDelete: 'restrict' }),
+    mediaAssetId: uuid('media_asset_id')
+      .notNull()
+      .references(() => mediaAssets.id, { onDelete: 'restrict' }),
+    position: integer('position').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('submission_assets_attempt_asset_uq').on(
+      table.submissionAttemptId,
+      table.mediaAssetId,
+    ),
+    uniqueIndex('submission_assets_attempt_requirement_position_uq').on(
+      table.submissionAttemptId,
+      table.deliverableRequirementId,
+      table.position,
+    ),
+    index('submission_assets_requirement_idx').on(table.deliverableRequirementId),
+    check('submission_assets_position_positive_ck', sql`${table.position} > 0`),
+  ],
+);
+
+export const submissionEvidence = pgTable(
+  'submission_evidence',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    submissionAttemptId: uuid('submission_attempt_id')
+      .notNull()
+      .references(() => submissionAttempts.id, { onDelete: 'restrict' }),
+    deliverableRequirementId: uuid('deliverable_requirement_id')
+      .notNull()
+      .references(() => deliverableRequirements.id, { onDelete: 'restrict' }),
+    kind: submissionEvidenceKind('kind').notNull(),
+    position: integer('position').notNull(),
+    evidenceData: jsonb('evidence_data').$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('submission_evidence_attempt_requirement_position_uq').on(
+      table.submissionAttemptId,
+      table.deliverableRequirementId,
+      table.position,
+    ),
+    index('submission_evidence_requirement_idx').on(table.deliverableRequirementId),
+    check('submission_evidence_position_positive_ck', sql`${table.position} > 0`),
+    check('submission_evidence_object_ck', sql`jsonb_typeof(${table.evidenceData}) = 'object'`),
+  ],
+);
+
+export const submissionStatusHistory = pgTable(
+  'submission_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    submissionAttemptId: uuid('submission_attempt_id')
+      .notNull()
+      .references(() => submissionAttempts.id, { onDelete: 'restrict' }),
+    fromStatus: submissionStatus('from_status'),
+    toStatus: submissionStatus('to_status').notNull(),
+    submissionVersion: integer('submission_version').notNull(),
+    actorId: uuid('actor_id'),
+    actorType: auditActorType('actor_type').notNull(),
+    reason: text('reason'),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('submission_status_history_version_uq').on(
+      table.submissionAttemptId,
+      table.submissionVersion,
+    ),
+    index('submission_status_history_timeline_idx').on(table.submissionAttemptId, table.occurredAt),
+    check('submission_status_history_version_positive_ck', sql`${table.submissionVersion} > 0`),
+  ],
+);
+
+export const correctionRequests = pgTable(
+  'correction_requests',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    missionAssignmentId: uuid('mission_assignment_id')
+      .notNull()
+      .references(() => missionAssignments.id, { onDelete: 'restrict' }),
+    sourceSubmissionAttemptId: uuid('source_submission_attempt_id')
+      .notNull()
+      .references(() => submissionAttempts.id, { onDelete: 'restrict' }),
+    deliverableRequirementId: uuid('deliverable_requirement_id')
+      .notNull()
+      .references(() => deliverableRequirements.id, { onDelete: 'restrict' }),
+    reasonCode: correctionReasonCode('reason_code').notNull(),
+    explanation: text('explanation').notNull(),
+    dueAt: timestamp('due_at', { withTimezone: true }).notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('correction_requests_public_id_uq').on(table.publicId),
+    uniqueIndex('correction_requests_assignment_uq').on(table.missionAssignmentId),
+    uniqueIndex('correction_requests_source_submission_uq').on(table.sourceSubmissionAttemptId),
+    check(
+      'correction_requests_explanation_nonempty_ck',
+      sql`length(btrim(${table.explanation})) > 0`,
+    ),
+    check('correction_requests_due_after_created_ck', sql`${table.dueAt} > ${table.createdAt}`),
+  ],
+);
+
+export const submissionReviewDecisions = pgTable(
+  'submission_review_decisions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    submissionAttemptId: uuid('submission_attempt_id')
+      .notNull()
+      .references(() => submissionAttempts.id, { onDelete: 'restrict' }),
+    decision: submissionReviewDecisionType('decision').notNull(),
+    reasonCode: correctionReasonCode('reason_code'),
+    explanation: text('explanation'),
+    actorId: uuid('actor_id'),
+    actorType: auditActorType('actor_type').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('submission_review_decisions_public_id_uq').on(table.publicId),
+    uniqueIndex('submission_review_decisions_submission_uq').on(table.submissionAttemptId),
+    index('submission_review_decisions_timeline_idx').on(table.occurredAt),
+    check(
+      'submission_review_decisions_reason_ck',
+      sql`(${table.decision} = 'correction_requested' AND ${table.reasonCode} IS NOT NULL AND length(btrim(${table.explanation})) > 0) OR
+          (${table.decision} IN ('approved', 'auto_approved') AND ${table.reasonCode} IS NULL)`,
+    ),
+    check(
+      'submission_review_decisions_actor_ck',
+      sql`(${table.actorType} = 'user' AND ${table.actorId} IS NOT NULL) OR
+          (${table.actorType} = 'service' AND ${table.actorId} IS NULL)`,
+    ),
+  ],
+);
+
 export const auditEvents = pgTable(
   'audit_events',
   {
@@ -752,6 +1085,7 @@ export const initialSchemaTables = [
   'campaign_status_history',
   'mission_templates',
   'campaign_brief_versions',
+  'deliverable_requirements',
   'mission_slots',
   'mission_applications',
   'slot_reservations',
@@ -761,6 +1095,13 @@ export const initialSchemaTables = [
   'venue_staff_assignments',
   'check_in_challenges',
   'check_in_events',
+  'media_assets',
+  'submission_attempts',
+  'submission_assets',
+  'submission_evidence',
+  'submission_status_history',
+  'correction_requests',
+  'submission_review_decisions',
   'audit_events',
   'idempotency_records',
 ] as const;

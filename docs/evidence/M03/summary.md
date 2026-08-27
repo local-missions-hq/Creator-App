@@ -1,11 +1,12 @@
 # M03 database and state-machine evidence
 
-Status: Campaign lifecycle, shared identity/tenant, mission contract/capacity, and accepted-mission/check-in slices passed; M3 overall remains in progress
+Status: Campaign lifecycle, shared identity/tenant, mission contract/capacity, accepted-mission/check-in, and submission/review slices passed; M3 overall remains in progress
 Date: 2026-08-27  
 Checkpoint: `M03-campaign-lifecycle-001`, implementation commit `87ba940`
 Shared identity checkpoint: `M03-shared-identity-tenant-002`, implementation commit `8ef7b08`
 Mission capacity checkpoint: `M03-mission-contract-capacity-003`
 Check-in checkpoint: `M03-check-in-state-machine-004`
+Submission checkpoint: `M03-submission-review-005`
 Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Implemented in this checkpoint
@@ -41,10 +42,15 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Eight accepted-mission/check-in tests passed against real PostgreSQL: forward preservation and privacy schema inspection, schedule/tenant constraints, scoped Venue Staff fallback, challenge rotation, successful QR transaction, cross-creator/wrong-venue/expiry rejection, concurrent replay, and server-window enforcement.
 - Check-in challenges retain only a token hash; check-in evidence retains an accuracy class and derived statement, with no raw-coordinate field. The latest schema and deterministic seed check now cover 21 tables.
 - Check-in JUnit evidence: [`test-results/check-in-store-junit.xml`](./test-results/check-in-store-junit.xml).
+- Seven deliverable-submission/review tests passed against real PostgreSQL: checked-in-assignment upgrade/backfill and privacy schema inspection, objective-contract enforcement, pre-check-in rollback, missing/quarantined/invalid media rollback, duplicate-completion concurrency, tenant review plus one bounded correction, and server-time auto-approval concurrency.
+- The latest deterministic seed contains two locked Visit & Create requirements—five photos and two 5–15-second vertical clips. Repeating the seed does not duplicate them; `db:check` verifies all 29 tables.
+- Submission/review JUnit evidence: [`test-results/submission-store-junit.xml`](./test-results/submission-store-junit.xml).
+- The combined M3 suite now passes 30 real-PostgreSQL tests. `pnpm verify` passes all workspace gates, the security scan passes 266 text files, Gitleaks finds no leak in approximately 6.67 MB, and `drizzle-kit check` reports a consistent five-migration journal.
 - Migration: [`../../../packages/db/drizzle/0000_giant_snowbird.sql`](../../../packages/db/drizzle/0000_giant_snowbird.sql).
 - Forward migration: [`../../../packages/db/drizzle/0001_empty_tyrannus.sql`](../../../packages/db/drizzle/0001_empty_tyrannus.sql).
 - Mission/capacity migration: [`../../../packages/db/drizzle/0002_material_rachel_grey.sql`](../../../packages/db/drizzle/0002_material_rachel_grey.sql).
 - Accepted-mission/check-in migration: [`../../../packages/db/drizzle/0003_orange_tempest.sql`](../../../packages/db/drizzle/0003_orange_tempest.sql).
+- Deliverable-submission/review migration: [`../../../packages/db/drizzle/0004_handy_gideon.sql`](../../../packages/db/drizzle/0004_handy_gideon.sql).
 
 ## Privacy and safety
 
@@ -55,6 +61,6 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Known limitations and M3 gate
 
-These are four complete transactional slices, not the full M3 schema or API. Submission/media, dispute, payment ledger, Local Pass, consent/rights, notification/outbox, raw-proof retention jobs, Reach analytics qualification, and remaining audit records are not implemented yet. The `/v1` API, OpenAPI/client generation, a latest-schema empty-database proof, and complete state-transition tables remain open. Physical camera/location execution remains the later M9 gate rather than part of this local state-machine checkpoint.
+These are five complete transactional slices, not the full M3 schema or API. Dispute, payment ledger, Local Pass, consent/rights, notification/outbox, raw-proof retention jobs, Reach analytics qualification, and remaining audit records are not implemented yet. Cloud upload intents and media workers remain later M10 work. The `/v1` API, OpenAPI/client generation, a latest-schema empty-database proof, and complete state-transition tables remain open. Physical camera/location execution remains the later M9 gate rather than part of this local state-machine checkpoint.
 
 The M3 milestone gate has not passed. No broad M3 checklist item is marked complete by this checkpoint; `plans.md` records this smaller completed slice separately.

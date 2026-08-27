@@ -8,6 +8,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { getLocalDatabaseUrl } from '../scripts/local-database.js';
 import { CampaignStore } from './campaign-store.js';
 import { type CampaignSlotInput, MissionApplicationStore } from './mission-application-store.js';
+import { SubmissionStore } from './submission-store.js';
 import { IdentityTenantStore } from './tenant-store.js';
 
 const migration0000 = fileURLToPath(new URL('../drizzle/0000_giant_snowbird.sql', import.meta.url));
@@ -15,6 +16,8 @@ const migration0001 = fileURLToPath(new URL('../drizzle/0001_empty_tyrannus.sql'
 const migration0002 = fileURLToPath(
   new URL('../drizzle/0002_material_rachel_grey.sql', import.meta.url),
 );
+const migration0003 = fileURLToPath(new URL('../drizzle/0003_orange_tempest.sql', import.meta.url));
+const migration0004 = fileURLToPath(new URL('../drizzle/0004_handy_gideon.sql', import.meta.url));
 const databaseName = `local_missions_m3_capacity_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
 const adminUrl = new URL(baseUrl);
@@ -26,6 +29,7 @@ const adminPool = new Pool({ connectionString: adminUrl.toString(), max: 1 });
 let pool: Pool;
 let campaignStore: CampaignStore;
 let missionStore: MissionApplicationStore;
+let submissionStore: SubmissionStore;
 let tenantStore: IdentityTenantStore;
 let upgradeProof: { campaignTitle: string; totalDueMinor: number };
 
@@ -108,6 +112,23 @@ async function createPublishedCampaign(slotCount: number): Promise<{
     plainLanguageBrief: 'Visit the venue and complete the objective content checklist.',
     slots: communitySlots(campaign.publicId, slotCount),
   });
+  await submissionStore.configureDeliverableRequirements({
+    actorUserId: ownerUserId,
+    campaignId: campaign.id,
+    correlationId: randomUUID(),
+    requirements: [
+      {
+        allowedMimeTypes: ['image/jpeg'],
+        minHeightPixels: 1080,
+        minWidthPixels: 1080,
+        objectiveDescription: 'Provide five clear original photos from the visit.',
+        ordinal: 1,
+        publicId: `req_${campaign.publicId}_photos`,
+        requiredCount: 5,
+        type: 'photo',
+      },
+    ],
+  });
   for (const toStatus of ['submitted', 'approved', 'funded', 'published'] as const) {
     campaign = await campaignStore.transitionCampaign({
       actorId: ownerUserId,
@@ -161,15 +182,23 @@ beforeAll(async () => {
   if (!row) throw new Error('Capacity migration did not preserve the baseline campaign.');
   upgradeProof = { campaignTitle: row.campaign_title, totalDueMinor: row.total_due_minor };
 
+  await applyMigration(migration0003);
+  await applyMigration(migration0004);
+
   campaignStore = new CampaignStore(pool);
   missionStore = new MissionApplicationStore(pool);
+  submissionStore = new SubmissionStore(pool);
   tenantStore = new IdentityTenantStore(pool);
 }, 30_000);
 
 beforeEach(async () => {
   await pool.query(
-    `TRUNCATE idempotency_records, audit_events, mission_application_status_history,
+    `TRUNCATE idempotency_records, audit_events, submission_review_decisions,
+              correction_requests, submission_status_history, submission_evidence,
+              submission_assets, submission_attempts, media_assets,
+              mission_application_status_history,
               slot_reservations, mission_applications, mission_slots, campaign_brief_versions,
+              deliverable_requirements,
               campaign_status_history, campaigns, mission_templates, business_locations,
               business_memberships, creator_profiles, external_identities, businesses, users CASCADE`,
   );

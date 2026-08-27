@@ -2,11 +2,13 @@ import { Pool } from 'pg';
 
 import { CampaignStore } from '../src/campaign-store.js';
 import { MissionApplicationStore } from '../src/mission-application-store.js';
+import { SubmissionStore } from '../src/submission-store.js';
 import { getLocalDatabaseUrl } from './local-database.js';
 
 const pool = new Pool({ connectionString: getLocalDatabaseUrl() });
 const store = new CampaignStore(pool);
 const missionStore = new MissionApplicationStore(pool);
+const submissionStore = new SubmissionStore(pool);
 
 try {
   const client = await pool.connect();
@@ -142,8 +144,51 @@ try {
     });
   }
 
+  const existingRequirements = await pool.query<{ count: string }>(
+    `SELECT count(*)::text AS count
+       FROM deliverable_requirements dr
+       JOIN campaign_brief_versions cbv ON cbv.id = dr.campaign_brief_version_id
+      WHERE cbv.campaign_id = $1`,
+    [campaignId],
+  );
+  if (existingRequirements.rows[0]?.count === '0') {
+    if (campaign.status !== 'draft') {
+      throw new Error('Synthetic campaign must be draft before locking deliverable requirements.');
+    }
+    await submissionStore.configureDeliverableRequirements({
+      actorUserId: '10000000-0000-4000-8000-000000000001',
+      campaignId,
+      correlationId: '30000000-0000-4000-8000-000000000003',
+      requirements: [
+        {
+          allowedMimeTypes: ['image/jpeg', 'image/heic'],
+          minHeightPixels: 1080,
+          minWidthPixels: 1080,
+          objectiveDescription: 'Provide five clear original photos from the visit.',
+          ordinal: 1,
+          publicId: 'req_orlando_synthetic_photos_001',
+          requiredCount: 5,
+          type: 'photo',
+        },
+        {
+          allowedMimeTypes: ['video/quicktime', 'video/mp4'],
+          maxDurationSeconds: 15,
+          minDurationSeconds: 5,
+          minHeightPixels: 1920,
+          minWidthPixels: 1080,
+          objectiveDescription: 'Provide two original vertical clips between 5 and 15 seconds.',
+          ordinal: 2,
+          orientation: 'portrait_9_16',
+          publicId: 'req_orlando_synthetic_clips_001',
+          requiredCount: 2,
+          type: 'raw_clip',
+        },
+      ],
+    });
+  }
+
   process.stdout.write(
-    `Seeded synthetic shared user, creator profile, business workspace, four mission templates, versioned brief, 10 Community Slots, and campaign ${'publicId' in campaign ? campaign.publicId : campaign.public_id} in ${campaign.status} at version ${campaign.version}.\n`,
+    `Seeded synthetic shared user, creator profile, business workspace, four mission templates, versioned brief, two deliverable requirements, 10 Community Slots, and campaign ${'publicId' in campaign ? campaign.publicId : campaign.public_id} in ${campaign.status} at version ${campaign.version}.\n`,
   );
 } finally {
   await pool.end();

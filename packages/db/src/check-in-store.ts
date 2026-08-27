@@ -25,6 +25,7 @@ export class CheckInError extends Error {
 type MissionAssignmentRow = QueryResultRow & {
   application_id: string;
   business_location_id: string;
+  campaign_brief_version_id: string;
   campaign_id: string;
   creator_user_id: string;
   id: string;
@@ -66,6 +67,7 @@ function toMissionAssignmentRecord(row: MissionAssignmentRow): MissionAssignment
   return {
     applicationId: row.application_id,
     businessLocationId: row.business_location_id,
+    campaignBriefVersionId: row.campaign_brief_version_id,
     campaignId: row.campaign_id,
     creatorUserId: row.creator_user_id,
     id: row.id,
@@ -142,16 +144,23 @@ export class CheckInStore {
         const accepted = await client.query<{
           application_id: string;
           business_location_id: string;
+          campaign_brief_version_id: string;
           campaign_id: string;
           creator_user_id: string;
           mission_slot_id: string;
         }>(
           `SELECT a.id AS application_id, a.campaign_id, a.creator_user_id,
+                  cbv.id AS campaign_brief_version_id,
                   r.mission_slot_id, l.id AS business_location_id
              FROM mission_applications a
              JOIN campaigns c ON c.id = a.campaign_id
              JOIN slot_reservations r ON r.application_id = a.id AND r.status = 'converted'
              JOIN mission_slots s ON s.id = r.mission_slot_id AND s.status = 'accepted'
+             JOIN campaign_brief_versions cbv ON cbv.campaign_id = a.campaign_id
+                  AND cbv.version = (
+                    SELECT max(latest.version) FROM campaign_brief_versions latest
+                     WHERE latest.campaign_id = a.campaign_id
+                  )
              JOIN business_locations l ON l.id = $3 AND l.business_id = c.business_id
                                       AND l.is_active = true
             WHERE a.id = $1 AND a.status = 'accepted'
@@ -181,16 +190,19 @@ export class CheckInStore {
 
         const result = await client.query<MissionAssignmentRow>(
           `INSERT INTO mission_assignments (
-             public_id, application_id, campaign_id, mission_slot_id, creator_user_id,
+             public_id, application_id, campaign_id, campaign_brief_version_id,
+             mission_slot_id, creator_user_id,
              business_location_id, window_starts_at, window_ends_at, timezone, created_by
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-           RETURNING id, public_id, application_id, campaign_id, mission_slot_id,
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+           RETURNING id, public_id, application_id, campaign_id, campaign_brief_version_id,
+                     mission_slot_id,
                      creator_user_id, business_location_id, window_starts_at, window_ends_at,
                      timezone, status, version`,
           [
             input.publicId,
             source.application_id,
             source.campaign_id,
+            source.campaign_brief_version_id,
             source.mission_slot_id,
             source.creator_user_id,
             source.business_location_id,
@@ -205,8 +217,9 @@ export class CheckInStore {
         const assignment = toMissionAssignmentRecord(row);
         await client.query(
           `INSERT INTO mission_assignment_status_history (
-             mission_assignment_id, from_status, to_status, assignment_version, actor_id, reason
-           ) VALUES ($1, NULL, 'scheduled', 1, $2, 'Accepted mission scheduled')`,
+             mission_assignment_id, from_status, to_status, assignment_version,
+             actor_id, actor_type, reason
+           ) VALUES ($1, NULL, 'scheduled', 1, $2, 'user', 'Accepted mission scheduled')`,
           [assignment.id, input.actorUserId],
         );
         await this.appendAudit(client, {
@@ -321,7 +334,8 @@ export class CheckInStore {
         );
       }
       const assignmentResult = await client.query<MissionAssignmentRow & { server_now: Date }>(
-        `SELECT ma.id, ma.public_id, ma.application_id, ma.campaign_id, ma.mission_slot_id,
+        `SELECT ma.id, ma.public_id, ma.application_id, ma.campaign_id,
+                ma.campaign_brief_version_id, ma.mission_slot_id,
                 ma.creator_user_id, ma.business_location_id, ma.window_starts_at,
                 ma.window_ends_at, ma.timezone, ma.status, ma.version, now() AS server_now
            FROM mission_assignments ma
@@ -439,7 +453,8 @@ export class CheckInStore {
           `SELECT ch.id AS challenge_id, ch.token_hash,
                   ch.method AS challenge_method, ch.status AS challenge_status,
                   ch.expires_at, ch.created_by AS challenge_created_by, now() AS server_now,
-                  ma.id, ma.public_id, ma.application_id, ma.campaign_id, ma.mission_slot_id,
+                  ma.id, ma.public_id, ma.application_id, ma.campaign_id,
+                  ma.campaign_brief_version_id, ma.mission_slot_id,
                   ma.creator_user_id, ma.business_location_id, ma.window_starts_at,
                   ma.window_ends_at, ma.timezone, ma.status, ma.version
              FROM check_in_challenges ch
@@ -544,8 +559,10 @@ export class CheckInStore {
         );
         await client.query(
           `INSERT INTO mission_assignment_status_history (
-             mission_assignment_id, from_status, to_status, assignment_version, actor_id, reason
-           ) VALUES ($1, 'scheduled', 'checked_in', $2, $3, 'One-time venue challenge verified')`,
+             mission_assignment_id, from_status, to_status, assignment_version,
+             actor_id, actor_type, reason
+           ) VALUES ($1, 'scheduled', 'checked_in', $2, $3, 'user',
+                     'One-time venue challenge verified')`,
           [challenge.id, challenge.version + 1, input.creatorUserId],
         );
         await this.appendAudit(client, {
