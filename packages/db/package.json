@@ -9,17 +9,24 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "db:check": "tsx scripts/check.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx scripts/seed.ts",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --exclude '**/*.integration.test.ts'",
+    "test:integration": "vitest run src/campaign-store.integration.test.ts"
   },
   "dependencies": {
+    "@local-missions/contracts": "workspace:*",
     "drizzle-orm": "0.45.2",
     "pg": "8.23.0"
   },
   "devDependencies": {
     "@types/pg": "8.16.0",
     "drizzle-kit": "0.31.10",
+    "tsx": "4.21.0",
     "typescript": "5.9.3",
     "vitest": "4.1.11"
   }

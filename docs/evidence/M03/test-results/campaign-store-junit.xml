@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="4" failures="0" errors="0" time="0.168938583">
+    <testsuite name="src/campaign-store.integration.test.ts" timestamp="2026-08-27T14:24:03.710Z" hostname="local-development-host" tests="4" failures="0" errors="0" skipped="0" time="0.168938583">
+        <testcase classname="src/campaign-store.integration.test.ts" name="CampaignStore against real PostgreSQL &gt; applies the empty-database migration with money and capacity constraints" time="0.016340416">
+        </testcase>
+        <testcase classname="src/campaign-store.integration.test.ts" name="CampaignStore against real PostgreSQL &gt; returns the original result for a repeated idempotency key and rejects changed input" time="0.018602416">
+        </testcase>
+        <testcase classname="src/campaign-store.integration.test.ts" name="CampaignStore against real PostgreSQL &gt; commits the legal publish path and rolls illegal transitions back completely" time="0.035844209">
+        </testcase>
+        <testcase classname="src/campaign-store.integration.test.ts" name="CampaignStore against real PostgreSQL &gt; allows only one writer to win an optimistic-concurrency race" time="0.0175985">
+        </testcase>
+    </testsuite>
+</testsuites>

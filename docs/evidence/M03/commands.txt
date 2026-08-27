@@ -1,0 +1,37 @@
+M03-campaign-lifecycle-001 — 2026-08-27
+
+docker compose up -d postgres
+PASS — PostgreSQL 17 Alpine started on 127.0.0.1:5432.
+
+pnpm db:generate
+PASS — generated drizzle/0000_giant_snowbird.sql for 5 tables.
+
+pnpm --filter @local-missions/db typecheck
+PASS — strict TypeScript check completed.
+
+pnpm --filter @local-missions/db test
+PASS — 2 schema/unit tests passed.
+
+pnpm test:integration
+PASS — 4 tests passed against a newly created real PostgreSQL database.
+
+pnpm db:migrate
+PASS — local append-only migration applied.
+
+pnpm db:seed
+pnpm db:seed
+PASS — repeated synthetic seed returned cmp_orlando_synthetic_001 in draft at version 1 both times.
+
+pnpm db:check
+PASS — 5 tables and deterministic synthetic campaign verified.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, contracts, and all eight workspace builds passed.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 242 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 5.99 MB.
+
+All pnpm commands used the repository-pinned Node 24.19.0 and pnpm 11.24.0 toolchain. No external service or cloud resource was contacted.
