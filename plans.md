@@ -96,10 +96,10 @@ Prototype quality and verification:
 - [x] Verify representative Creator account/payout, Business results, and Venue Staff routes on iPhone SE at Accessibility Large in Dark appearance.
 - [x] Verify the Creator mission lifecycle and Business creation/review routes on iPhone SE at Accessibility Large in Dark appearance, including synthetic publish and approval terminal states.
 - [x] Verify Creator and Business success/warning/error/pending/locked/empty/loading/offline state sheets on iPhone SE at Accessibility Large in Light and Dark appearances.
-- [ ] Add and run the Creator and Business Maestro prototype flows.
+- [x] Add and run the Creator and Business Maestro prototype flows.
 - [x] Add stable accessibility labels/test IDs to every critical control in the complete prototype.
 - [x] Add Creator and Business Maestro YAML flows and statically validate every referenced test ID.
-- [ ] Execute both Maestro flows against the iPhone Simulator and retain run artifacts.
+- [x] Execute both Maestro flows against the iPhone Simulator and retain run artifacts.
 - [x] Implement and inspect the required admin/support web routes at desktop and mobile widths.
 - [x] Pass the narrated end-to-end M2 gate with no critical large-text clipping.
 
