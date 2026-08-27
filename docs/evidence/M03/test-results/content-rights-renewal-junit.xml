@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="10" failures="0" errors="0" time="1.028261916">
+    <testsuite name="src/rights-store.integration.test.ts" timestamp="2026-08-27T23:39:57.287Z" hostname="local-development-host" tests="10" failures="0" errors="0" skipped="0" time="1.028261916">
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; migrates forward and publishes immutable hash-only legal document versions under admin control" time="0.012595">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; locks exact rights economics and creator consent without cross-role substitution" time="0.031989041">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; grants no rights to incomplete, unpaid, canceled, or final no-payout work" time="0.067537708">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; activates one immutable fixed license set under concurrency without changing payment state" time="0.051013291">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; rejects approval without verified accepted content instead of licensing business access" time="0.024942125">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; expires a fixed term with matching audit history and never renews automatically" time="0.02903375">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; prices creator-visible renewals from the original base and enforces the 30-day window" time="0.113227083">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; keeps accepted renewals unfunded and preserves old expiry after provider failure" time="0.033305833">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; activates a future non-backdated term and full payable only from authoritative funding" time="0.039846209">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; allows exactly one authoritative funding winner under concurrency" time="0.054818875">
+        </testcase>
+    </testsuite>
+</testsuites>

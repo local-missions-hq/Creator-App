@@ -96,6 +96,11 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Verification derives customer/risk HMAC tokens inside the store, retains only encrypted destination ciphertext and keyed OTP digests, defaults marketing consent off, schedules contact/linkage deletion, and performs no SMS/email/provider call. Business and Creator results contain aggregates only and do not call claims or redemptions purchases, revenue, or proven lift.
 - The complete checkpoint passes 78 database tests plus twelve API integration tests. `pnpm verify` passes all nine workspaces with 30 mobile tests; repeated seed and `db:check` verify 72 tables; `drizzle-kit check` validates the fifteen-migration journal; the security scan passes 360 text files; and Gitleaks finds no leak in approximately 11.09 MB.
 - Local Pass claim-edge JUnit and review: [`test-results/local-pass-claim-edge-junit.xml`](./test-results/local-pass-claim-edge-junit.xml) and [`local-pass-claim-edge.md`](./local-pass-claim-edge.md).
+- Four content-license renewal scenarios passed against real PostgreSQL: fixed original-base pricing and the 30-day request window, Creator-only acceptance/refusal with no reliability effect, accepted-but-unfunded and failed-provider paths with no new rights/payable, authoritative future non-backdated activation with exact replay, and a different-provider-evidence one-winner race.
+- A $50 original base reward produces renewal Creator rewards of $12.50 for 90-day organic, $25 for 12-month owned media, or $50 for 30-day paid ads; the separately disclosed 15% fee produces Business totals of $14.38, $28.75, or $57.50. No automatic renewal, live Stripe call, card charge, transfer, external message, or Azure mutation occurred.
+- The checkpoint records immutable request/decision/funding histories, invoice and PaymentIntent references, exact assets/channels/terms, the full Creator payable, one-time expiry-reminder audit checkpoints, historical-organic restrictions, and paid/website/email removal policy. Creator acceptance alone grants no rights and provider failure leaves the prior expiry unchanged.
+- The complete checkpoint passes 82 database tests plus twelve API integration tests. `pnpm verify` passes all nine workspaces; repeated seed and `db:check` verify 77 tables; `drizzle-kit check` and the manifest validate all sixteen migrations; the security scan passes 363 text files; and Gitleaks finds no leak in approximately 11.65 MB.
+- Content-rights renewal JUnit and review: [`test-results/content-rights-renewal-junit.xml`](./test-results/content-rights-renewal-junit.xml) and [`content-rights-renewal.md`](./content-rights-renewal.md).
 - Migration: [`../../../packages/db/drizzle/0000_giant_snowbird.sql`](../../../packages/db/drizzle/0000_giant_snowbird.sql).
 - Forward migration: [`../../../packages/db/drizzle/0001_empty_tyrannus.sql`](../../../packages/db/drizzle/0001_empty_tyrannus.sql).
 - Mission/capacity migration: [`../../../packages/db/drizzle/0002_material_rachel_grey.sql`](../../../packages/db/drizzle/0002_material_rachel_grey.sql).
@@ -112,6 +117,7 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Migration manifest: [`../../../packages/db/drizzle/migration-manifest.json`](../../../packages/db/drizzle/migration-manifest.json).
 - Locality proof/retention migration: [`../../../packages/db/drizzle/0013_brave_maddog.sql`](../../../packages/db/drizzle/0013_brave_maddog.sql).
 - Local Pass claim-edge migration: [`../../../packages/db/drizzle/0014_serious_terror.sql`](../../../packages/db/drizzle/0014_serious_terror.sql).
+- Content-rights renewal migration: [`../../../packages/db/drizzle/0015_slim_joshua_kane.sql`](../../../packages/db/drizzle/0015_slim_joshua_kane.sql).
 
 ## Privacy and safety
 

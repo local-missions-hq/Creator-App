@@ -43,4 +43,4 @@ The combined M3 database suite passes 58 tests across nine transactional slices.
 
 ## Deliberate later work
 
-Renewal purchase/acceptance, suspension and revocation operations, notification delivery, rendered legal-document storage, API routes, Stripe execution, provider status convergence, chargebacks, and actual paid-media channel integrations remain later work. This checkpoint records enforceable internal rights state only; it does not claim that external platforms or businesses complied with the recorded license.
+Creator-opt-in renewal acceptance and funding state are now implemented and proved separately in [`content-rights-renewal.md`](./content-rights-renewal.md). Suspension and revocation operations, delivered expiry notifications, rendered legal-document storage, API routes, live Stripe execution, provider status convergence, chargebacks, payout transfer execution, and actual paid-media channel integrations remain later work. These checkpoints record enforceable internal rights state only; they do not claim that external platforms or businesses complied with the recorded license.
