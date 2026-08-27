@@ -91,6 +91,13 @@ export default function BusinessReviewPublishScreen() {
         accessible
         accessibilityLabel={`${statusTitle}. ${statusBody}`}
         style={[styles.statusCard, usesExpandedLayout && styles.statusCardExpanded]}
+        testID={
+          published
+            ? 'business-review-status-published'
+            : approved
+              ? 'business-review-status-approved'
+              : 'business-review-status-pending'
+        }
       >
         <View
           style={[

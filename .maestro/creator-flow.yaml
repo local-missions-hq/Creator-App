@@ -22,8 +22,8 @@ tags:
 - tapOn:
     id: creator-accept-mission-terms
 - assertVisible:
-    id: creator-accept-mission-terms
-    checked: true
+    id: creator-submit-application
+    enabled: true
 - scrollUntilVisible:
     element:
       id: creator-submit-application
@@ -65,11 +65,12 @@ tags:
     element:
       id: creator-resubmit-revision
     direction: DOWN
-    visibilityPercentage: 70
+    visibilityPercentage: 100
 - tapOn:
     id: creator-resubmit-revision
 - assertVisible:
     id: creator-preview-paid-state
 - tapOn:
     id: creator-preview-paid-state
-- assertVisible: Paid
+- assertVisible:
+    id: creator-reward-status-paid

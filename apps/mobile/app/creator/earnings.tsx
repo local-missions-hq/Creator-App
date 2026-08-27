@@ -89,6 +89,7 @@ export default function CreatorEarningsScreen() {
             accessible
             accessibilityLabel={`Family Adventure Preview. 50 dollar creator reward. ${paid ? 'Paid' : 'Available'}.`}
             style={[styles.paymentHeader, useExpandedLayout && styles.paymentHeaderExpanded]}
+            testID={paid ? 'creator-reward-status-paid' : 'creator-reward-status-available'}
           >
             <View>
               <Text style={styles.paymentTitle}>Family Adventure Preview</Text>

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="iPhone 17 Pro - iOS 26.5 - 7DB5E9FA-974D-40C6-BAF6-8F0F328FEC6B" tests="1" failures="0" time="27.046" timestamp="2026-08-26T20:01:01">
+    <testcase id="Creator funded mission prototype" name="Creator funded mission prototype" classname="Creator funded mission prototype" file=".maestro/creator-flow.yaml" time="27.036" timestamp="2026-08-26T20:01:01" status="SUCCESS">
+      <properties>
+        <property name="tags" value="creator, local-preview"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

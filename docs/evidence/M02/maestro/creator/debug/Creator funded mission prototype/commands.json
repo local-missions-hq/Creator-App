@@ -1,0 +1,926 @@
+[
+  {
+    "command": {
+      "defineVariablesCommand": {
+        "env": {
+          "EXPO_URL": "exp://192.168.0.63:8081",
+          "MAESTRO_CLI_NO_ANALYTICS": "1",
+          "MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED": "true",
+          "MAESTRO_FILENAME": "creator-flow",
+          "MAESTRO_DEVICE_UDID": "7DB5E9FA-974D-40C6-BAF6-8F0F328FEC6B",
+          "MAESTRO_SHARD_ID": "1",
+          "MAESTRO_SHARD_INDEX": "0"
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788861250,
+      "duration": 2,
+      "sequenceNumber": 0,
+      "depth": 0,
+      "evaluatedCommand": {
+        "defineVariablesCommand": {
+          "env": {
+            "EXPO_URL": "exp://192.168.0.63:8081",
+            "MAESTRO_CLI_NO_ANALYTICS": "1",
+            "MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED": "true",
+            "MAESTRO_FILENAME": "creator-flow",
+            "MAESTRO_DEVICE_UDID": "7DB5E9FA-974D-40C6-BAF6-8F0F328FEC6B",
+            "MAESTRO_SHARD_ID": "1",
+            "MAESTRO_SHARD_INDEX": "0"
+          },
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "applyConfigurationCommand": {
+        "config": {
+          "appId": "host.exp.Exponent",
+          "name": "Creator funded mission prototype",
+          "tags": ["creator", "local-preview"]
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788861253,
+      "duration": 0,
+      "sequenceNumber": 1,
+      "depth": 0,
+      "evaluatedCommand": {
+        "applyConfigurationCommand": {
+          "config": {
+            "appId": "host.exp.Exponent",
+            "name": "Creator funded mission prototype",
+            "tags": ["creator", "local-preview"]
+          },
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "openLinkCommand": {
+        "link": "${EXPO_URL}/--/creator/discover",
+        "autoVerify": false,
+        "browser": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788861253,
+      "duration": 582,
+      "sequenceNumber": 2,
+      "depth": 0,
+      "evaluatedCommand": {
+        "openLinkCommand": {
+          "link": "exp://192.168.0.63:8081/--/creator/discover",
+          "autoVerify": false,
+          "browser": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "runFlowCommand": {
+        "commands": [
+          {
+            "tapOnElement": {
+              "selector": {
+                "textRegex": "Open",
+                "optional": false
+              },
+              "retryIfNoChange": false,
+              "waitUntilVisible": false,
+              "longPress": false,
+              "optional": false
+            }
+          }
+        ],
+        "condition": {
+          "visible": {
+            "textRegex": "Open in \"Expo Go\"",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "SKIPPED",
+      "timestamp": 1787788861835,
+      "duration": 7160,
+      "sequenceNumber": 3,
+      "depth": 0,
+      "evaluatedCommand": {
+        "runFlowCommand": {
+          "commands": [
+            {
+              "tapOnElement": {
+                "selector": {
+                  "textRegex": "Open",
+                  "optional": false
+                },
+                "retryIfNoChange": false,
+                "waitUntilVisible": false,
+                "longPress": false,
+                "optional": false
+              }
+            }
+          ],
+          "condition": {
+            "visible": {
+              "textRegex": "Open in \"Expo Go\"",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "idRegex": "creator-open-featured-mission",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788868995,
+      "duration": 95,
+      "sequenceNumber": 4,
+      "depth": 0,
+      "evaluatedCommand": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "idRegex": "creator-open-featured-mission",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "idRegex": "creator-open-featured-mission",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788869091,
+      "duration": 1330,
+      "sequenceNumber": 5,
+      "depth": 0,
+      "evaluatedCommand": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "creator-open-featured-mission",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "scrollUntilVisible": {
+        "selector": {
+          "idRegex": "creator-accept-mission-terms",
+          "optional": false
+        },
+        "direction": "DOWN",
+        "scrollDuration": "40",
+        "visibilityPercentage": 60,
+        "timeout": "20000",
+        "centerElement": false,
+        "originalSpeedValue": "40",
+        "optional": false,
+        "visibilityPercentageNormalized": 0.0
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788870422,
+      "duration": 2361,
+      "sequenceNumber": 6,
+      "depth": 0,
+      "evaluatedCommand": {
+        "scrollUntilVisible": {
+          "selector": {
+            "idRegex": "creator-accept-mission-terms",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "601",
+          "visibilityPercentage": 60,
+          "timeout": "20000",
+          "centerElement": false,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 0.0
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "idRegex": "creator-accept-mission-terms",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788872783,
+      "duration": 1049,
+      "sequenceNumber": 7,
+      "depth": 0,
+      "evaluatedCommand": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "creator-accept-mission-terms",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "idRegex": "creator-submit-application",
+            "enabled": true,
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788873832,
+      "duration": 92,
+      "sequenceNumber": 8,
+      "depth": 0,
+      "evaluatedCommand": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "idRegex": "creator-submit-application",
+              "enabled": true,
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "scrollUntilVisible": {
+        "selector": {
+          "idRegex": "creator-submit-application",
+          "optional": false
+        },
+        "direction": "DOWN",
+        "scrollDuration": "40",
+        "visibilityPercentage": 80,
+        "timeout": "20000",
+        "centerElement": false,
+        "originalSpeedValue": "40",
+        "optional": false,
+        "visibilityPercentageNormalized": 0.0
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788873925,
+      "duration": 94,
+      "sequenceNumber": 9,
+      "depth": 0,
+      "evaluatedCommand": {
+        "scrollUntilVisible": {
+          "selector": {
+            "idRegex": "creator-submit-application",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "601",
+          "visibilityPercentage": 80,
+          "timeout": "20000",
+          "centerElement": false,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 0.0
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "idRegex": "creator-submit-application",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788874019,
+      "duration": 1027,
+      "sequenceNumber": 10,
+      "depth": 0,
+      "evaluatedCommand": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "creator-submit-application",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Application previewed",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788875047,
+      "duration": 210,
+      "sequenceNumber": 11,
+      "depth": 0,
+      "evaluatedCommand": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Application previewed",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "textRegex": "View accepted demo",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788875257,
+      "duration": 1631,
+      "sequenceNumber": 12,
+      "depth": 0,
+      "evaluatedCommand": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "View accepted demo",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "scrollUntilVisible": {
+        "selector": {
+          "idRegex": "creator-open-instructions",
+          "optional": false
+        },
+        "direction": "DOWN",
+        "scrollDuration": "40",
+        "visibilityPercentage": 70,
+        "timeout": "20000",
+        "centerElement": false,
+        "originalSpeedValue": "40",
+        "optional": false,
+        "visibilityPercentageNormalized": 0.0
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788876889,
+      "duration": 94,
+      "sequenceNumber": 13,
+      "depth": 0,
+      "evaluatedCommand": {
+        "scrollUntilVisible": {
+          "selector": {
+            "idRegex": "creator-open-instructions",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "601",
+          "visibilityPercentage": 70,
+          "timeout": "20000",
+          "centerElement": false,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 0.0
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "idRegex": "creator-open-instructions",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788876983,
+      "duration": 1223,
+      "sequenceNumber": 14,
+      "depth": 0,
+      "evaluatedCommand": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "creator-open-instructions",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "scrollUntilVisible": {
+        "selector": {
+          "idRegex": "creator-instructions-continue",
+          "optional": false
+        },
+        "direction": "DOWN",
+        "scrollDuration": "40",
+        "visibilityPercentage": 70,
+        "timeout": "20000",
+        "centerElement": false,
+        "originalSpeedValue": "40",
+        "optional": false,
+        "visibilityPercentageNormalized": 0.0
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788878206,
+      "duration": 1964,
+      "sequenceNumber": 15,
+      "depth": 0,
+      "evaluatedCommand": {
+        "scrollUntilVisible": {
+          "selector": {
+            "idRegex": "creator-instructions-continue",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "601",
+          "visibilityPercentage": 70,
+          "timeout": "20000",
+          "centerElement": false,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 0.0
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "idRegex": "creator-instructions-continue",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788880170,
+      "duration": 1501,
+      "sequenceNumber": 16,
+      "depth": 0,
+      "evaluatedCommand": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "creator-instructions-continue",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "scrollUntilVisible": {
+        "selector": {
+          "idRegex": "creator-complete-check-in",
+          "optional": false
+        },
+        "direction": "DOWN",
+        "scrollDuration": "40",
+        "visibilityPercentage": 70,
+        "timeout": "20000",
+        "centerElement": false,
+        "originalSpeedValue": "40",
+        "optional": false,
+        "visibilityPercentageNormalized": 0.0
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788881672,
+      "duration": 94,
+      "sequenceNumber": 17,
+      "depth": 0,
+      "evaluatedCommand": {
+        "scrollUntilVisible": {
+          "selector": {
+            "idRegex": "creator-complete-check-in",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "601",
+          "visibilityPercentage": 70,
+          "timeout": "20000",
+          "centerElement": false,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 0.0
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "idRegex": "creator-complete-check-in",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788881766,
+      "duration": 1176,
+      "sequenceNumber": 18,
+      "depth": 0,
+      "evaluatedCommand": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "creator-complete-check-in",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "scrollUntilVisible": {
+        "selector": {
+          "idRegex": "creator-submit-deliverables",
+          "optional": false
+        },
+        "direction": "DOWN",
+        "scrollDuration": "40",
+        "visibilityPercentage": 70,
+        "timeout": "20000",
+        "centerElement": false,
+        "originalSpeedValue": "40",
+        "optional": false,
+        "visibilityPercentageNormalized": 0.0
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788882942,
+      "duration": 89,
+      "sequenceNumber": 19,
+      "depth": 0,
+      "evaluatedCommand": {
+        "scrollUntilVisible": {
+          "selector": {
+            "idRegex": "creator-submit-deliverables",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "601",
+          "visibilityPercentage": 70,
+          "timeout": "20000",
+          "centerElement": false,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 0.0
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "idRegex": "creator-submit-deliverables",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788883031,
+      "duration": 1173,
+      "sequenceNumber": 20,
+      "depth": 0,
+      "evaluatedCommand": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "creator-submit-deliverables",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "scrollUntilVisible": {
+        "selector": {
+          "idRegex": "creator-resubmit-revision",
+          "optional": false
+        },
+        "direction": "DOWN",
+        "scrollDuration": "40",
+        "visibilityPercentage": 100,
+        "timeout": "20000",
+        "centerElement": false,
+        "originalSpeedValue": "40",
+        "optional": false,
+        "visibilityPercentageNormalized": 1.0
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788884205,
+      "duration": 1358,
+      "sequenceNumber": 21,
+      "depth": 0,
+      "evaluatedCommand": {
+        "scrollUntilVisible": {
+          "selector": {
+            "idRegex": "creator-resubmit-revision",
+            "optional": false
+          },
+          "direction": "DOWN",
+          "scrollDuration": "601",
+          "visibilityPercentage": 100,
+          "timeout": "20000",
+          "centerElement": false,
+          "originalSpeedValue": "40",
+          "optional": false,
+          "visibilityPercentageNormalized": 1.0
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "idRegex": "creator-resubmit-revision",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788885563,
+      "duration": 1484,
+      "sequenceNumber": 22,
+      "depth": 0,
+      "evaluatedCommand": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "creator-resubmit-revision",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "idRegex": "creator-preview-paid-state",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788887047,
+      "duration": 81,
+      "sequenceNumber": 23,
+      "depth": 0,
+      "evaluatedCommand": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "idRegex": "creator-preview-paid-state",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "idRegex": "creator-preview-paid-state",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788887129,
+      "duration": 764,
+      "sequenceNumber": 24,
+      "depth": 0,
+      "evaluatedCommand": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "creator-preview-paid-state",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "idRegex": "creator-reward-status-paid",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1787788887894,
+      "duration": 84,
+      "sequenceNumber": 25,
+      "depth": 0,
+      "evaluatedCommand": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "idRegex": "creator-reward-status-paid",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      }
+    }
+  }
+]

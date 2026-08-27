@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="iPhone 17 Pro - iOS 26.5 - 7DB5E9FA-974D-40C6-BAF6-8F0F328FEC6B" tests="1" failures="0" time="23.73" timestamp="2026-08-26T20:04:20">
+    <testcase id="Business fund and publish prototype" name="Business fund and publish prototype" classname="Business fund and publish prototype" file=".maestro/business-flow.yaml" time="23.724" timestamp="2026-08-26T20:04:20" status="SUCCESS">
+      <properties>
+        <property name="tags" value="business, local-preview"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

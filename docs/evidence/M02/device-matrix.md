@@ -1,6 +1,6 @@
 # M2 iPhone device, appearance, text, and state matrix
 
-Status: Display and semantic-state matrix passed; separate VoiceOver and Maestro gates remain open  
+Status: Display, semantic-state, and actual Maestro gates passed; separate VoiceOver gate remains open
 Date: 2026-08-26  
 Scope: representative high-risk routes per combination; not every route repeated in every cell
 
@@ -56,6 +56,6 @@ New exact-cell captures:
 - Light/Dark ordinary-text contrast: Pass for the current semantic palette through automated contrast tests and representative visual inspection.
 - Xcode Accessibility Inspector: Representative pass with all seven available checks enabled and empty warning outlines on the retained routes.
 - Actual VoiceOver gesture/focus: Open; iOS 26.5 Simulator does not expose VoiceOver.
-- Actual Maestro execution: Open; YAML/source validation is green, but the Maestro CLI is unavailable.
+- Actual Maestro execution: Pass; Maestro 2.9.0 ran the Creator and Business flows on the pinned iPhone 17 Pro Simulator, with retained JUnit, command, driver, and screenshot artifacts.
 
-The 12-cell display matrix is complete. Actual VoiceOver and actual Maestro remain independent open gates; completing the display cells must not be described as completing the unavailable assistive-technology or device-automation gates.
+The 12-cell display matrix and actual Maestro execution are complete. Actual VoiceOver remains an independent open gate; the native tree and Xcode Accessibility Inspector evidence must not be described as actual VoiceOver gesture/focus proof.

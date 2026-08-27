@@ -73,4 +73,6 @@ for (const flowFile of flowFiles) {
 console.log(
   `Maestro flow structure passed for ${flowFiles.length} flows and ${referencedIdCount} testID references.`,
 );
-console.log('This is static validation only; install Maestro CLI to execute the Simulator flows.');
+console.log(
+  'This is static validation only; use the installed Maestro CLI for Simulator execution.',
+);

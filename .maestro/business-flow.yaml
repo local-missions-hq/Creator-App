@@ -32,22 +32,24 @@ tags:
     element:
       id: business-continue-review
     direction: DOWN
-    visibilityPercentage: 70
+    visibilityPercentage: 100
 - tapOn:
     id: business-continue-review
 - scrollUntilVisible:
     element:
       id: business-review-primary-action
     direction: DOWN
-    visibilityPercentage: 70
+    visibilityPercentage: 100
 - tapOn:
     id: business-review-primary-action
-- assertVisible: Admin-approved demo · ready to fund
+- assertVisible:
+    id: business-review-status-approved
 - scrollUntilVisible:
     element:
       id: business-review-primary-action
     direction: DOWN
-    visibilityPercentage: 70
+    visibilityPercentage: 100
 - tapOn:
     id: business-review-primary-action
-- assertVisible: Demo mission published
+- assertVisible:
+    id: business-review-status-published
