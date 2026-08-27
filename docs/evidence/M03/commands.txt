@@ -186,3 +186,46 @@ PASS — no leaks found in approximately 6.67 MB.
 
 pnpm --filter @local-missions/db exec vitest run src/submission-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/submission-store-junit.xml
 PASS — retained seven deliverable-submission/review tests with no failures or errors; machine hostname replaced by local-development-host.
+
+M03-dispute-resolution-006 — 2026-08-27
+
+pnpm db:generate
+PASS — generated append-only drizzle/0005_huge_agent_brand.sql; schema now contains 35 tables. The migration was hardened with a deterministic backfill that converts each prior approved/auto-approved decision into one pending full creator-payable intent.
+
+pnpm --filter @local-missions/db exec vitest run src/dispute-store.integration.test.ts --reporter=verbose
+PASS — all eight dispute/resolution tests passed against real PostgreSQL.
+
+pnpm test:integration
+PASS — 38 tests passed across campaign, identity/tenant, mission/capacity, check-in, submission/review, and dispute/resolution suites against real PostgreSQL.
+
+pnpm db:migrate
+PASS — forward migration applied to the existing local database and preserved the synthetic campaign, mission contract, and prior schema.
+
+pnpm db:seed
+pnpm db:seed
+PASS — both reruns retained the deterministic identity, business, campaign, four templates, one brief, two deliverable requirements, and 10 Community Slots.
+
+pnpm db:check
+PASS — all 35 tables and the deterministic mission contract were verified.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — the six-entry Drizzle journal and all snapshots are internally consistent.
+
+pnpm verify
+INITIAL FAIL — formatting check identified line-wrap drift in the two existing integration files where migration 0005 was added; no behavioral command ran after that gate.
+RESOLUTION — formatted both files and restarted the complete verification sequence.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, contract checks, and all eight workspace builds passed.
+
+pnpm test:integration
+PASS — the final combined rerun passed 38 tests with zero failures or unhandled errors.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 272 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 6.95 MB.
+
+pnpm --filter @local-missions/db exec vitest run src/dispute-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/dispute-store-junit.xml
+PASS — retained eight dispute/resolution tests with no failures or errors; machine hostname replaced by local-development-host.

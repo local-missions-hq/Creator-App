@@ -19,6 +19,9 @@ const migrationPaths = [
 ];
 const migration0003 = fileURLToPath(new URL('../drizzle/0003_orange_tempest.sql', import.meta.url));
 const migration0004 = fileURLToPath(new URL('../drizzle/0004_handy_gideon.sql', import.meta.url));
+const migration0005 = fileURLToPath(
+  new URL('../drizzle/0005_huge_agent_brand.sql', import.meta.url),
+);
 const databaseName = `local_missions_m3_check_in_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
 const adminUrl = new URL(baseUrl);
@@ -263,6 +266,7 @@ beforeAll(async () => {
   if (!row) throw new Error('Check-in migration did not preserve the baseline campaign.');
   upgradeProof = { campaignTitle: row.campaign_title, totalDueMinor: row.total_due_minor };
   await applyMigration(migration0004);
+  await applyMigration(migration0005);
 
   campaignStore = new CampaignStore(pool);
   checkInStore = new CheckInStore(pool);

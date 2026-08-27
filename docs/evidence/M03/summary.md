@@ -1,12 +1,13 @@
 # M03 database and state-machine evidence
 
-Status: Campaign lifecycle, shared identity/tenant, mission contract/capacity, accepted-mission/check-in, and submission/review slices passed; M3 overall remains in progress
+Status: Campaign lifecycle, shared identity/tenant, mission contract/capacity, accepted-mission/check-in, submission/review, and dispute/resolution slices passed; M3 overall remains in progress
 Date: 2026-08-27  
 Checkpoint: `M03-campaign-lifecycle-001`, implementation commit `87ba940`
 Shared identity checkpoint: `M03-shared-identity-tenant-002`, implementation commit `8ef7b08`
 Mission capacity checkpoint: `M03-mission-contract-capacity-003`
 Check-in checkpoint: `M03-check-in-state-machine-004`
 Submission checkpoint: `M03-submission-review-005`
+Dispute checkpoint: `M03-dispute-resolution-006`
 Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Implemented in this checkpoint
@@ -45,12 +46,16 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Seven deliverable-submission/review tests passed against real PostgreSQL: checked-in-assignment upgrade/backfill and privacy schema inspection, objective-contract enforcement, pre-check-in rollback, missing/quarantined/invalid media rollback, duplicate-completion concurrency, tenant review plus one bounded correction, and server-time auto-approval concurrency.
 - The latest deterministic seed contains two locked Visit & Create requirements—five photos and two 5–15-second vertical clips. Repeating the seed does not duplicate them; `db:check` verifies all 29 tables.
 - Submission/review JUnit evidence: [`test-results/submission-store-junit.xml`](./test-results/submission-store-junit.xml).
-- The combined M3 suite now passes 30 real-PostgreSQL tests. `pnpm verify` passes all workspace gates, the security scan passes 266 text files, Gitleaks finds no leak in approximately 6.67 MB, and `drizzle-kit check` reports a consistent five-migration journal.
+- The combined M3 suite now passes 38 real-PostgreSQL tests. `pnpm verify` passes all workspace gates, the security scan passes 272 text files, Gitleaks finds no leak in approximately 6.95 MB, and `drizzle-kit check` reports a consistent six-migration journal.
+- Eight dispute/resolution tests passed against real PostgreSQL: approved-submission preservation plus full-payable-intent backfill and privacy/economic schema inspection, cross-business and subjective-reason rollback, creator correction dispute, server-time expiry, cross-mission evidence rejection plus duplicate race, approval/dispute race, independent full-reward resolution, and one-winner no-payout resolution.
+- Resolution is all-or-nothing: the database records only a pending full creator-payable intent or pending full slot-refund intent. No dispute table or financial intent contains a manually editable amount, and no payment provider is contacted.
+- Dispute/resolution JUnit evidence: [`test-results/dispute-store-junit.xml`](./test-results/dispute-store-junit.xml).
 - Migration: [`../../../packages/db/drizzle/0000_giant_snowbird.sql`](../../../packages/db/drizzle/0000_giant_snowbird.sql).
 - Forward migration: [`../../../packages/db/drizzle/0001_empty_tyrannus.sql`](../../../packages/db/drizzle/0001_empty_tyrannus.sql).
 - Mission/capacity migration: [`../../../packages/db/drizzle/0002_material_rachel_grey.sql`](../../../packages/db/drizzle/0002_material_rachel_grey.sql).
 - Accepted-mission/check-in migration: [`../../../packages/db/drizzle/0003_orange_tempest.sql`](../../../packages/db/drizzle/0003_orange_tempest.sql).
 - Deliverable-submission/review migration: [`../../../packages/db/drizzle/0004_handy_gideon.sql`](../../../packages/db/drizzle/0004_handy_gideon.sql).
+- Dispute/resolution migration: [`../../../packages/db/drizzle/0005_huge_agent_brand.sql`](../../../packages/db/drizzle/0005_huge_agent_brand.sql).
 
 ## Privacy and safety
 
@@ -61,6 +66,6 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Known limitations and M3 gate
 
-These are five complete transactional slices, not the full M3 schema or API. Dispute, payment ledger, Local Pass, consent/rights, notification/outbox, raw-proof retention jobs, Reach analytics qualification, and remaining audit records are not implemented yet. Cloud upload intents and media workers remain later M10 work. The `/v1` API, OpenAPI/client generation, a latest-schema empty-database proof, and complete state-transition tables remain open. Physical camera/location execution remains the later M9 gate rather than part of this local state-machine checkpoint.
+These are six complete transactional slices, not the full M3 schema or API. Payment ledger/provider references, Local Pass, consent/rights, notification/outbox, raw-proof retention jobs, Reach analytics qualification, and remaining audit records are not implemented yet. Cloud upload intents and media workers remain later M10 work. The `/v1` API, OpenAPI/client generation, a latest-schema empty-database proof, and complete state-transition tables remain open. Physical camera/location execution remains the later M9 gate rather than part of this local state-machine checkpoint.
 
 The M3 milestone gate has not passed. No broad M3 checklist item is marked complete by this checkpoint; `plans.md` records this smaller completed slice separately.

@@ -19,6 +19,9 @@ const migrationPaths = [
   fileURLToPath(new URL('../drizzle/0003_orange_tempest.sql', import.meta.url)),
 ];
 const migration0004 = fileURLToPath(new URL('../drizzle/0004_handy_gideon.sql', import.meta.url));
+const migration0005 = fileURLToPath(
+  new URL('../drizzle/0005_huge_agent_brand.sql', import.meta.url),
+);
 const databaseName = `local_missions_m3_submission_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
 const adminUrl = new URL(baseUrl);
@@ -362,6 +365,7 @@ beforeAll(async () => {
     assignmentPublicId: row.assignment_public_id,
     briefPublicId: row.brief_public_id,
   };
+  await applyMigration(migration0005);
 
   campaignStore = new CampaignStore(pool);
   checkInStore = new CheckInStore(pool);
@@ -696,6 +700,9 @@ describe.sequential('deliverable submission and review against real PostgreSQL',
     });
     expect(await countRows('correction_requests')).toBe(1);
     expect(await countRows('submission_review_decisions')).toBe(2);
+    expect(
+      await countRows('financial_action_intents', `WHERE action = 'creator_payable_full'`),
+    ).toBe(1);
   });
 
   it('uses database time for auto-approval and permits exactly one service winner', async () => {
@@ -750,6 +757,9 @@ describe.sequential('deliverable submission and review against real PostgreSQL',
     ).toBe(1);
     expect(
       await countRows('mission_application_status_history', `WHERE actor_type = 'service'`),
+    ).toBe(1);
+    expect(
+      await countRows('financial_action_intents', `WHERE action = 'creator_payable_full'`),
     ).toBe(1);
   });
 });

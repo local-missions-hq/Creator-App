@@ -75,6 +75,7 @@ export const missionSlotStatus = pgEnum('mission_slot_status', [
   'accepted',
   'in_progress',
   'completed',
+  'no_payout',
   'canceled',
 ]);
 export const reachLevel = pgEnum('reach_level', ['level_1', 'level_2', 'level_3']);
@@ -82,6 +83,7 @@ export const missionApplicationStatus = pgEnum('mission_application_status', [
   'submitted',
   'accepted',
   'completed',
+  'no_payout',
   'withdrawn',
   'rejected',
   'expired',
@@ -98,6 +100,7 @@ export const missionAssignmentStatus = pgEnum('mission_assignment_status', [
   'checked_in',
   'canceled',
   'completed',
+  'no_payout',
 ]);
 export const venueStaffAssignmentStatus = pgEnum('venue_staff_assignment_status', [
   'active',
@@ -141,6 +144,8 @@ export const submissionStatus = pgEnum('submission_status', [
   'approved',
   'auto_approved',
   'disputed',
+  'resolved_approved',
+  'resolved_no_payout',
 ]);
 export const submissionReviewDecisionType = pgEnum('submission_review_decision_type', [
   'approved',
@@ -156,6 +161,51 @@ export const correctionReasonCode = pgEnum('correction_reason_code', [
   'wrong_subject',
   'unrelated_brand_watermark',
   'missing_disclosure',
+]);
+export const platformStaffRole = pgEnum('platform_staff_role', ['dispute_reviewer', 'admin']);
+export const platformStaffStatus = pgEnum('platform_staff_status', ['active', 'revoked']);
+export const disputeOpenedBy = pgEnum('dispute_opened_by', ['creator', 'business']);
+export const disputeReasonCode = pgEnum('dispute_reason_code', [
+  'correction_outside_contract',
+  'requirement_already_satisfied',
+  'false_check_in',
+  'missing_count',
+  'corrupt_file',
+  'duration_out_of_range',
+  'wrong_orientation',
+  'insufficient_resolution',
+  'wrong_subject',
+  'unrelated_brand_watermark',
+  'missing_disclosure',
+  'suspected_fraud',
+]);
+export const disputeEvidenceKind = pgEnum('dispute_evidence_kind', [
+  'deliverable_requirement',
+  'media_asset',
+  'check_in_event',
+  'correction_request',
+  'submission_attempt',
+  'submission_evidence',
+]);
+export const disputeStatus = pgEnum('dispute_status', [
+  'open',
+  'resolved_earned_full',
+  'resolved_no_payout',
+]);
+export const disputeResolutionOutcome = pgEnum('dispute_resolution_outcome', [
+  'earned_full',
+  'no_payout',
+]);
+export const financialActionIntentSourceType = pgEnum('financial_action_intent_source_type', [
+  'submission_approval',
+  'dispute_resolution',
+]);
+export const financialActionIntentType = pgEnum('financial_action_intent_type', [
+  'creator_payable_full',
+  'slot_refund_full',
+]);
+export const financialActionIntentStatus = pgEnum('financial_action_intent_status', [
+  'pending_ledger',
 ]);
 
 export const users = pgTable(
@@ -271,6 +321,28 @@ export const businessMemberships = pgTable(
     uniqueIndex('business_memberships_business_user_uq').on(table.businessId, table.userId),
     index('business_memberships_user_status_idx').on(table.userId, table.status),
     check('business_memberships_version_positive_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const platformStaffMemberships = pgTable(
+  'platform_staff_memberships',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    role: platformStaffRole('role').notNull(),
+    status: platformStaffStatus('status').default('active').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    version: integer('version').default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex('platform_staff_memberships_public_id_uq').on(table.publicId),
+    uniqueIndex('platform_staff_memberships_user_uq').on(table.userId),
+    index('platform_staff_memberships_role_status_idx').on(table.role, table.status),
+    check('platform_staff_memberships_version_positive_ck', sql`${table.version} > 0`),
   ],
 );
 
@@ -1037,6 +1109,160 @@ export const submissionReviewDecisions = pgTable(
   ],
 );
 
+export const submissionDisputes = pgTable(
+  'submission_disputes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    missionAssignmentId: uuid('mission_assignment_id')
+      .notNull()
+      .references(() => missionAssignments.id, { onDelete: 'restrict' }),
+    submissionAttemptId: uuid('submission_attempt_id')
+      .notNull()
+      .references(() => submissionAttempts.id, { onDelete: 'restrict' }),
+    correctionRequestId: uuid('correction_request_id').references(() => correctionRequests.id, {
+      onDelete: 'restrict',
+    }),
+    deliverableRequirementId: uuid('deliverable_requirement_id')
+      .notNull()
+      .references(() => deliverableRequirements.id, { onDelete: 'restrict' }),
+    openedBy: disputeOpenedBy('opened_by').notNull(),
+    openedByUserId: uuid('opened_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    reasonCode: disputeReasonCode('reason_code').notNull(),
+    explanation: text('explanation').notNull(),
+    status: disputeStatus('status').default('open').notNull(),
+    version: integer('version').default(1).notNull(),
+    openedAt: timestamp('opened_at', { withTimezone: true }).defaultNow().notNull(),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('submission_disputes_public_id_uq').on(table.publicId),
+    uniqueIndex('submission_disputes_assignment_uq').on(table.missionAssignmentId),
+    uniqueIndex('submission_disputes_submission_uq').on(table.submissionAttemptId),
+    uniqueIndex('submission_disputes_correction_uq').on(table.correctionRequestId),
+    index('submission_disputes_status_opened_idx').on(table.status, table.openedAt),
+    check(
+      'submission_disputes_explanation_nonempty_ck',
+      sql`length(btrim(${table.explanation})) > 0`,
+    ),
+    check('submission_disputes_version_positive_ck', sql`${table.version} > 0`),
+    check(
+      'submission_disputes_resolution_time_ck',
+      sql`(${table.status} = 'open' AND ${table.resolvedAt} IS NULL) OR
+          (${table.status} <> 'open' AND ${table.resolvedAt} IS NOT NULL)`,
+    ),
+    check(
+      'submission_disputes_opener_shape_ck',
+      sql`(${table.openedBy} = 'creator' AND ${table.correctionRequestId} IS NOT NULL) OR
+          (${table.openedBy} = 'business' AND ${table.correctionRequestId} IS NULL)`,
+    ),
+  ],
+);
+
+export const disputeEvidenceItems = pgTable(
+  'dispute_evidence_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    disputeId: uuid('dispute_id')
+      .notNull()
+      .references(() => submissionDisputes.id, { onDelete: 'restrict' }),
+    kind: disputeEvidenceKind('kind').notNull(),
+    referenceId: uuid('reference_id').notNull(),
+    position: integer('position').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('dispute_evidence_items_public_id_uq').on(table.publicId),
+    uniqueIndex('dispute_evidence_items_dispute_position_uq').on(table.disputeId, table.position),
+    uniqueIndex('dispute_evidence_items_dispute_reference_uq').on(
+      table.disputeId,
+      table.kind,
+      table.referenceId,
+    ),
+    index('dispute_evidence_items_reference_idx').on(table.kind, table.referenceId),
+    check('dispute_evidence_items_position_positive_ck', sql`${table.position} > 0`),
+  ],
+);
+
+export const disputeStatusHistory = pgTable(
+  'dispute_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    disputeId: uuid('dispute_id')
+      .notNull()
+      .references(() => submissionDisputes.id, { onDelete: 'restrict' }),
+    fromStatus: disputeStatus('from_status'),
+    toStatus: disputeStatus('to_status').notNull(),
+    disputeVersion: integer('dispute_version').notNull(),
+    actorId: uuid('actor_id').notNull(),
+    actorType: auditActorType('actor_type').default('user').notNull(),
+    reason: text('reason'),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('dispute_status_history_version_uq').on(table.disputeId, table.disputeVersion),
+    index('dispute_status_history_timeline_idx').on(table.disputeId, table.occurredAt),
+    check('dispute_status_history_version_positive_ck', sql`${table.disputeVersion} > 0`),
+    check('dispute_status_history_user_actor_ck', sql`${table.actorType} = 'user'`),
+  ],
+);
+
+export const disputeResolutions = pgTable(
+  'dispute_resolutions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    disputeId: uuid('dispute_id')
+      .notNull()
+      .references(() => submissionDisputes.id, { onDelete: 'restrict' }),
+    outcome: disputeResolutionOutcome('outcome').notNull(),
+    explanation: text('explanation').notNull(),
+    resolvedByUserId: uuid('resolved_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('dispute_resolutions_public_id_uq').on(table.publicId),
+    uniqueIndex('dispute_resolutions_dispute_uq').on(table.disputeId),
+    check(
+      'dispute_resolutions_explanation_nonempty_ck',
+      sql`length(btrim(${table.explanation})) > 0`,
+    ),
+  ],
+);
+
+export const financialActionIntents = pgTable(
+  'financial_action_intents',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    missionAssignmentId: uuid('mission_assignment_id')
+      .notNull()
+      .references(() => missionAssignments.id, { onDelete: 'restrict' }),
+    sourceType: financialActionIntentSourceType('source_type').notNull(),
+    sourceId: uuid('source_id').notNull(),
+    action: financialActionIntentType('action').notNull(),
+    status: financialActionIntentStatus('status').default('pending_ledger').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('financial_action_intents_public_id_uq').on(table.publicId),
+    uniqueIndex('financial_action_intents_assignment_uq').on(table.missionAssignmentId),
+    uniqueIndex('financial_action_intents_source_uq').on(table.sourceType, table.sourceId),
+    index('financial_action_intents_status_created_idx').on(table.status, table.createdAt),
+    check(
+      'financial_action_intents_source_action_ck',
+      sql`(${table.sourceType} = 'submission_approval' AND ${table.action} = 'creator_payable_full') OR
+          (${table.sourceType} = 'dispute_resolution')`,
+    ),
+  ],
+);
+
 export const auditEvents = pgTable(
   'audit_events',
   {
@@ -1080,6 +1306,7 @@ export const initialSchemaTables = [
   'creator_profiles',
   'businesses',
   'business_memberships',
+  'platform_staff_memberships',
   'business_locations',
   'campaigns',
   'campaign_status_history',
@@ -1102,6 +1329,11 @@ export const initialSchemaTables = [
   'submission_status_history',
   'correction_requests',
   'submission_review_decisions',
+  'submission_disputes',
+  'dispute_evidence_items',
+  'dispute_status_history',
+  'dispute_resolutions',
+  'financial_action_intents',
   'audit_events',
   'idempotency_records',
 ] as const;

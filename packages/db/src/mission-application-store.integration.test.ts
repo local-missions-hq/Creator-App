@@ -18,6 +18,9 @@ const migration0002 = fileURLToPath(
 );
 const migration0003 = fileURLToPath(new URL('../drizzle/0003_orange_tempest.sql', import.meta.url));
 const migration0004 = fileURLToPath(new URL('../drizzle/0004_handy_gideon.sql', import.meta.url));
+const migration0005 = fileURLToPath(
+  new URL('../drizzle/0005_huge_agent_brand.sql', import.meta.url),
+);
 const databaseName = `local_missions_m3_capacity_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
 const adminUrl = new URL(baseUrl);
@@ -184,6 +187,7 @@ beforeAll(async () => {
 
   await applyMigration(migration0003);
   await applyMigration(migration0004);
+  await applyMigration(migration0005);
 
   campaignStore = new CampaignStore(pool);
   missionStore = new MissionApplicationStore(pool);

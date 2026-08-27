@@ -94,6 +94,7 @@ export const missionSlotStatusSchema = z.enum([
   'accepted',
   'in_progress',
   'completed',
+  'no_payout',
   'canceled',
 ]);
 export const reachLevelSchema = z.enum(['level_1', 'level_2', 'level_3']);
@@ -101,6 +102,7 @@ export const missionApplicationStatusSchema = z.enum([
   'submitted',
   'accepted',
   'completed',
+  'no_payout',
   'withdrawn',
   'rejected',
   'expired',
@@ -112,6 +114,7 @@ export const missionAssignmentStatusSchema = z.enum([
   'checked_in',
   'canceled',
   'completed',
+  'no_payout',
 ]);
 export const venueStaffAssignmentStatusSchema = z.enum(['active', 'revoked']);
 export const checkInChallengeMethodSchema = z.enum(['qr', 'staff_code']);
@@ -143,6 +146,8 @@ export const submissionStatusSchema = z.enum([
   'approved',
   'auto_approved',
   'disputed',
+  'resolved_approved',
+  'resolved_no_payout',
 ]);
 export const submissionReviewDecisionTypeSchema = z.enum([
   'approved',
@@ -158,6 +163,45 @@ export const correctionReasonCodeSchema = z.enum([
   'wrong_subject',
   'unrelated_brand_watermark',
   'missing_disclosure',
+]);
+export const platformStaffRoleSchema = z.enum(['dispute_reviewer', 'admin']);
+export const platformStaffStatusSchema = z.enum(['active', 'revoked']);
+export const disputeOpenedBySchema = z.enum(['creator', 'business']);
+export const disputeReasonCodeSchema = z.enum([
+  'correction_outside_contract',
+  'requirement_already_satisfied',
+  'false_check_in',
+  'missing_count',
+  'corrupt_file',
+  'duration_out_of_range',
+  'wrong_orientation',
+  'insufficient_resolution',
+  'wrong_subject',
+  'unrelated_brand_watermark',
+  'missing_disclosure',
+  'suspected_fraud',
+]);
+export const disputeEvidenceKindSchema = z.enum([
+  'deliverable_requirement',
+  'media_asset',
+  'check_in_event',
+  'correction_request',
+  'submission_attempt',
+  'submission_evidence',
+]);
+export const disputeStatusSchema = z.enum(['open', 'resolved_earned_full', 'resolved_no_payout']);
+export const disputeResolutionOutcomeSchema = z.enum(['earned_full', 'no_payout']);
+export const financialActionIntentTypeSchema = z.enum(['creator_payable_full', 'slot_refund_full']);
+export const financialActionIntentStatusSchema = z.enum(['pending_ledger']);
+
+export const disputeConflictCodeSchema = z.enum([
+  'DISPUTE_ACCESS_DENIED',
+  'DISPUTE_ALREADY_EXISTS',
+  'DISPUTE_EVIDENCE_INVALID',
+  'DISPUTE_NOT_FOUND',
+  'DISPUTE_REVIEW_EXPIRED',
+  'DISPUTE_REVIEWER_CONFLICT',
+  'DISPUTE_TRANSITION_CONFLICT',
 ]);
 
 export const submissionConflictCodeSchema = z.enum([
@@ -261,6 +305,14 @@ export type CheckInConflictCode = z.infer<typeof checkInConflictCodeSchema>;
 export type CheckInEventRecord = z.infer<typeof checkInEventRecordSchema>;
 export type CorrectionReasonCode = z.infer<typeof correctionReasonCodeSchema>;
 export type CreatorProfileStatus = z.infer<typeof creatorProfileStatusSchema>;
+export type DisputeConflictCode = z.infer<typeof disputeConflictCodeSchema>;
+export type DisputeEvidenceKind = z.infer<typeof disputeEvidenceKindSchema>;
+export type DisputeOpenedBy = z.infer<typeof disputeOpenedBySchema>;
+export type DisputeReasonCode = z.infer<typeof disputeReasonCodeSchema>;
+export type DisputeResolutionOutcome = z.infer<typeof disputeResolutionOutcomeSchema>;
+export type DisputeStatus = z.infer<typeof disputeStatusSchema>;
+export type FinancialActionIntentStatus = z.infer<typeof financialActionIntentStatusSchema>;
+export type FinancialActionIntentType = z.infer<typeof financialActionIntentTypeSchema>;
 export type HealthStatus = z.infer<typeof healthStatusSchema>;
 export type IdentityProvider = z.infer<typeof identityProviderSchema>;
 export type IdentityTenantConflictCode = z.infer<typeof identityTenantConflictCodeSchema>;
@@ -278,6 +330,8 @@ export type MissionSlotStatus = z.infer<typeof missionSlotStatusSchema>;
 export type MissionSlotType = z.infer<typeof missionSlotTypeSchema>;
 export type MissionTemplateCode = z.infer<typeof missionTemplateCodeSchema>;
 export type PayoutOnboardingStatus = z.infer<typeof payoutOnboardingStatusSchema>;
+export type PlatformStaffRole = z.infer<typeof platformStaffRoleSchema>;
+export type PlatformStaffStatus = z.infer<typeof platformStaffStatusSchema>;
 export type ReachLevel = z.infer<typeof reachLevelSchema>;
 export type SlotReservationStatus = z.infer<typeof slotReservationStatusSchema>;
 export type SubmissionConflictCode = z.infer<typeof submissionConflictCodeSchema>;

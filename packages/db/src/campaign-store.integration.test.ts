@@ -17,6 +17,7 @@ const migrationPaths = [
   fileURLToPath(new URL('../drizzle/0002_material_rachel_grey.sql', import.meta.url)),
   fileURLToPath(new URL('../drizzle/0003_orange_tempest.sql', import.meta.url)),
   fileURLToPath(new URL('../drizzle/0004_handy_gideon.sql', import.meta.url)),
+  fileURLToPath(new URL('../drizzle/0005_huge_agent_brand.sql', import.meta.url)),
 ];
 const databaseName = `local_missions_m3_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());

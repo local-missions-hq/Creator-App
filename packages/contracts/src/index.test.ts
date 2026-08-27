@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   businessMembershipRoleSchema,
   campaignRecordSchema,
+  disputeReasonCodeSchema,
+  disputeResolutionOutcomeSchema,
+  financialActionIntentTypeSchema,
   healthStatusSchema,
   identityProviderSchema,
 } from './index.js';
@@ -100,5 +103,17 @@ describe('shared identity and business membership contracts', () => {
 
   it('keeps Venue Staff distinct from owner and manager membership', () => {
     expect(businessMembershipRoleSchema.options).toEqual(['owner', 'manager', 'venue_staff']);
+  });
+});
+
+describe('objective dispute and all-or-nothing outcome contracts', () => {
+  it('rejects subjective review reasons and exposes only full reward or no-payout outcomes', () => {
+    expect(() => disputeReasonCodeSchema.parse('subjective_style')).toThrow();
+    expect(() => disputeReasonCodeSchema.parse('creator_appearance')).toThrow();
+    expect(disputeResolutionOutcomeSchema.options).toEqual(['earned_full', 'no_payout']);
+    expect(financialActionIntentTypeSchema.options).toEqual([
+      'creator_payable_full',
+      'slot_refund_full',
+    ]);
   });
 });

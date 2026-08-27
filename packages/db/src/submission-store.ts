@@ -1112,10 +1112,11 @@ export class SubmissionStore {
       );
     }
     const updated = await this.updateSubmissionStatus(client, input.review, input.status);
-    await client.query(
+    const decisionResult = await client.query<{ id: string }>(
       `INSERT INTO submission_review_decisions (
          public_id, submission_attempt_id, decision, actor_id, actor_type
-       ) VALUES ($1, $2, $3, $4, $5)`,
+       ) VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
       [
         input.decisionPublicId,
         input.review.id,
@@ -1123,6 +1124,14 @@ export class SubmissionStore {
         input.actorId,
         input.actorType,
       ],
+    );
+    const decision = decisionResult.rows[0];
+    if (!decision) throw new Error('Submission approval decision insert returned no row.');
+    await client.query(
+      `INSERT INTO financial_action_intents (
+         public_id, mission_assignment_id, source_type, source_id, action
+       ) VALUES ($1, $2, 'submission_approval', $3, 'creator_payable_full')`,
+      [`fin_${input.decisionPublicId}`, input.review.mission_assignment_id, decision.id],
     );
     await this.appendSubmissionHistory(client, {
       actorId: input.actorId,

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="8" failures="0" errors="0" time="1.607976916">
+    <testsuite name="src/dispute-store.integration.test.ts" timestamp="2026-08-27T15:54:04.811Z" hostname="local-development-host" tests="8" failures="0" errors="0" skipped="0" time="1.607976916">
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; preserves an existing complete submission and adds no subjective or manual-money field" time="0.029878958">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; rejects another business, subjective reasons, and incomplete evidence atomically" time="0.131199458">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; lets the creator dispute one timely correction and pauses that submission path" time="0.129754542">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; uses database deadlines and rejects late business and creator disputes without partial rows" time="0.201282834">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; rejects cross-mission evidence and permits exactly one concurrent dispute" time="0.209868959">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; resolves approval versus dispute exactly once in one transaction" time="0.137485292">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; requires an independent reviewer and overturns a correction to the full creator reward" time="0.142197041">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; upholds a correction as no-payout with one refund intent under a resolution race" time="0.130654959">
+        </testcase>
+    </testsuite>
+</testsuites>
