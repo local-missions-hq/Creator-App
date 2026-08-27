@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="8" failures="0" errors="0" time="0.678350334">
+    <testsuite name="src/check-in-store.integration.test.ts" timestamp="2026-08-27T15:08:29.145Z" hostname="local-development-host" tests="8" failures="0" errors="0" skipped="0" time="0.678350334">
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; preserves prior data and adds no raw coordinate or plaintext-token field" time="0.01839025">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; schedules only an accepted application at a venue in the correct business" time="0.074948542">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; restricts challenge issuance to assigned Venue Staff at the exact venue and window" time="0.072073584">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; rotates an active QR challenge and rejects the replaced token" time="0.069713375">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; atomically records a privacy-minimized QR check-in and assignment history" time="0.064887167">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; rejects cross-creator, wrong-venue, and server-expired attempts without an event" time="0.06686425">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; allows exactly one winner when the same one-time challenge is replayed concurrently" time="0.064353334">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; uses database time and refuses challenge issuance outside the mission window" time="0.061293458">
+        </testcase>
+    </testsuite>
+</testsuites>

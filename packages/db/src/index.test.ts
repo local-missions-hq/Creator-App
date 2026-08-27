@@ -19,6 +19,11 @@ describe('initial schema', () => {
       'mission_applications',
       'slot_reservations',
       'mission_application_status_history',
+      'mission_assignments',
+      'mission_assignment_status_history',
+      'venue_staff_assignments',
+      'check_in_challenges',
+      'check_in_events',
       'audit_events',
       'idempotency_records',
     ]);

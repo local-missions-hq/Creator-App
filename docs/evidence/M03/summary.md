@@ -1,10 +1,11 @@
 # M03 database and state-machine evidence
 
-Status: Campaign lifecycle, shared identity/tenant, and mission contract/capacity slices passed; M3 overall remains in progress
+Status: Campaign lifecycle, shared identity/tenant, mission contract/capacity, and accepted-mission/check-in slices passed; M3 overall remains in progress
 Date: 2026-08-27  
 Checkpoint: `M03-campaign-lifecycle-001`, implementation commit `87ba940`
 Shared identity checkpoint: `M03-shared-identity-tenant-002`, implementation commit `8ef7b08`
 Mission capacity checkpoint: `M03-mission-contract-capacity-003`
+Check-in checkpoint: `M03-check-in-state-machine-004`
 Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Implemented in this checkpoint
@@ -37,9 +38,13 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Six mission-contract/capacity tests passed against real PostgreSQL: forward preservation and no-follower schema, 80% Community rollback, same-creator duplicate race, six-creators-for-three-slots capacity race, withdrawal/replacement behavior, and cross-business acceptance denial.
 - The latest deterministic seed contains all four templates, one versioned brief, and ten Community Slots totaling the `$500.00` Creator Reward Pool. Repeating the seed does not duplicate any contract row; `db:check` verifies all 16 tables.
 - Mission/capacity JUnit evidence: [`test-results/mission-application-store-junit.xml`](./test-results/mission-application-store-junit.xml).
+- Eight accepted-mission/check-in tests passed against real PostgreSQL: forward preservation and privacy schema inspection, schedule/tenant constraints, scoped Venue Staff fallback, challenge rotation, successful QR transaction, cross-creator/wrong-venue/expiry rejection, concurrent replay, and server-window enforcement.
+- Check-in challenges retain only a token hash; check-in evidence retains an accuracy class and derived statement, with no raw-coordinate field. The latest schema and deterministic seed check now cover 21 tables.
+- Check-in JUnit evidence: [`test-results/check-in-store-junit.xml`](./test-results/check-in-store-junit.xml).
 - Migration: [`../../../packages/db/drizzle/0000_giant_snowbird.sql`](../../../packages/db/drizzle/0000_giant_snowbird.sql).
 - Forward migration: [`../../../packages/db/drizzle/0001_empty_tyrannus.sql`](../../../packages/db/drizzle/0001_empty_tyrannus.sql).
 - Mission/capacity migration: [`../../../packages/db/drizzle/0002_material_rachel_grey.sql`](../../../packages/db/drizzle/0002_material_rachel_grey.sql).
+- Accepted-mission/check-in migration: [`../../../packages/db/drizzle/0003_orange_tempest.sql`](../../../packages/db/drizzle/0003_orange_tempest.sql).
 
 ## Privacy and safety
 
@@ -50,6 +55,6 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Known limitations and M3 gate
 
-These are three complete transactional slices, not the full M3 schema or API. Check-in, submission/media, dispute, payment ledger, Local Pass, consent/rights, notification/outbox, raw-proof retention, Venue Staff assignments, Reach analytics qualification, and remaining audit records are not implemented yet. The `/v1` API, OpenAPI/client generation, a latest-schema empty-database proof, and complete state-transition tables remain open.
+These are four complete transactional slices, not the full M3 schema or API. Submission/media, dispute, payment ledger, Local Pass, consent/rights, notification/outbox, raw-proof retention jobs, Reach analytics qualification, and remaining audit records are not implemented yet. The `/v1` API, OpenAPI/client generation, a latest-schema empty-database proof, and complete state-transition tables remain open. Physical camera/location execution remains the later M9 gate rather than part of this local state-machine checkpoint.
 
 The M3 milestone gate has not passed. No broad M3 checklist item is marked complete by this checkpoint; `plans.md` records this smaller completed slice separately.

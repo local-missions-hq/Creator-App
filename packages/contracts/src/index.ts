@@ -106,6 +106,58 @@ export const missionApplicationStatusSchema = z.enum([
   'canceled',
 ]);
 export const slotReservationStatusSchema = z.enum(['active', 'converted', 'released', 'expired']);
+export const missionAssignmentStatusSchema = z.enum([
+  'scheduled',
+  'checked_in',
+  'canceled',
+  'completed',
+]);
+export const venueStaffAssignmentStatusSchema = z.enum(['active', 'revoked']);
+export const checkInChallengeMethodSchema = z.enum(['qr', 'staff_code']);
+export const checkInChallengeStatusSchema = z.enum(['active', 'consumed', 'expired', 'revoked']);
+export const checkInAccuracyClassSchema = z.enum(['unavailable', 'coarse', 'precise']);
+
+export const checkInConflictCodeSchema = z.enum([
+  'CHECK_IN_ACCESS_DENIED',
+  'CHECK_IN_ALREADY_RECORDED',
+  'CHECK_IN_ASSIGNMENT_NOT_FOUND',
+  'CHECK_IN_CHALLENGE_EXPIRED',
+  'CHECK_IN_CHALLENGE_INVALID',
+  'CHECK_IN_CHALLENGE_REPLAYED',
+  'CHECK_IN_OUTSIDE_WINDOW',
+  'CHECK_IN_WRONG_VENUE',
+  'MISSION_SCHEDULE_CONFLICT',
+  'VENUE_STAFF_ACCESS_DENIED',
+]);
+
+export const missionAssignmentRecordSchema = z.object({
+  applicationId: z.uuid(),
+  businessLocationId: z.uuid(),
+  campaignId: z.uuid(),
+  creatorUserId: z.uuid(),
+  id: z.uuid(),
+  missionSlotId: z.uuid(),
+  publicId: z.string().min(1),
+  status: missionAssignmentStatusSchema,
+  timezone: z.string().min(1),
+  version: z.int().positive(),
+  windowEndsAt: z.date(),
+  windowStartsAt: z.date(),
+});
+
+export const checkInEventRecordSchema = z.object({
+  accuracyClass: checkInAccuracyClassSchema,
+  applicationId: z.uuid(),
+  businessLocationId: z.uuid(),
+  challengeId: z.uuid(),
+  creatorUserId: z.uuid(),
+  id: z.uuid(),
+  missionAssignmentId: z.uuid(),
+  missionSlotId: z.uuid(),
+  occurredAt: z.date(),
+  publicId: z.string().min(1),
+  verificationMethod: checkInChallengeMethodSchema,
+});
 
 export const missionApplicationConflictCodeSchema = z.enum([
   'APPLICATION_ACCESS_DENIED',
@@ -143,6 +195,11 @@ export type BusinessMembershipStatus = z.infer<typeof businessMembershipStatusSc
 export type CampaignConflictCode = z.infer<typeof campaignConflictCodeSchema>;
 export type CampaignRecord = z.infer<typeof campaignRecordSchema>;
 export type CampaignStatus = z.infer<typeof campaignStatusSchema>;
+export type CheckInAccuracyClass = z.infer<typeof checkInAccuracyClassSchema>;
+export type CheckInChallengeMethod = z.infer<typeof checkInChallengeMethodSchema>;
+export type CheckInChallengeStatus = z.infer<typeof checkInChallengeStatusSchema>;
+export type CheckInConflictCode = z.infer<typeof checkInConflictCodeSchema>;
+export type CheckInEventRecord = z.infer<typeof checkInEventRecordSchema>;
 export type CreatorProfileStatus = z.infer<typeof creatorProfileStatusSchema>;
 export type HealthStatus = z.infer<typeof healthStatusSchema>;
 export type IdentityProvider = z.infer<typeof identityProviderSchema>;
@@ -151,6 +208,8 @@ export type LocalityStatus = z.infer<typeof localityStatusSchema>;
 export type MissionApplicationConflictCode = z.infer<typeof missionApplicationConflictCodeSchema>;
 export type MissionApplicationRecord = z.infer<typeof missionApplicationRecordSchema>;
 export type MissionApplicationStatus = z.infer<typeof missionApplicationStatusSchema>;
+export type MissionAssignmentRecord = z.infer<typeof missionAssignmentRecordSchema>;
+export type MissionAssignmentStatus = z.infer<typeof missionAssignmentStatusSchema>;
 export type MissionSlotStatus = z.infer<typeof missionSlotStatusSchema>;
 export type MissionSlotType = z.infer<typeof missionSlotTypeSchema>;
 export type MissionTemplateCode = z.infer<typeof missionTemplateCodeSchema>;
@@ -158,3 +217,4 @@ export type PayoutOnboardingStatus = z.infer<typeof payoutOnboardingStatusSchema
 export type ReachLevel = z.infer<typeof reachLevelSchema>;
 export type SlotReservationStatus = z.infer<typeof slotReservationStatusSchema>;
 export type UserStatus = z.infer<typeof userStatusSchema>;
+export type VenueStaffAssignmentStatus = z.infer<typeof venueStaffAssignmentStatusSchema>;

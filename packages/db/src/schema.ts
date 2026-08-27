@@ -92,6 +92,28 @@ export const slotReservationStatus = pgEnum('slot_reservation_status', [
   'released',
   'expired',
 ]);
+export const missionAssignmentStatus = pgEnum('mission_assignment_status', [
+  'scheduled',
+  'checked_in',
+  'canceled',
+  'completed',
+]);
+export const venueStaffAssignmentStatus = pgEnum('venue_staff_assignment_status', [
+  'active',
+  'revoked',
+]);
+export const checkInChallengeMethod = pgEnum('check_in_challenge_method', ['qr', 'staff_code']);
+export const checkInChallengeStatus = pgEnum('check_in_challenge_status', [
+  'active',
+  'consumed',
+  'expired',
+  'revoked',
+]);
+export const checkInAccuracyClass = pgEnum('check_in_accuracy_class', [
+  'unavailable',
+  'coarse',
+  'precise',
+]);
 
 export const users = pgTable(
   'users',
@@ -478,6 +500,210 @@ export const missionApplicationStatusHistory = pgTable(
   ],
 );
 
+export const missionAssignments = pgTable(
+  'mission_assignments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    applicationId: uuid('application_id')
+      .notNull()
+      .references(() => missionApplications.id, { onDelete: 'restrict' }),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'restrict' }),
+    missionSlotId: uuid('mission_slot_id')
+      .notNull()
+      .references(() => missionSlots.id, { onDelete: 'restrict' }),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    businessLocationId: uuid('business_location_id')
+      .notNull()
+      .references(() => businessLocations.id, { onDelete: 'restrict' }),
+    windowStartsAt: timestamp('window_starts_at', { withTimezone: true }).notNull(),
+    windowEndsAt: timestamp('window_ends_at', { withTimezone: true }).notNull(),
+    timezone: text('timezone').notNull(),
+    status: missionAssignmentStatus('status').default('scheduled').notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('mission_assignments_public_id_uq').on(table.publicId),
+    uniqueIndex('mission_assignments_application_uq').on(table.applicationId),
+    uniqueIndex('mission_assignments_slot_uq').on(table.missionSlotId),
+    index('mission_assignments_creator_status_idx').on(table.creatorUserId, table.status),
+    index('mission_assignments_location_window_idx').on(
+      table.businessLocationId,
+      table.windowStartsAt,
+      table.windowEndsAt,
+    ),
+    check('mission_assignments_window_ck', sql`${table.windowEndsAt} > ${table.windowStartsAt}`),
+    check('mission_assignments_timezone_nonempty_ck', sql`length(btrim(${table.timezone})) > 0`),
+    check('mission_assignments_version_positive_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const missionAssignmentStatusHistory = pgTable(
+  'mission_assignment_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    missionAssignmentId: uuid('mission_assignment_id')
+      .notNull()
+      .references(() => missionAssignments.id, { onDelete: 'restrict' }),
+    fromStatus: missionAssignmentStatus('from_status'),
+    toStatus: missionAssignmentStatus('to_status').notNull(),
+    assignmentVersion: integer('assignment_version').notNull(),
+    actorId: uuid('actor_id').notNull(),
+    reason: text('reason'),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('mission_assignment_status_history_version_uq').on(
+      table.missionAssignmentId,
+      table.assignmentVersion,
+    ),
+    index('mission_assignment_status_history_timeline_idx').on(
+      table.missionAssignmentId,
+      table.occurredAt,
+    ),
+    check(
+      'mission_assignment_status_history_version_positive_ck',
+      sql`${table.assignmentVersion} > 0`,
+    ),
+  ],
+);
+
+export const venueStaffAssignments = pgTable(
+  'venue_staff_assignments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    businessMembershipId: uuid('business_membership_id')
+      .notNull()
+      .references(() => businessMemberships.id, { onDelete: 'restrict' }),
+    businessLocationId: uuid('business_location_id')
+      .notNull()
+      .references(() => businessLocations.id, { onDelete: 'restrict' }),
+    windowStartsAt: timestamp('window_starts_at', { withTimezone: true }).notNull(),
+    windowEndsAt: timestamp('window_ends_at', { withTimezone: true }).notNull(),
+    status: venueStaffAssignmentStatus('status').default('active').notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('venue_staff_assignments_public_id_uq').on(table.publicId),
+    uniqueIndex('venue_staff_assignments_scope_uq').on(
+      table.businessMembershipId,
+      table.businessLocationId,
+      table.windowStartsAt,
+      table.windowEndsAt,
+    ),
+    index('venue_staff_assignments_location_window_idx').on(
+      table.businessLocationId,
+      table.windowStartsAt,
+      table.windowEndsAt,
+      table.status,
+    ),
+    check(
+      'venue_staff_assignments_window_ck',
+      sql`${table.windowEndsAt} > ${table.windowStartsAt}`,
+    ),
+  ],
+);
+
+export const checkInChallenges = pgTable(
+  'check_in_challenges',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    missionAssignmentId: uuid('mission_assignment_id')
+      .notNull()
+      .references(() => missionAssignments.id, { onDelete: 'restrict' }),
+    tokenHash: text('token_hash').notNull(),
+    method: checkInChallengeMethod('method').notNull(),
+    status: checkInChallengeStatus('status').default('active').notNull(),
+    fallbackReason: text('fallback_reason'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    consumedAt: timestamp('consumed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('check_in_challenges_public_id_uq').on(table.publicId),
+    uniqueIndex('check_in_challenges_token_hash_uq').on(table.tokenHash),
+    uniqueIndex('check_in_challenges_active_assignment_uq')
+      .on(table.missionAssignmentId)
+      .where(sql`${table.status} = 'active'`),
+    index('check_in_challenges_assignment_timeline_idx').on(
+      table.missionAssignmentId,
+      table.createdAt,
+    ),
+    check('check_in_challenges_expiry_ck', sql`${table.expiresAt} > ${table.createdAt}`),
+    check(
+      'check_in_challenges_fallback_reason_ck',
+      sql`(${table.method} = 'qr' AND ${table.fallbackReason} IS NULL) OR
+          (${table.method} = 'staff_code' AND length(btrim(${table.fallbackReason})) > 0)`,
+    ),
+    check(
+      'check_in_challenges_consumed_at_ck',
+      sql`(${table.status} = 'consumed' AND ${table.consumedAt} IS NOT NULL) OR
+          (${table.status} <> 'consumed' AND ${table.consumedAt} IS NULL)`,
+    ),
+  ],
+);
+
+export const checkInEvents = pgTable(
+  'check_in_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    missionAssignmentId: uuid('mission_assignment_id')
+      .notNull()
+      .references(() => missionAssignments.id, { onDelete: 'restrict' }),
+    challengeId: uuid('challenge_id')
+      .notNull()
+      .references(() => checkInChallenges.id, { onDelete: 'restrict' }),
+    applicationId: uuid('application_id')
+      .notNull()
+      .references(() => missionApplications.id, { onDelete: 'restrict' }),
+    missionSlotId: uuid('mission_slot_id')
+      .notNull()
+      .references(() => missionSlots.id, { onDelete: 'restrict' }),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    businessLocationId: uuid('business_location_id')
+      .notNull()
+      .references(() => businessLocations.id, { onDelete: 'restrict' }),
+    verificationMethod: checkInChallengeMethod('verification_method').notNull(),
+    accuracyClass: checkInAccuracyClass('accuracy_class').default('unavailable').notNull(),
+    derivedStatement: text('derived_statement').notNull(),
+    verifiedByUserId: uuid('verified_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('check_in_events_public_id_uq').on(table.publicId),
+    uniqueIndex('check_in_events_assignment_uq').on(table.missionAssignmentId),
+    uniqueIndex('check_in_events_challenge_uq').on(table.challengeId),
+    index('check_in_events_location_timeline_idx').on(table.businessLocationId, table.occurredAt),
+    check(
+      'check_in_events_derived_statement_nonempty_ck',
+      sql`length(btrim(${table.derivedStatement})) > 0`,
+    ),
+  ],
+);
+
 export const auditEvents = pgTable(
   'audit_events',
   {
@@ -530,6 +756,11 @@ export const initialSchemaTables = [
   'mission_applications',
   'slot_reservations',
   'mission_application_status_history',
+  'mission_assignments',
+  'mission_assignment_status_history',
+  'venue_staff_assignments',
+  'check_in_challenges',
+  'check_in_events',
   'audit_events',
   'idempotency_records',
 ] as const;

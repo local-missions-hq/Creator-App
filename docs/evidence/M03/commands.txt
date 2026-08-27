@@ -110,3 +110,39 @@ PASS — the three-entry Drizzle journal and all snapshots are internally consis
 
 pnpm --filter @local-missions/db exec vitest run src/mission-application-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/mission-application-store-junit.xml
 PASS — retained six mission/capacity tests with no failures or errors; machine hostname replaced by local-development-host.
+
+M03-check-in-state-machine-004 — 2026-08-27
+
+pnpm db:generate
+PASS — generated append-only drizzle/0003_orange_tempest.sql; schema now contains 21 tables.
+
+pnpm test:integration
+PASS — 23 tests passed across campaign, identity/tenant, mission/capacity, and check-in suites against real PostgreSQL.
+
+pnpm db:migrate
+PASS — forward migration applied to the existing local database and preserved the prior synthetic campaign and mission contract.
+
+pnpm db:seed
+pnpm db:seed
+PASS — both reruns retained the deterministic identity, business, campaign, four templates, one brief, and 10 Community Slots.
+
+pnpm db:check
+PASS — all 21 tables and the deterministic mission contract were verified.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — the four-entry Drizzle journal and all snapshots are internally consistent.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, contract checks, and all eight workspace builds passed.
+
+pnpm test:integration
+PASS — the final combined rerun passed 23 tests with zero failures or unhandled errors.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 260 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 6.40 MB.
+
+pnpm --filter @local-missions/db exec vitest run src/check-in-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/check-in-store-junit.xml
+PASS — retained eight accepted-mission/check-in tests with no failures or errors; machine hostname replaced by local-development-host.
