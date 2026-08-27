@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="5" failures="0" errors="0" time="0.207843916">
+    <testsuite name="src/tenant-store.integration.test.ts" timestamp="2026-08-27T14:40:18.139Z" hostname="local-development-host" tests="5" failures="0" errors="0" skipped="0" time="0.207843916">
+        <testcase classname="src/tenant-store.integration.test.ts" name="shared identity and tenant boundaries against real PostgreSQL &gt; preserves the existing campaign through the forward migration" time="0.012182875">
+        </testcase>
+        <testcase classname="src/tenant-store.integration.test.ts" name="shared identity and tenant boundaries against real PostgreSQL &gt; allows only one root user to bind a provider issuer and subject" time="0.015598125">
+        </testcase>
+        <testcase classname="src/tenant-store.integration.test.ts" name="shared identity and tenant boundaries against real PostgreSQL &gt; requires a different provider when linking another identity to one user" time="0.016201417">
+        </testcase>
+        <testcase classname="src/tenant-store.integration.test.ts" name="shared identity and tenant boundaries against real PostgreSQL &gt; stores a private annual locality credential without identity email or street data" time="0.015617875">
+        </testcase>
+        <testcase classname="src/tenant-store.integration.test.ts" name="shared identity and tenant boundaries against real PostgreSQL &gt; prevents one business owner from reading or creating inside another workspace" time="0.03523375">
+        </testcase>
+    </testsuite>
+</testsuites>

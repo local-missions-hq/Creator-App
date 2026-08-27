@@ -19,6 +19,7 @@ export const campaignStatusSchema = z.enum([
 ]);
 
 export const campaignConflictCodeSchema = z.enum([
+  'CAMPAIGN_ACCESS_DENIED',
   'CAMPAIGN_NOT_FOUND',
   'CAMPAIGN_TRANSITION_CONFLICT',
   'CAMPAIGN_VERSION_CONFLICT',
@@ -48,8 +49,55 @@ export const campaignRecordSchema = z
     },
   );
 
+export const identityProviderSchema = z.enum([
+  'apple',
+  'google',
+  'microsoft',
+  'passwordless_email',
+]);
+
+export const userStatusSchema = z.enum(['active', 'disabled', 'deletion_requested']);
+export const creatorProfileStatusSchema = z.enum([
+  'invited',
+  'onboarding',
+  'approved',
+  'paused',
+  'denied',
+]);
+export const localityStatusSchema = z.enum([
+  'unverified',
+  'pending',
+  'verified',
+  'expired',
+  'rejected',
+]);
+export const payoutOnboardingStatusSchema = z.enum([
+  'not_started',
+  'pending',
+  'ready',
+  'restricted',
+]);
+export const businessMembershipRoleSchema = z.enum(['owner', 'manager', 'venue_staff']);
+export const businessMembershipStatusSchema = z.enum(['invited', 'active', 'disabled']);
+
+export const identityTenantConflictCodeSchema = z.enum([
+  'BUSINESS_ACCESS_DENIED',
+  'IDENTITY_ALREADY_BOUND',
+  'USER_IDENTITY_PROVIDER_ALREADY_LINKED',
+  'USER_NOT_FOUND',
+  'USER_PUBLIC_ID_EXISTS',
+]);
+
 export type AppEnvironment = z.infer<typeof appEnvironmentSchema>;
+export type BusinessMembershipRole = z.infer<typeof businessMembershipRoleSchema>;
+export type BusinessMembershipStatus = z.infer<typeof businessMembershipStatusSchema>;
 export type CampaignConflictCode = z.infer<typeof campaignConflictCodeSchema>;
 export type CampaignRecord = z.infer<typeof campaignRecordSchema>;
 export type CampaignStatus = z.infer<typeof campaignStatusSchema>;
+export type CreatorProfileStatus = z.infer<typeof creatorProfileStatusSchema>;
 export type HealthStatus = z.infer<typeof healthStatusSchema>;
+export type IdentityProvider = z.infer<typeof identityProviderSchema>;
+export type IdentityTenantConflictCode = z.infer<typeof identityTenantConflictCodeSchema>;
+export type LocalityStatus = z.infer<typeof localityStatusSchema>;
+export type PayoutOnboardingStatus = z.infer<typeof payoutOnboardingStatusSchema>;
+export type UserStatus = z.infer<typeof userStatusSchema>;

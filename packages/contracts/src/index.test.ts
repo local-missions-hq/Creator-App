@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { campaignRecordSchema, healthStatusSchema } from './index.js';
+import {
+  businessMembershipRoleSchema,
+  campaignRecordSchema,
+  healthStatusSchema,
+  identityProviderSchema,
+} from './index.js';
 
 describe('healthStatusSchema', () => {
   it('accepts a valid local health payload', () => {
@@ -79,5 +84,21 @@ describe('campaignRecordSchema', () => {
         version: 1,
       }),
     ).toThrow(/Total due/);
+  });
+});
+
+describe('shared identity and business membership contracts', () => {
+  it('accepts only the four approved V1 sign-in providers', () => {
+    expect(identityProviderSchema.options).toEqual([
+      'apple',
+      'google',
+      'microsoft',
+      'passwordless_email',
+    ]);
+    expect(() => identityProviderSchema.parse('facebook')).toThrow();
+  });
+
+  it('keeps Venue Staff distinct from owner and manager membership', () => {
+    expect(businessMembershipRoleSchema.options).toEqual(['owner', 'manager', 'venue_staff']);
   });
 });

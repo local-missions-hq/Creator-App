@@ -13,7 +13,7 @@ pnpm db:check
 pnpm test:integration
 ```
 
-`db:seed` is repeatable and uses only the synthetic Lakeview Discovery Center campaign. The first M3 slice stores money as integer minor units, enforces the 20-slot pilot ceiling, and commits campaign status history, audit evidence, and idempotency responses in the same transaction as each campaign transition.
+`db:seed` is repeatable and uses only the synthetic Lakeview Discovery Center workspace. The first M3 slice stores money as integer minor units, enforces the 20-slot pilot ceiling, and commits campaign status history, audit evidence, and idempotency responses in the same transaction as each campaign transition. The second slice adds one shared root user, opaque provider identity bindings, creator locality/payout state, business memberships, and tenant-scoped locations without storing an identity email.
 
 ## Migration rule
 

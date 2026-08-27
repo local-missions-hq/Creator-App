@@ -47,9 +47,62 @@ try {
     throw new Error('Deterministic synthetic campaign seed is missing or incorrect.');
   }
 
+  const identityBoundary = await pool.query<{
+    creator_status: string;
+    locality_status: string;
+    membership_role: string;
+    membership_status: string;
+    provider: string;
+  }>(
+    `SELECT ei.provider, cp.status AS creator_status, cp.locality_status,
+            bm.role AS membership_role, bm.status AS membership_status
+       FROM users u
+       JOIN external_identities ei ON ei.user_id = u.id
+       JOIN creator_profiles cp ON cp.user_id = u.id
+       JOIN business_memberships bm ON bm.user_id = u.id
+      WHERE u.public_id = 'usr_orlando_synthetic_001'`,
+  );
+  expectOneSyntheticIdentity(identityBoundary.rows[0]);
+
+  const location = await pool.query<{ count: string }>(
+    `SELECT count(*)::text AS count
+       FROM business_locations
+      WHERE public_id = 'loc_orlando_synthetic_001'
+        AND city = 'Orlando'
+        AND region = 'FL'
+        AND postal_code = '32801'
+        AND is_active = true`,
+  );
+  if (location.rows[0]?.count !== '1') {
+    throw new Error('Deterministic synthetic business location is missing or incorrect.');
+  }
+
   process.stdout.write(
-    `Database check passed for ${actual.length} tables and the synthetic campaign.\n`,
+    `Database check passed for ${actual.length} tables and the synthetic shared identity, creator, business, location, and campaign.\n`,
   );
 } finally {
   await pool.end();
+}
+
+function expectOneSyntheticIdentity(
+  row:
+    | {
+        creator_status: string;
+        locality_status: string;
+        membership_role: string;
+        membership_status: string;
+        provider: string;
+      }
+    | undefined,
+): void {
+  if (
+    !row ||
+    row.provider !== 'apple' ||
+    row.creator_status !== 'approved' ||
+    row.locality_status !== 'verified' ||
+    row.membership_role !== 'owner' ||
+    row.membership_status !== 'active'
+  ) {
+    throw new Error('Deterministic synthetic shared identity boundary is missing or incorrect.');
+  }
 }

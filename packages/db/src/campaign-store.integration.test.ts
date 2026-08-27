@@ -7,9 +7,12 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { getLocalDatabaseUrl } from '../scripts/local-database.js';
 import { CampaignStore } from './campaign-store.js';
+import { IdentityTenantStore } from './tenant-store.js';
 
-const actorId = '10000000-0000-4000-8000-000000000001';
-const migrationPath = fileURLToPath(new URL('../drizzle/0000_giant_snowbird.sql', import.meta.url));
+const migrationPaths = [
+  fileURLToPath(new URL('../drizzle/0000_giant_snowbird.sql', import.meta.url)),
+  fileURLToPath(new URL('../drizzle/0001_empty_tyrannus.sql', import.meta.url)),
+];
 const databaseName = `local_missions_m3_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
 const adminUrl = new URL(baseUrl);
@@ -20,14 +23,11 @@ testUrl.pathname = `/${databaseName}`;
 const adminPool = new Pool({ connectionString: adminUrl.toString(), max: 1 });
 let pool: Pool;
 let store: CampaignStore;
+let tenantStore: IdentityTenantStore;
 
 async function createCampaign(overrides: { idempotencyKey?: string; publicId?: string } = {}) {
-  const businessId = await store.createBusiness({
-    name: 'Lakeview Discovery Center',
-    publicId: `biz_${randomUUID()}`,
-  });
-
-  return store.createDraftCampaign({
+  const { actorId, businessId } = await createOwnerBusiness();
+  const campaign = await store.createDraftCampaign({
     actorId,
     businessId,
     correlationId: randomUUID(),
@@ -40,6 +40,24 @@ async function createCampaign(overrides: { idempotencyKey?: string; publicId?: s
     title: 'Family Adventure Preview',
     totalDueMinor: 57_500,
   });
+  return { actorId, campaign };
+}
+
+async function createOwnerBusiness() {
+  const owner = await tenantStore.createUserWithIdentity({
+    correlationId: randomUUID(),
+    issuer: 'https://identity.local.test/v1',
+    provider: 'apple',
+    publicId: `usr_${randomUUID()}`,
+    subject: `subject_${randomUUID()}`,
+  });
+  const businessId = await tenantStore.createBusinessWithOwner({
+    correlationId: randomUUID(),
+    name: 'Lakeview Discovery Center',
+    ownerUserId: owner.id,
+    publicId: `biz_${randomUUID()}`,
+  });
+  return { actorId: owner.id, businessId };
 }
 
 async function countRows(table: string, campaignId?: string): Promise<number> {
@@ -53,19 +71,34 @@ async function countRows(table: string, campaignId?: string): Promise<number> {
   return Number(result.rows[0]?.count ?? 0);
 }
 
+async function countCampaignAudits(campaignId: string): Promise<number> {
+  const result = await pool.query<{ count: string }>(
+    `SELECT count(*)::text AS count
+       FROM audit_events
+      WHERE subject_type = 'campaign' AND subject_id = $1`,
+    [campaignId],
+  );
+  return Number(result.rows[0]?.count ?? 0);
+}
+
 beforeAll(async () => {
   await adminPool.query(`CREATE DATABASE "${databaseName}"`);
   pool = new Pool({ connectionString: testUrl.toString(), max: 8 });
-  const migration = await readFile(migrationPath, 'utf8');
-  for (const statement of migration.split('--> statement-breakpoint')) {
-    if (statement.trim()) await pool.query(statement);
+  for (const migrationPath of migrationPaths) {
+    const migration = await readFile(migrationPath, 'utf8');
+    for (const statement of migration.split('--> statement-breakpoint')) {
+      if (statement.trim()) await pool.query(statement);
+    }
   }
   store = new CampaignStore(pool);
+  tenantStore = new IdentityTenantStore(pool);
 }, 30_000);
 
 beforeEach(async () => {
   await pool.query(
-    'TRUNCATE idempotency_records, audit_events, campaign_status_history, campaigns, businesses CASCADE',
+    `TRUNCATE idempotency_records, audit_events, campaign_status_history, campaigns,
+              business_locations, business_memberships, creator_profiles, external_identities,
+              businesses, users CASCADE`,
   );
 });
 
@@ -95,10 +128,7 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
       'idempotency_records',
     ]);
 
-    const businessId = await store.createBusiness({
-      name: 'Synthetic Business',
-      publicId: 'biz_1',
-    });
+    const { actorId, businessId } = await createOwnerBusiness();
     await expect(
       store.createDraftCampaign({
         actorId,
@@ -119,10 +149,7 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
   });
 
   it('returns the original result for a repeated idempotency key and rejects changed input', async () => {
-    const businessId = await store.createBusiness({
-      name: 'Synthetic Business',
-      publicId: 'biz_1',
-    });
+    const { actorId, businessId } = await createOwnerBusiness();
     const input = {
       actorId,
       businessId,
@@ -142,7 +169,7 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
     expect(replayed).toEqual(created);
     expect(await countRows('campaigns')).toBe(1);
     expect(await countRows('campaign_status_history', created.id)).toBe(1);
-    expect(await countRows('audit_events')).toBe(1);
+    expect(await countCampaignAudits(created.id)).toBe(1);
     expect(await countRows('idempotency_records')).toBe(1);
 
     await expect(store.createDraftCampaign({ ...input, slotCount: 9 })).rejects.toMatchObject({
@@ -151,7 +178,9 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
   });
 
   it('commits the legal publish path and rolls illegal transitions back completely', async () => {
-    let campaign = await createCampaign();
+    const created = await createCampaign();
+    const { actorId } = created;
+    let { campaign } = created;
     const states = ['submitted', 'approved', 'funded', 'published'] as const;
     for (const [index, toStatus] of states.entries()) {
       const transition = {
@@ -174,7 +203,7 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
 
     expect(campaign).toMatchObject({ status: 'published', version: 5 });
     expect(await countRows('campaign_status_history', campaign.id)).toBe(5);
-    expect(await countRows('audit_events')).toBe(5);
+    expect(await countCampaignAudits(campaign.id)).toBe(5);
 
     await expect(
       store.transitionCampaign({
@@ -188,14 +217,17 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
     ).rejects.toMatchObject({
       code: 'CAMPAIGN_TRANSITION_CONFLICT',
     });
-    expect(await store.getCampaign(campaign.id)).toMatchObject({ status: 'published', version: 5 });
+    expect(await store.getCampaign(campaign.id, actorId)).toMatchObject({
+      status: 'published',
+      version: 5,
+    });
     expect(await countRows('campaign_status_history', campaign.id)).toBe(5);
-    expect(await countRows('audit_events')).toBe(5);
+    expect(await countCampaignAudits(campaign.id)).toBe(5);
     expect(await countRows('idempotency_records')).toBe(5);
   });
 
   it('allows only one writer to win an optimistic-concurrency race', async () => {
-    const campaign = await createCampaign();
+    const { actorId, campaign } = await createCampaign();
     const attempts = await Promise.allSettled(
       ['writer_a', 'writer_b'].map((idempotencyKey) =>
         store.transitionCampaign({
@@ -215,9 +247,12 @@ describe.sequential('CampaignStore against real PostgreSQL', () => {
       reason: expect.objectContaining({ code: 'CAMPAIGN_VERSION_CONFLICT' }),
       status: 'rejected',
     });
-    expect(await store.getCampaign(campaign.id)).toMatchObject({ status: 'submitted', version: 2 });
+    expect(await store.getCampaign(campaign.id, actorId)).toMatchObject({
+      status: 'submitted',
+      version: 2,
+    });
     expect(await countRows('campaign_status_history', campaign.id)).toBe(2);
-    expect(await countRows('audit_events')).toBe(2);
+    expect(await countCampaignAudits(campaign.id)).toBe(2);
     expect(await countRows('idempotency_records')).toBe(2);
   });
 });

@@ -35,3 +35,37 @@ pnpm test:gitleaks
 PASS — no leaks found in approximately 5.99 MB.
 
 All pnpm commands used the repository-pinned Node 24.19.0 and pnpm 11.24.0 toolchain. No external service or cloud resource was contacted.
+
+M03-shared-identity-tenant-002 — 2026-08-27
+
+pnpm db:generate
+PASS — generated append-only drizzle/0001_empty_tyrannus.sql; schema now contains 10 tables.
+
+pnpm test:integration
+PASS — 9 real-PostgreSQL tests passed across campaign and identity/tenant suites.
+
+pnpm db:migrate
+PASS — forward migration applied to the existing local database without deleting the synthetic campaign.
+
+pnpm db:seed
+INITIAL FAIL — `IDEMPOTENCY_KEY_REUSE` exposed that the pre-upgrade campaign's retained idempotency hash predates actor-scoped request hashes.
+RESOLUTION — the deterministic seed now finds the existing campaign by stable public ID before attempting creation. Historical idempotency evidence is preserved rather than rewritten.
+
+pnpm db:seed
+pnpm db:seed
+PASS — both upgraded reruns retained cmp_orlando_synthetic_001 in draft at version 1 and idempotently retained the shared user, creator, membership, and location.
+
+pnpm db:check
+PASS — 10 tables and the synthetic shared identity, creator, business, location, and campaign verified.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, contracts, and all eight workspace builds passed.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 248 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 6.09 MB.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — committed Drizzle migration journal and snapshots are internally consistent.

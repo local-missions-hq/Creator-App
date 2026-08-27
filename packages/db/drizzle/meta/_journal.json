@@ -8,6 +8,13 @@
       "when": 1787840315082,
       "tag": "0000_giant_snowbird",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787841072445,
+      "tag": "0001_empty_tyrannus",
+      "breakpoints": true
     }
   ]
 }

@@ -5,7 +5,12 @@ import { campaignStatusValues, initialSchemaTables } from './index.js';
 describe('initial schema', () => {
   it('declares the first transactional campaign lifecycle tables', () => {
     expect(initialSchemaTables).toEqual([
+      'users',
+      'external_identities',
+      'creator_profiles',
       'businesses',
+      'business_memberships',
+      'business_locations',
       'campaigns',
       'campaign_status_history',
       'audit_events',

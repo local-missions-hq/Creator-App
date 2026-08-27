@@ -33,10 +33,9 @@ export type TransitionCampaignInput = {
 };
 
 export class CampaignConflictError extends Error {
-  readonly httpStatus = 409;
-
   constructor(
     readonly code: CampaignConflictCode,
+    readonly httpStatus: 403 | 404 | 409,
     message: string,
   ) {
     super(message);
@@ -96,27 +95,6 @@ export class CampaignStore {
     this.quotedSchema = quoteSchema(schemaName);
   }
 
-  async createBusiness(input: { name: string; publicId: string }): Promise<string> {
-    return this.withTransaction(async (client) => {
-      const result = await client.query<{ id: string }>(
-        `INSERT INTO businesses (public_id, name) VALUES ($1, $2)
-         ON CONFLICT (public_id) DO NOTHING
-         RETURNING id`,
-        [input.publicId, input.name],
-      );
-
-      const business =
-        result.rows[0] ??
-        (
-          await client.query<{ id: string }>('SELECT id FROM businesses WHERE public_id = $1', [
-            input.publicId,
-          ])
-        ).rows[0];
-      if (!business) throw new Error('Business insert returned no row.');
-      return business.id;
-    });
-  }
-
   async createDraftCampaign(input: CreateDraftCampaignInput): Promise<CampaignRecord> {
     const operation = 'campaign.create-draft';
     const hash = requestHash({
@@ -132,6 +110,7 @@ export class CampaignStore {
     });
 
     return this.withTransaction(async (client) => {
+      await this.assertCanManageBusiness(client, input.businessId, input.actorId);
       const replay = await this.claimIdempotency(client, operation, input.idempotencyKey, hash);
       if (replay) return replay;
 
@@ -187,32 +166,46 @@ export class CampaignStore {
     });
 
     return this.withTransaction(async (client) => {
-      const replay = await this.claimIdempotency(client, operation, input.idempotencyKey, hash);
-      if (replay) return replay;
-
       const currentResult = await client.query<CampaignRow>(
         `SELECT id, public_id, business_id, title, status, creator_reward_pool_minor,
                 platform_fee_minor, total_due_minor, currency, slot_count, version
-           FROM campaigns
-          WHERE id = $1
-          FOR UPDATE`,
-        [input.campaignId],
+           FROM campaigns c
+          WHERE c.id = $1
+            AND EXISTS (
+              SELECT 1
+                FROM business_memberships m
+               WHERE m.business_id = c.business_id
+                 AND m.user_id = $2
+                 AND m.status = 'active'
+                 AND m.role IN ('owner', 'manager')
+            )
+          FOR UPDATE OF c`,
+        [input.campaignId, input.actorId],
       );
       const currentRow = currentResult.rows[0];
       if (!currentRow) {
-        throw new CampaignConflictError('CAMPAIGN_NOT_FOUND', 'Campaign does not exist.');
+        throw new CampaignConflictError(
+          'CAMPAIGN_ACCESS_DENIED',
+          403,
+          'Campaign is unavailable in the active business workspace.',
+        );
       }
 
       const current = toCampaignRecord(currentRow);
+      const replay = await this.claimIdempotency(client, operation, input.idempotencyKey, hash);
+      if (replay) return replay;
+
       if (current.version !== input.expectedVersion) {
         throw new CampaignConflictError(
           'CAMPAIGN_VERSION_CONFLICT',
+          409,
           `Expected campaign version ${input.expectedVersion}, but found ${current.version}.`,
         );
       }
       if (!allowedTransitions[current.status].includes(input.toStatus)) {
         throw new CampaignConflictError(
           'CAMPAIGN_TRANSITION_CONFLICT',
+          409,
           `Campaign cannot transition from ${current.status} to ${input.toStatus}.`,
         );
       }
@@ -229,6 +222,7 @@ export class CampaignStore {
       if (!updatedRow) {
         throw new CampaignConflictError(
           'CAMPAIGN_VERSION_CONFLICT',
+          409,
           'Campaign changed before the transition could be committed.',
         );
       }
@@ -259,18 +253,56 @@ export class CampaignStore {
     });
   }
 
-  async getCampaign(campaignId: string): Promise<CampaignRecord | null> {
+  async getCampaign(campaignId: string, actorUserId: string): Promise<CampaignRecord> {
     return this.withTransaction(async (client) => {
       const result = await client.query<CampaignRow>(
         `SELECT id, public_id, business_id, title, status, creator_reward_pool_minor,
                 platform_fee_minor, total_due_minor, currency, slot_count, version
-           FROM campaigns
-          WHERE id = $1`,
-        [campaignId],
+           FROM campaigns c
+          WHERE c.id = $1
+            AND EXISTS (
+              SELECT 1
+                FROM business_memberships m
+               WHERE m.business_id = c.business_id
+                 AND m.user_id = $2
+                 AND m.status = 'active'
+                 AND m.role IN ('owner', 'manager')
+            )`,
+        [campaignId, actorUserId],
       );
       const row = result.rows[0];
-      return row ? toCampaignRecord(row) : null;
+      if (!row) {
+        throw new CampaignConflictError(
+          'CAMPAIGN_ACCESS_DENIED',
+          403,
+          'Campaign is unavailable in the active business workspace.',
+        );
+      }
+      return toCampaignRecord(row);
     });
+  }
+
+  private async assertCanManageBusiness(
+    client: PoolClient,
+    businessId: string,
+    actorUserId: string,
+  ): Promise<void> {
+    const membership = await client.query(
+      `SELECT 1
+         FROM business_memberships
+        WHERE business_id = $1
+          AND user_id = $2
+          AND status = 'active'
+          AND role IN ('owner', 'manager')`,
+      [businessId, actorUserId],
+    );
+    if (membership.rowCount !== 1) {
+      throw new CampaignConflictError(
+        'CAMPAIGN_ACCESS_DENIED',
+        403,
+        'The active user cannot manage this business workspace.',
+      );
+    }
   }
 
   private async appendAudit(
@@ -329,6 +361,7 @@ export class CampaignStore {
     if (!record || record.request_hash !== hash) {
       throw new CampaignConflictError(
         'IDEMPOTENCY_KEY_REUSE',
+        409,
         'Idempotency key was already used for a different request.',
       );
     }
