@@ -63,6 +63,11 @@ export class DatabaseService implements OnModuleDestroy {
     }
   }
 
+  requirePool(): Pool {
+    if (!this.pool) throw new Error('Database connection is not configured.');
+    return this.pool;
+  }
+
   async listMissionTemplates(limit: number, cursorValue?: string): Promise<MissionTemplatePage> {
     if (!this.pool) throw new Error('Database connection is not configured.');
     const cursor = decodeCursor(cursorValue);

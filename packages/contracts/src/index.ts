@@ -68,7 +68,12 @@ export const buildInfoSchema = z.object({
   version: z.string().regex(/^\d+\.\d+\.\d+$/),
 });
 
-export const apiResourceSchema = z.enum(['mission-templates']);
+export const apiResourceSchema = z.enum([
+  'me',
+  'creator-missions',
+  'business-campaigns',
+  'mission-templates',
+]);
 export const v1IndexSchema = z.object({
   resources: z.array(apiResourceSchema),
   version: z.literal('v1'),
@@ -93,10 +98,10 @@ export const localDevRoleSchema = z.enum([
 export const localDevTokenRequestSchema = z
   .object({
     role: localDevRoleSchema,
-    subjectPublicId: z.string().regex(/^usr_synthetic_[a-z0-9_]{3,80}$/),
+    subjectPublicId: z.string().regex(/^usr_[a-z0-9_]*synthetic[a-z0-9_]{3,80}$/),
     tenantPublicId: z
       .string()
-      .regex(/^biz_synthetic_[a-z0-9_]{3,80}$/)
+      .regex(/^biz_[a-z0-9_]*synthetic[a-z0-9_]{3,80}$/)
       .optional(),
   })
   .superRefine((value, context) => {
@@ -592,6 +597,7 @@ export const missionApplicationConflictCodeSchema = z.enum([
   'CAMPAIGN_CONTRACT_INCOMPLETE',
   'CAMPAIGN_NOT_AVAILABLE',
   'CREATOR_NOT_QUALIFIED',
+  'IDEMPOTENCY_KEY_REUSE',
   'MISSION_CAPACITY_FULL',
 ]);
 
@@ -604,6 +610,92 @@ export const missionApplicationRecordSchema = z.object({
   slotType: missionSlotTypeSchema,
   status: missionApplicationStatusSchema,
   version: z.int().positive(),
+});
+
+export const authenticatedRoleSchema = z.enum(['creator', 'business_owner', 'business_manager']);
+export const localityCredentialSummarySchema = z.object({
+  expiresAt: z.iso.datetime({ offset: true }).nullable(),
+  status: localityStatusSchema,
+});
+export const authenticatedContextSchema = z.object({
+  business: z
+    .object({
+      membershipRole: businessMembershipRoleSchema,
+      name: z.string().min(1).max(200),
+      publicId: z.string().min(1).max(120),
+    })
+    .nullable(),
+  creator: z
+    .object({
+      locality: localityCredentialSummarySchema,
+      profilePublicId: z.string().min(1).max(120),
+      status: creatorProfileStatusSchema,
+    })
+    .nullable(),
+  role: authenticatedRoleSchema,
+  userPublicId: z.string().min(1).max(120),
+});
+
+export const creatorMissionSummarySchema = z.object({
+  availableCommunitySlots: z.int().nonnegative(),
+  baseRewardMinor: z.int().nonnegative(),
+  businessName: z.string().min(1).max(200),
+  currency: z.string().regex(/^[A-Z]{3}$/),
+  publicId: z.string().min(1).max(120),
+  title: z.string().min(1).max(200),
+  totalCommunitySlots: z.int().nonnegative(),
+  venue: z.object({
+    city: z.string().min(1).max(120),
+    name: z.string().min(1).max(200),
+    region: z.string().min(1).max(80),
+  }),
+});
+export const creatorMissionPageSchema = z.object({
+  data: z.array(creatorMissionSummarySchema),
+  page: apiPageSchema,
+});
+export const creatorMissionDetailSchema = creatorMissionSummarySchema.extend({
+  brief: z.string().min(1).max(4_000),
+  checklist: z.record(z.string(), z.unknown()),
+  requirements: z.array(
+    z.object({
+      description: z.string().min(1).max(1_000),
+      ordinal: z.int().positive(),
+      requiredCount: z.int().positive(),
+      type: deliverableRequirementTypeSchema,
+    }),
+  ),
+});
+export const createMissionApplicationRequestSchema = z.object({
+  publicId: z.string().regex(/^app_[a-z0-9_]{8,100}$/),
+});
+export const missionApplicationResponseSchema = z.object({
+  applicationPublicId: z.string().min(1).max(120),
+  campaignPublicId: z.string().min(1).max(120),
+  slotType: missionSlotTypeSchema,
+  status: missionApplicationStatusSchema,
+  version: z.int().positive(),
+});
+
+export const businessCampaignSummarySchema = z.object({
+  availableCommunitySlots: z.int().nonnegative(),
+  creatorRewardPoolMinor: z.int().nonnegative(),
+  currency: z.string().regex(/^[A-Z]{3}$/),
+  platformFeeMinor: z.int().nonnegative(),
+  publicId: z.string().min(1).max(120),
+  slotCount: z.int().positive(),
+  status: campaignStatusSchema,
+  title: z.string().min(1).max(200),
+  totalDueMinor: z.int().nonnegative(),
+  version: z.int().positive(),
+});
+export const businessCampaignPageSchema = z.object({
+  data: z.array(businessCampaignSummarySchema),
+  page: apiPageSchema,
+});
+export const businessCampaignDetailSchema = businessCampaignSummarySchema.extend({
+  brief: z.string().max(4_000).nullable(),
+  submittedApplications: z.int().nonnegative(),
 });
 
 export const identityTenantConflictCodeSchema = z.enum([
@@ -626,6 +718,16 @@ export type LivenessStatus = z.infer<typeof livenessStatusSchema>;
 export type LocalDevRole = z.infer<typeof localDevRoleSchema>;
 export type LocalDevTokenRequest = z.infer<typeof localDevTokenRequestSchema>;
 export type LocalDevTokenResponse = z.infer<typeof localDevTokenResponseSchema>;
+export type AuthenticatedContext = z.infer<typeof authenticatedContextSchema>;
+export type AuthenticatedRole = z.infer<typeof authenticatedRoleSchema>;
+export type BusinessCampaignDetail = z.infer<typeof businessCampaignDetailSchema>;
+export type BusinessCampaignPage = z.infer<typeof businessCampaignPageSchema>;
+export type BusinessCampaignSummary = z.infer<typeof businessCampaignSummarySchema>;
+export type CreateMissionApplicationRequest = z.infer<typeof createMissionApplicationRequestSchema>;
+export type CreatorMissionDetail = z.infer<typeof creatorMissionDetailSchema>;
+export type CreatorMissionPage = z.infer<typeof creatorMissionPageSchema>;
+export type CreatorMissionSummary = z.infer<typeof creatorMissionSummarySchema>;
+export type MissionApplicationResponse = z.infer<typeof missionApplicationResponseSchema>;
 export type MissionTemplatePage = z.infer<typeof missionTemplatePageSchema>;
 export type MissionTemplateSummary = z.infer<typeof missionTemplateSummarySchema>;
 export type ReadinessStatus = z.infer<typeof readinessStatusSchema>;

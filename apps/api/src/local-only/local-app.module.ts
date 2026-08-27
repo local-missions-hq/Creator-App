@@ -1,12 +1,31 @@
 import { Module } from '@nestjs/common';
 
-import { AppModule } from '../app.module.js';
+import { AuthenticationService, BEARER_VERIFIER } from '../authentication.js';
+import { DatabaseService } from '../database.service.js';
+import { DomainApiService } from '../domain-api.service.js';
+import { DomainController } from '../domain.controller.js';
+import { HealthController } from '../health.controller.js';
+import { OpenApiController } from '../openapi.controller.js';
+import { OpenApiDocumentStore } from '../openapi.js';
+import { V1Controller } from '../v1.controller.js';
 import { DevTokenController } from './dev-token.controller.js';
 import { LocalDevTokenService } from './dev-token.service.js';
 
 @Module({
-  controllers: [DevTokenController],
-  imports: [AppModule],
-  providers: [LocalDevTokenService],
+  controllers: [
+    HealthController,
+    OpenApiController,
+    V1Controller,
+    DomainController,
+    DevTokenController,
+  ],
+  providers: [
+    AuthenticationService,
+    DatabaseService,
+    DomainApiService,
+    OpenApiDocumentStore,
+    LocalDevTokenService,
+    { provide: BEARER_VERIFIER, useExisting: LocalDevTokenService },
+  ],
 })
 export class LocalAppModule {}

@@ -7,6 +7,7 @@ import { AccessiblePressable as Pressable } from '../../components/AccessiblePre
 import heroImage from '../../../../docs/business-plan/assets/local-missions-cover-hero.png';
 import { AppShell, appColors } from '../../components/AppShell';
 import { StatePreviewSheet } from '../../components/StatePreviewSheet';
+import { useCreatorMissionFeed } from '../../lib/use-mission-data';
 
 const filters = [
   { icon: 'calendar-outline', label: 'Today' },
@@ -124,6 +125,8 @@ function CreatorFilterSheet({
 }
 
 export default function CreatorDiscoveryScreen() {
+  const { data: missionFeed, source } = useCreatorMissionFeed();
+  const featuredMission = missionFeed.data[0];
   const [appliedFilters, setAppliedFilters] = useState(initialFilters);
   const [filtersApplied, setFiltersApplied] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -208,7 +211,9 @@ export default function CreatorDiscoveryScreen() {
             Preview feed states
           </Text>
           <Text maxFontSizeMultiplier={1.5} style={styles.statePreviewBody}>
-            Local examples · No actions leave this device
+            {source === 'local-preview'
+              ? 'Local preview · No actions leave this device'
+              : 'Authenticated API data'}
           </Text>
         </View>
         <Ionicons color={appColors.teal} name="chevron-up" size={18} />
@@ -220,13 +225,13 @@ export default function CreatorDiscoveryScreen() {
           <Text style={styles.sectionBody}>Community Slots · No follower minimum</Text>
         </View>
         <View style={styles.countBadge}>
-          <Text style={styles.countText}>6 OPEN</Text>
+          <Text style={styles.countText}>{featuredMission?.availableCommunitySlots ?? 0} OPEN</Text>
         </View>
       </View>
 
       <Link asChild href="/creator/mission-details">
         <Pressable
-          accessibilityLabel="Open Family Adventure Preview mission"
+          accessibilityLabel={`Open ${featuredMission?.title ?? 'featured'} mission`}
           accessibilityRole="button"
           style={styles.missionCard}
           testID="creator-open-featured-mission"
@@ -239,11 +244,17 @@ export default function CreatorDiscoveryScreen() {
             </View>
           </ImageBackground>
           <View style={styles.cardBody}>
-            <Text style={styles.business}>DEMO FAMILY FUN CENTER</Text>
-            <Text style={styles.missionTitle}>Family Adventure Preview</Text>
+            <Text style={styles.business}>
+              {(featuredMission?.businessName ?? 'Demo Family Fun Center').toUpperCase()}
+            </Text>
+            <Text style={styles.missionTitle}>
+              {featuredMission?.title ?? 'Family Adventure Preview'}
+            </Text>
             <View style={styles.rewardBadge}>
               <Ionicons color="#ffffff" name="shield-checkmark-outline" size={18} />
-              <Text style={styles.reward}>$50 guaranteed</Text>
+              <Text style={styles.reward}>
+                ${((featuredMission?.baseRewardMinor ?? 5_000) / 100).toFixed(0)} guaranteed
+              </Text>
             </View>
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
@@ -256,7 +267,9 @@ export default function CreatorDiscoveryScreen() {
               </View>
               <View style={styles.metaItem}>
                 <Ionicons color={appColors.teal} name="people" size={18} />
-                <Text style={styles.metaText}>3 spots</Text>
+                <Text style={styles.metaText}>
+                  {featuredMission?.availableCommunitySlots ?? 3} spots
+                </Text>
               </View>
             </View>
           </View>

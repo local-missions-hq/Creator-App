@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import type {
   MissionApplicationConflictCode,
   MissionApplicationRecord,
@@ -70,6 +72,10 @@ function toApplicationRecord(
 function postgresConstraint(error: unknown): string | undefined {
   if (typeof error !== 'object' || error === null || !('constraint' in error)) return undefined;
   return typeof error.constraint === 'string' ? error.constraint : undefined;
+}
+
+function requestHash(value: Record<string, unknown>): string {
+  return createHash('sha256').update(JSON.stringify(value)).digest('hex');
 }
 
 function quoteSchema(schemaName: string): string {
@@ -265,10 +271,26 @@ export class MissionApplicationStore {
     campaignId: string;
     correlationId: string;
     creatorUserId: string;
+    idempotencyKey?: string;
     publicId: string;
   }): Promise<MissionApplicationRecord> {
     try {
       return await this.withTransaction(async (client) => {
+        const operation = 'mission-application.apply';
+        if (input.idempotencyKey) {
+          const replay = await this.claimApplicationIdempotency(
+            client,
+            operation,
+            input.idempotencyKey,
+            requestHash({
+              campaignId: input.campaignId,
+              creatorUserId: input.creatorUserId,
+              publicId: input.publicId,
+            }),
+          );
+          if (replay) return replay;
+        }
+
         const eligible = await client.query(
           `SELECT 1
              FROM creator_profiles
@@ -358,11 +380,20 @@ export class MissionApplicationStore {
           subjectType: 'mission-application',
         });
 
-        return toApplicationRecord({
+        const record = toApplicationRecord({
           ...application,
           reserved_slot_id: slot.id,
           slot_type: slot.type,
         });
+        if (input.idempotencyKey) {
+          await client.query(
+            `UPDATE idempotency_records
+                SET response_status = 201, response_body = $3::jsonb, completed_at = now()
+              WHERE operation = $1 AND idempotency_key = $2`,
+            [operation, input.idempotencyKey, JSON.stringify(record)],
+          );
+        }
+        return record;
       });
     } catch (error) {
       if (postgresConstraint(error) === 'mission_applications_campaign_creator_uq') {
@@ -374,6 +405,44 @@ export class MissionApplicationStore {
       }
       throw error;
     }
+  }
+
+  private async claimApplicationIdempotency(
+    client: PoolClient,
+    operation: string,
+    idempotencyKey: string,
+    hash: string,
+  ): Promise<MissionApplicationRecord | null> {
+    const claim = await client.query(
+      `INSERT INTO idempotency_records (operation, idempotency_key, request_hash)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (operation, idempotency_key) DO NOTHING
+       RETURNING id`,
+      [operation, idempotencyKey, hash],
+    );
+    if (claim.rowCount === 1) return null;
+
+    const existing = await client.query<{
+      request_hash: string;
+      response_body: MissionApplicationRecord | null;
+    }>(
+      `SELECT request_hash, response_body
+         FROM idempotency_records
+        WHERE operation = $1 AND idempotency_key = $2`,
+      [operation, idempotencyKey],
+    );
+    const record = existing.rows[0];
+    if (!record || record.request_hash !== hash) {
+      throw new MissionApplicationError(
+        'IDEMPOTENCY_KEY_REUSE',
+        409,
+        'Idempotency key was already used for a different request.',
+      );
+    }
+    if (!record.response_body) {
+      throw new Error('Idempotent request exists without a committed response.');
+    }
+    return record.response_body;
   }
 
   async acceptApplication(input: {

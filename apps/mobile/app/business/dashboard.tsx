@@ -6,6 +6,7 @@ import { AccessiblePressable as Pressable } from '../../components/AccessiblePre
 
 import { AppShell, appColors } from '../../components/AppShell';
 import { StatePreviewSheet } from '../../components/StatePreviewSheet';
+import { useBusinessCampaigns } from '../../lib/use-mission-data';
 
 const metrics = [
   {
@@ -45,6 +46,8 @@ const checklist = [
 ] as const;
 
 export default function BusinessDashboardScreen() {
+  const { data: campaignPage, source } = useBusinessCampaigns();
+  const campaign = campaignPage.data[0];
   const [stateSheetOpen, setStateSheetOpen] = useState(false);
 
   return (
@@ -57,7 +60,7 @@ export default function BusinessDashboardScreen() {
           </Text>
         </View>
         <Text maxFontSizeMultiplier={1.3} style={styles.testData}>
-          Test data only
+          {source === 'local-preview' ? 'Local preview data' : 'Authenticated data'}
         </Text>
       </View>
 
@@ -170,15 +173,15 @@ export default function BusinessDashboardScreen() {
           </View>
           <View style={styles.missionCopy}>
             <Text maxFontSizeMultiplier={1.4} style={styles.missionTitle}>
-              Family Adventure Preview
+              {campaign?.title ?? 'Family Adventure Preview'}
             </Text>
             <Text maxFontSizeMultiplier={1.4} style={styles.missionMeta}>
-              Draft · 10 Community Slots
+              {campaign?.status ?? 'draft'} · {campaign?.slotCount ?? 10} Community Slots
             </Text>
           </View>
           <View style={styles.amountCopy}>
             <Text maxFontSizeMultiplier={1.35} style={styles.amount}>
-              $500
+              ${((campaign?.creatorRewardPoolMinor ?? 50_000) / 100).toFixed(0)}
             </Text>
             <Text maxFontSizeMultiplier={1.3} style={styles.pool}>
               reward pool
@@ -190,7 +193,7 @@ export default function BusinessDashboardScreen() {
             Estimated total due at Fund and Publish
           </Text>
           <Text maxFontSizeMultiplier={1.35} style={styles.total}>
-            $575
+            ${((campaign?.totalDueMinor ?? 57_500) / 100).toFixed(0)}
           </Text>
         </View>
       </View>

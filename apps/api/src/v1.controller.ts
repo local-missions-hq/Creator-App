@@ -27,7 +27,10 @@ export class V1Controller {
   @ApiOkResponse({ schema: openApiSchema(v1IndexSchema) })
   @Get()
   getIndex() {
-    return { resources: ['mission-templates'] as const, version: 'v1' as const };
+    return {
+      resources: ['me', 'creator-missions', 'business-campaigns', 'mission-templates'] as const,
+      version: 'v1' as const,
+    };
   }
 
   @ApiOperation({ summary: 'List mission template versions with stable cursor pagination' })

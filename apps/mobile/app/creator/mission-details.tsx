@@ -14,6 +14,7 @@ import { AccessiblePressable as Pressable } from '../../components/AccessiblePre
 
 import heroImage from '../../../../docs/business-plan/assets/local-missions-cover-hero.png';
 import { appColors } from '../../components/AppShell';
+import { useCreatorMissionDetail } from '../../lib/use-mission-data';
 
 const expectations = [
   'Capture the atmosphere and key experiences',
@@ -23,6 +24,7 @@ const expectations = [
 
 export default function CreatorMissionDetailsScreen() {
   const router = useRouter();
+  const { data: mission, source } = useCreatorMissionDetail();
   const [consented, setConsented] = useState(false);
 
   const apply = () => {
@@ -32,7 +34,9 @@ export default function CreatorMissionDetailsScreen() {
     }
     Alert.alert(
       'Application previewed',
-      'No application was sent. Continue into the accepted demo to inspect the next workflow states.',
+      source === 'local-preview'
+        ? 'No application was sent. Continue into the accepted demo to inspect the next workflow states.'
+        : 'The authenticated application action will be enabled after the sign-in screen is connected.',
       [
         { text: 'Stay here', style: 'cancel' },
         { text: 'View accepted demo', onPress: () => router.push('/creator/accepted') },
@@ -63,12 +67,12 @@ export default function CreatorMissionDetailsScreen() {
             <View style={styles.communityBadge}>
               <Text style={styles.communityText}>COMMUNITY SLOT</Text>
             </View>
-            <Text style={styles.business}>Demo Family Fun Center</Text>
-            <Text style={styles.mission}>Family Adventure Preview</Text>
+            <Text style={styles.business}>{mission.businessName}</Text>
+            <Text style={styles.mission}>{mission.title}</Text>
             <View style={styles.stats}>
               <View accessible accessibilityLabel="50 dollars guaranteed" style={styles.stat}>
                 <Ionicons color={appColors.teal} name="cash-outline" size={23} />
-                <Text style={styles.statStrong}>$50</Text>
+                <Text style={styles.statStrong}>${(mission.baseRewardMinor / 100).toFixed(0)}</Text>
                 <Text style={styles.statLabel}>guaranteed</Text>
               </View>
               <View accessible accessibilityLabel="Wednesday, 2 to 4 PM" style={styles.stat}>
@@ -78,7 +82,7 @@ export default function CreatorMissionDetailsScreen() {
               </View>
               <View accessible accessibilityLabel="Orlando, 4 to 6 miles" style={styles.stat}>
                 <Ionicons color={appColors.teal} name="location-outline" size={23} />
-                <Text style={styles.statStrong}>Orlando</Text>
+                <Text style={styles.statStrong}>{mission.venue.city}</Text>
                 <Text style={styles.statLabel}>4–6 miles</Text>
               </View>
             </View>
@@ -145,7 +149,7 @@ export default function CreatorMissionDetailsScreen() {
         </Pressable>
 
         <Pressable
-          accessibilityLabel="Apply for Family Adventure Preview mission"
+          accessibilityLabel={`Apply for ${mission.title} mission`}
           accessibilityRole="button"
           accessibilityState={{ disabled: !consented }}
           onPress={apply}

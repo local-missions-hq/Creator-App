@@ -17,6 +17,7 @@
   "dependencies": {
     "@local-missions/config": "workspace:*",
     "@local-missions/contracts": "workspace:*",
+    "@local-missions/db": "workspace:*",
     "@nestjs/common": "11.2.3",
     "@nestjs/core": "11.2.3",
     "@nestjs/platform-fastify": "11.2.3",
