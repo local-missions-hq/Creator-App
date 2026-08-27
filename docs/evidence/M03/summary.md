@@ -1,6 +1,6 @@
 # M03 database and state-machine evidence
 
-Status: Campaign lifecycle, shared identity/tenant, mission contract/capacity, accepted-mission/check-in, submission/review, dispute/resolution, immutable-ledger, Local Pass, content-rights, notification/outbox, API/OpenAPI/client-foundation, migration recovery, locality-proof retention, and authenticated-domain-HTTP slices passed; M3 overall remains in progress
+Status: Campaign lifecycle, shared identity/tenant, mission contract/capacity, accepted-mission/check-in, submission/review, dispute/resolution, immutable-ledger, Local Pass core and claim edges, content-rights, notification/outbox, API/OpenAPI/client-foundation, migration recovery, locality-proof retention, and authenticated-domain-HTTP slices passed; M3 overall remains in progress
 Date: 2026-08-27  
 Checkpoint: `M03-campaign-lifecycle-001`, implementation commit `87ba940`
 Shared identity checkpoint: `M03-shared-identity-tenant-002`, implementation commit `8ef7b08`
@@ -17,6 +17,8 @@ Migration recovery checkpoint: `M03-migration-recovery-012`
 Locality proof retention checkpoint: `M03-locality-proof-retention-013`
 Authenticated domain API checkpoint: `M03-authenticated-domain-api-014`
 Authenticated domain API implementation commit: `1080db0`
+Local Pass claim-edge checkpoint: `M03-local-pass-claim-edge-015`
+Local Pass claim-edge implementation commit: `d672439`
 Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Implemented in this checkpoint
@@ -90,6 +92,10 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Production OpenAPI now contains thirteen paths, including six protected `/v1` domain routes, and still contains no synthetic-token route; the local artifact has exactly one additional `/v1/dev/token` path. The generated mobile/dashboard client follows the production contract. The mobile mission adapter defaults explicitly to `local-preview`; `api` mode requires an authenticated session and never silently falls back.
 - The complete checkpoint passes 74 database tests plus twelve API integration tests. `pnpm verify` passes all nine workspaces with 30 mobile tests; the security scan passes 357 text files; Gitleaks finds no leak in approximately 10.59 MB; repeated seed and `db:check` verify 69 tables; and `drizzle-kit check` reports a consistent fourteen-migration journal.
 - Authenticated-domain JUnit and review: [`test-results/authenticated-domain-api-junit.xml`](./test-results/authenticated-domain-api-junit.xml) and [`authenticated-domain-http-slice.md`](./authenticated-domain-http-slice.md).
+- Nine Local Pass claim-edge tests passed against real PostgreSQL: five-attempt OTP lockout, resend throttling, single-use challenge replay rejection, fresh recovery, duplicate-customer attribution, wrong-venue redemption, refusal preservation/review, verified non-preapproved substitute acceptance, privacy-minimized customer status and aggregate reporting, and cross-tenant denial.
+- Verification derives customer/risk HMAC tokens inside the store, retains only encrypted destination ciphertext and keyed OTP digests, defaults marketing consent off, schedules contact/linkage deletion, and performs no SMS/email/provider call. Business and Creator results contain aggregates only and do not call claims or redemptions purchases, revenue, or proven lift.
+- The complete checkpoint passes 78 database tests plus twelve API integration tests. `pnpm verify` passes all nine workspaces with 30 mobile tests; repeated seed and `db:check` verify 72 tables; `drizzle-kit check` validates the fifteen-migration journal; the security scan passes 360 text files; and Gitleaks finds no leak in approximately 11.09 MB.
+- Local Pass claim-edge JUnit and review: [`test-results/local-pass-claim-edge-junit.xml`](./test-results/local-pass-claim-edge-junit.xml) and [`local-pass-claim-edge.md`](./local-pass-claim-edge.md).
 - Migration: [`../../../packages/db/drizzle/0000_giant_snowbird.sql`](../../../packages/db/drizzle/0000_giant_snowbird.sql).
 - Forward migration: [`../../../packages/db/drizzle/0001_empty_tyrannus.sql`](../../../packages/db/drizzle/0001_empty_tyrannus.sql).
 - Mission/capacity migration: [`../../../packages/db/drizzle/0002_material_rachel_grey.sql`](../../../packages/db/drizzle/0002_material_rachel_grey.sql).
@@ -105,6 +111,7 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Notification preference-history backfill: [`../../../packages/db/drizzle/0012_notification_preference_history_backfill.sql`](../../../packages/db/drizzle/0012_notification_preference_history_backfill.sql).
 - Migration manifest: [`../../../packages/db/drizzle/migration-manifest.json`](../../../packages/db/drizzle/migration-manifest.json).
 - Locality proof/retention migration: [`../../../packages/db/drizzle/0013_brave_maddog.sql`](../../../packages/db/drizzle/0013_brave_maddog.sql).
+- Local Pass claim-edge migration: [`../../../packages/db/drizzle/0014_serious_terror.sql`](../../../packages/db/drizzle/0014_serious_terror.sql).
 
 ## Privacy and safety
 
@@ -115,6 +122,6 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Known limitations and M3 gate
 
-These are fourteen complete local foundation slices, not the full M3 milestone. Local Pass OTP/recovery/refusal/reporting edges, rights renewal operations, external notification providers/device registration/scheduling, Reach analytics qualification, and remaining audit records are not implemented yet. Production identity verification remains deliberately fail-closed until the later Entra integration gate. Stripe execution, webhook processing, transfers, refunds, payouts, chargebacks, reserve controls, and provider reconciliation remain M12 work; the ledger checkpoint records internal obligations only. Cloud Blob deletion/version/derivative and backup-aging execution remains a later infrastructure gate; this checkpoint proves the raw locality-proof database lifecycle and synthetic local adapter. Cloud upload intents and media workers remain later M10 work. Complete state-transition tables remain open. Physical camera/location and push-delivery execution remain later device gates rather than part of this local state-machine checkpoint.
+These are fifteen complete local foundation slices, not the full M3 milestone. Rights renewal operations, external notification providers/device registration/scheduling, Reach analytics qualification, and remaining audit records are not implemented yet. The no-install Local Pass web/API and actual SMS-provider integration remain M13 work. Production identity verification remains deliberately fail-closed until the later Entra integration gate. Stripe execution, webhook processing, transfers, refunds, payouts, chargebacks, reserve controls, and provider reconciliation remain M12 work; the ledger checkpoint records internal obligations only. Cloud Blob deletion/version/derivative and backup-aging execution remains a later infrastructure gate; this checkpoint proves the raw locality-proof database lifecycle and synthetic local adapter. Cloud upload intents and media workers remain later M10 work. Complete state-transition tables remain open. Physical camera/location and push-delivery execution remain later device gates rather than part of this local state-machine checkpoint.
 
 The M3 milestone gate has not passed. The API foundation, reviewed OpenAPI/shared-client, latest-schema roll-forward recovery, locality-proof retention, and authenticated Creator/Business HTTP checklist items are complete; `plans.md` keeps the remaining M3 work open.

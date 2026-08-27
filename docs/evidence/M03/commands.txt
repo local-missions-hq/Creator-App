@@ -549,3 +549,33 @@ PASS — no leaks found in approximately 10.59 MB.
 
 pnpm --filter @local-missions/api exec vitest run src/domain-api.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/authenticated-domain-api-junit.xml
 PASS — retained five authenticated-domain API tests with no failures or errors; machine hostname replaced by local-development-host.
+
+M03-local-pass-claim-edge-015 — 2026-08-27
+
+pnpm --filter @local-missions/db test:integration
+PASS — all 78 database integration tests passed, including nine Local Pass tests for OTP lockout/resend/replay, fresh recovery, duplicate attribution, exact venue, refusal review, substitute acceptance, aggregate-only reporting, and tenant isolation.
+
+pnpm test:integration
+PASS — 78 database tests and twelve API integration tests passed against loopback PostgreSQL.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, contract drift checks, clean production marker scan, and all nine workspace builds passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm db:migrate
+pnpm db:seed
+pnpm db:seed
+pnpm db:check
+PASS — migration 0014 applied locally, the deterministic seed remained repeatable, and all 72 tables plus the synthetic mission contract were verified.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+pnpm --filter @local-missions/db contracts:check
+PASS — the fifteen-entry migration journal/snapshots are consistent and all ordered SQL/snapshot hashes match the reviewed manifest.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 360 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 11.09 MB.
+
+pnpm --filter @local-missions/db exec vitest run src/local-pass-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/local-pass-claim-edge-junit.xml
+PASS — retained nine Local Pass tests with no failures or errors; machine hostname replaced by local-development.

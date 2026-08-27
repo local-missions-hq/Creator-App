@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="9" failures="0" errors="0" time="1.115480417">
+    <testsuite name="src/local-pass-store.integration.test.ts" timestamp="2026-08-27T23:14:22.445Z" hostname="local-development" tests="9" failures="0" errors="0" skipped="0" time="1.115480417">
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; migrates forward, stores only hashes, and keeps offer terms and evidence immutable" time="0.04562425">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; locks first-valid attribution under concurrent duplicate-customer claims" time="0.051905292">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; prevents final-inventory oversubscription and preserves active claims when future claims pause" time="0.076827209">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; rotates screenshot tokens and enforces exact venue and staff authorization" time="0.055506833">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; bounds OTP attempts and resends, rejects verification replay, and stores no raw destination" time="0.063018334">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; requires fresh destination control for recovery and consumes the proof once" time="0.040160666">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; preserves a refused pass through review and exposes aggregate-only tenant-scoped reporting" time="0.081330667">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; requires verified customer acceptance for a non-preapproved substitute" time="0.041688375">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; releases inventory when a seven-day claim expires unredeemed" time="0.023104917">
+        </testcase>
+    </testsuite>
+</testsuites>
