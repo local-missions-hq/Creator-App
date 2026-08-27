@@ -514,3 +514,38 @@ PASS — local high-confidence scan passed for 348 text files.
 
 pnpm test:gitleaks
 PASS — no leaks found in approximately 10.31 MB.
+
+M03-authenticated-domain-api-014 — 2026-08-27
+
+pnpm --filter @local-missions/api test:integration
+PASS — all twelve API integration tests passed, including five dedicated authenticated Creator/Business tests for verifier separation, role/workspace resolution, cross-role/cross-tenant denial, pagination, locality gating, idempotent replay, and safe logs.
+
+pnpm --filter @local-missions/mobile typecheck
+pnpm --filter @local-missions/mobile test
+PASS — strict mobile type checking and all 30 tests passed; three adapter tests prove explicit no-network local preview, API-mode token refusal, and generated-client bearer forwarding.
+
+pnpm openapi:generate
+pnpm --filter @local-missions/api-client build
+PASS — production/local OpenAPI and the shared typed client regenerated deterministically. Production contains thirteen paths and no dev token; local contains exactly one additional dev-token path.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, contract drift checks, clean production marker scan, and all nine workspace builds passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:integration
+PASS — 74 database tests and twelve API integration tests passed against loopback PostgreSQL.
+
+pnpm db:seed
+pnpm db:check
+PASS — the deterministic seed remained repeatable and all 69 tables plus the synthetic mission contract were verified.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — the fourteen-entry migration journal and snapshots remained internally consistent.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 357 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 10.59 MB.
+
+pnpm --filter @local-missions/api exec vitest run src/domain-api.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/authenticated-domain-api-junit.xml
+PASS — retained five authenticated-domain API tests with no failures or errors; machine hostname replaced by local-development-host.
