@@ -1,17 +1,15 @@
 import 'reflect-metadata';
 
-import { Logger } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import { parseServerEnvironment } from '@local-missions/config';
 
 import { AppModule } from './app.module.js';
+import { createApiApplication } from './create-application.js';
 
-const host = '127.0.0.1';
-const port = Number(process.env.PORT ?? 3001);
-const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
-  bufferLogs: true,
-});
+const environment = parseServerEnvironment(process.env);
+const host = environment.APP_ENV === 'local' ? '127.0.0.1' : '0.0.0.0';
+const { app } = await createApiApplication(AppModule);
 
-app.enableShutdownHooks();
-await app.listen(port, host);
-Logger.log(`Local Missions API listening on http://${host}:${port}`, 'Bootstrap');
+await app.listen(environment.PORT, host);
+process.stdout.write(
+  `${JSON.stringify({ event: 'api_started', host, port: environment.PORT, service: 'local-missions-api' })}\n`,
+);

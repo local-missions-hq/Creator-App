@@ -34,7 +34,9 @@ pnpm dev
 The initial endpoints are:
 
 - Dashboard: `http://localhost:3000`
-- API health: `http://localhost:3001/health`
+- API liveness: `http://localhost:4000/health/live`
+- API readiness: `http://localhost:4000/health/ready`
+- API contract: `http://localhost:4000/openapi.json`
 - Expo: terminal-provided local URL
 
 Stop and remove local containers and their synthetic data with:

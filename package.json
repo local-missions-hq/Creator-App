@@ -33,6 +33,7 @@
     "local:up": "docker compose up -d",
     "local:down": "docker compose down",
     "local:destroy": "docker compose down --volumes --remove-orphans",
+    "openapi:generate": "pnpm --filter @local-missions/api openapi:generate",
     "prepare": "simple-git-hooks",
     "lint-staged": "lint-staged"
   },

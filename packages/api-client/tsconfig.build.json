@@ -7,5 +7,5 @@
     "rootDir": "src",
     "sourceMap": true
   },
-  "exclude": ["scripts/**", "src/**/*.test.ts", "src/local-only/**"]
+  "exclude": ["src/**/*.test.ts"]
 }

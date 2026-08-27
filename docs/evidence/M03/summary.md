@@ -1,6 +1,6 @@
 # M03 database and state-machine evidence
 
-Status: Campaign lifecycle, shared identity/tenant, mission contract/capacity, accepted-mission/check-in, submission/review, dispute/resolution, immutable-ledger, Local Pass, content-rights, and notification/outbox slices passed; M3 overall remains in progress
+Status: Campaign lifecycle, shared identity/tenant, mission contract/capacity, accepted-mission/check-in, submission/review, dispute/resolution, immutable-ledger, Local Pass, content-rights, notification/outbox, and API/OpenAPI/client-foundation slices passed; M3 overall remains in progress
 Date: 2026-08-27  
 Checkpoint: `M03-campaign-lifecycle-001`, implementation commit `87ba940`
 Shared identity checkpoint: `M03-shared-identity-tenant-002`, implementation commit `8ef7b08`
@@ -12,6 +12,7 @@ Ledger checkpoint: `M03-immutable-ledger-007`
 Local Pass checkpoint: `M03-local-pass-008`
 Content rights checkpoint: `M03-content-rights-009`
 Notification outbox checkpoint: `M03-notification-outbox-010`
+API foundation checkpoint: `M03-api-foundation-011`
 Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Implemented in this checkpoint
@@ -67,6 +68,12 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Seven notification/outbox tests passed against real PostgreSQL: minimized forward migration, same-transaction mission acceptance fan-out and rollback, event deduplication and recipient/tenant isolation, preference opt-out and one-winner worker claims, exponential retry, dead-letter/admin replay, and durable recipient-only inbox acknowledgment.
 - Notification records contain versioned template keys and protected aggregate references rather than free-form mission or locked-screen content. Phone, email address, device token, provider payload/response, location, reward, customer data, and media URLs are absent. The local adapter records only `no_send` or `suppressed` and cannot run in a deployed environment.
 - Notification/outbox JUnit evidence: [`test-results/notification-store-junit.xml`](./test-results/notification-store-junit.xml).
+- Seven API integration tests passed against the real local PostgreSQL database: dependency-independent liveness, database-backed readiness, non-secret build info, stable cursor pagination, standard validation envelopes, request/correlation ID propagation and replacement, allowlisted structured logs, production/local OpenAPI separation, production dev-token absence, synthetic local-token issuance, deployed-environment refusal, and safe dependency failure.
+- The deterministic production OpenAPI contains seven implemented paths and excludes `/v1/dev/token`; the local snapshot contains exactly that one additional path. `contracts:check` regenerates both documents and the shared `@local-missions/api-client` in memory and rejects drift. Mobile and dashboard compile against that same production-generated client, which permits only HTTPS or loopback HTTP.
+- Every production API build begins with an empty output directory and scans the resulting JavaScript, declarations, and source maps. The build contains no `local-only` directory or dev-token marker. A live compiled-process smoke passed `/health/live`, `/health/ready`, `/build-info`, `/v1`, paginated `/v1/mission-templates`, and `/openapi.json` on loopback port 4000; the production process returned 404 for `/v1/dev/token`.
+- The combined checkpoint now passes 65 real-PostgreSQL domain tests plus seven API integration tests. `pnpm verify` passes all nine-package workspace gates, the security scan passes 332 text files, Gitleaks finds no leak in approximately 9.40 MB, `db:check` verifies 63 tables, and `drizzle-kit check` reports a consistent twelve-migration journal.
+- API JUnit evidence: [`test-results/api-foundation-junit.xml`](./test-results/api-foundation-junit.xml).
+- API review and generated contracts: [`api/contract-review.md`](./api/contract-review.md), [`api/openapi.json`](./api/openapi.json), and [`api/openapi.local.json`](./api/openapi.local.json).
 - Migration: [`../../../packages/db/drizzle/0000_giant_snowbird.sql`](../../../packages/db/drizzle/0000_giant_snowbird.sql).
 - Forward migration: [`../../../packages/db/drizzle/0001_empty_tyrannus.sql`](../../../packages/db/drizzle/0001_empty_tyrannus.sql).
 - Mission/capacity migration: [`../../../packages/db/drizzle/0002_material_rachel_grey.sql`](../../../packages/db/drizzle/0002_material_rachel_grey.sql).
@@ -89,6 +96,6 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Known limitations and M3 gate
 
-These are ten complete transactional slices, not the full M3 schema or API. Local Pass OTP/recovery/refusal/reporting edges, rights renewal operations, external notification providers/device registration/scheduling, raw-proof retention jobs, Reach analytics qualification, and remaining audit records are not implemented yet. Stripe execution, webhook processing, transfers, refunds, payouts, chargebacks, reserve controls, and provider reconciliation remain M12 work; the ledger checkpoint records internal obligations only. Cloud upload intents and media workers remain later M10 work. The `/v1` API, OpenAPI/client generation, a latest-schema empty-database/recovery proof, and complete state-transition tables remain open. Physical camera/location and push-delivery execution remain later device gates rather than part of this local state-machine checkpoint.
+These are eleven complete local foundation slices, not the full M3 milestone. Local Pass OTP/recovery/refusal/reporting edges, rights renewal operations, external notification providers/device registration/scheduling, raw-proof retention jobs, Reach analytics qualification, authenticated domain HTTP resources, and remaining audit records are not implemented yet. Stripe execution, webhook processing, transfers, refunds, payouts, chargebacks, reserve controls, and provider reconciliation remain M12 work; the ledger checkpoint records internal obligations only. Cloud upload intents and media workers remain later M10 work. A latest-schema empty-database/recovery proof and complete state-transition tables remain open. Physical camera/location and push-delivery execution remain later device gates rather than part of this local state-machine checkpoint.
 
-The M3 milestone gate has not passed. No broad M3 checklist item is marked complete by this checkpoint; `plans.md` records this smaller completed slice separately.
+The M3 milestone gate has not passed. The API foundation and reviewed OpenAPI/shared-client checklist items are complete; `plans.md` keeps the remaining M3 work open.

@@ -390,3 +390,43 @@ PASS — no leaks found in approximately 9.26 MB.
 
 pnpm --filter @local-missions/db exec vitest run src/notification-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/notification-store-junit.xml
 PASS — retained seven notification/outbox tests with no failures or errors; machine hostname replaced by local-development-host.
+
+M03-api-foundation-011 — 2026-08-27
+
+pnpm --filter @local-missions/api test:integration
+PASS — seven API integration tests passed against real local PostgreSQL: live/ready/build behavior, stable cursor pagination, standard errors, request/correlation IDs, safe logs, production/local contract separation, dev-token isolation, and dependency failure.
+
+pnpm --filter @local-missions/api openapi:generate
+pnpm --filter @local-missions/api contracts:check
+PASS — deterministic production/local OpenAPI snapshots and the shared generated TypeScript client were rebuilt from the application graphs and matched committed artifacts exactly.
+
+pnpm --filter @local-missions/api build
+PASS — the clean production build contained no local-only directory or dev-token marker in JavaScript, declarations, or source maps.
+
+pnpm test:integration
+PASS — 65 real-PostgreSQL domain tests and seven API integration tests passed with zero failures or unhandled errors.
+
+pnpm db:seed
+pnpm db:seed
+pnpm db:check
+PASS — repeated seeding remained deterministic and all 63 tables plus the synthetic mission contract were verified.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — the twelve-entry migration journal and snapshots remained internally consistent.
+
+pnpm verify
+INITIAL FAIL — generated OpenAPI JSON and TypeScript were deterministic but not repository-Prettier canonical; verification stopped before lint or tests.
+RESOLUTION — the generator now resolves the repository Prettier configuration and formats every artifact before writing or comparing it.
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, contract drift checks, and all nine workspace builds passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 332 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 9.40 MB.
+
+compiled API runtime smoke on 127.0.0.1:4000
+PASS — `/health/live`, `/health/ready`, `/build-info`, `/v1`, paginated `/v1/mission-templates`, and `/openapi.json` returned 200 with request IDs. The production contract exposed seven paths and no dev token; `POST /v1/dev/token` returned the standard 404 envelope.
+
+pnpm --filter @local-missions/api exec vitest run src/api.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/api-foundation-junit.xml
+PASS — retained seven API foundation tests with no failures or errors; machine hostname replaced by local-development-host.

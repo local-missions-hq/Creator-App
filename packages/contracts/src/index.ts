@@ -9,6 +9,122 @@ export const healthStatusSchema = z.object({
   version: z.string().regex(/^\d+\.\d+\.\d+$/),
 });
 
+export const apiRequestIdSchema = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/);
+export const apiCorrelationIdSchema = apiRequestIdSchema;
+export const apiCursorSchema = z.string().regex(/^[A-Za-z0-9_-]{8,512}$/);
+export const apiPageLimitSchema = z.coerce.number().int().min(1).max(100).default(20);
+export const apiPaginationQuerySchema = z.object({
+  cursor: apiCursorSchema.optional(),
+  limit: apiPageLimitSchema,
+});
+
+export const apiErrorCodeSchema = z.enum([
+  'ACCESS_DENIED',
+  'AUTHENTICATION_REQUIRED',
+  'DEPENDENCY_UNAVAILABLE',
+  'IDEMPOTENCY_KEY_REQUIRED',
+  'INTERNAL_ERROR',
+  'NOT_FOUND',
+  'RATE_LIMITED',
+  'STATE_CONFLICT',
+  'VALIDATION_FAILED',
+  'VERSION_CONFLICT',
+]);
+export const apiErrorDetailSchema = z.object({
+  code: z.string().regex(/^[A-Z0-9_]+$/),
+  path: z.string().min(1).max(160),
+});
+export const apiErrorEnvelopeSchema = z.object({
+  correlationId: apiCorrelationIdSchema,
+  error: z.object({
+    code: apiErrorCodeSchema,
+    details: z.array(apiErrorDetailSchema).max(25).optional(),
+    message: z.string().min(1).max(240),
+  }),
+  requestId: apiRequestIdSchema,
+});
+
+export const apiPageSchema = z.object({
+  hasMore: z.boolean(),
+  limit: z.int().min(1).max(100),
+  nextCursor: apiCursorSchema.nullable(),
+});
+
+export const livenessStatusSchema = z.object({
+  service: z.literal('local-missions-api'),
+  status: z.literal('ok'),
+  version: z.string().regex(/^\d+\.\d+\.\d+$/),
+});
+export const readinessStatusSchema = z.object({
+  dependencies: z.object({ database: z.literal('up') }),
+  service: z.literal('local-missions-api'),
+  status: z.literal('ready'),
+  version: z.string().regex(/^\d+\.\d+\.\d+$/),
+});
+export const buildInfoSchema = z.object({
+  builtAt: z.union([z.iso.datetime({ offset: true }), z.literal('local')]),
+  commit: z.union([z.string().regex(/^[a-f0-9]{7,40}$/), z.literal('local')]),
+  service: z.literal('local-missions-api'),
+  version: z.string().regex(/^\d+\.\d+\.\d+$/),
+});
+
+export const apiResourceSchema = z.enum(['mission-templates']);
+export const v1IndexSchema = z.object({
+  resources: z.array(apiResourceSchema),
+  version: z.literal('v1'),
+});
+export const missionTemplateSummarySchema = z.object({
+  code: z.enum(['visit_create', 'visit_share', 'event_attendance', 'private_experience_feedback']),
+  name: z.string().min(1).max(120),
+  version: z.int().positive(),
+});
+export const missionTemplatePageSchema = z.object({
+  data: z.array(missionTemplateSummarySchema),
+  page: apiPageSchema,
+});
+
+export const localDevRoleSchema = z.enum([
+  'creator',
+  'business_owner',
+  'business_manager',
+  'venue_staff',
+  'platform_admin',
+]);
+export const localDevTokenRequestSchema = z
+  .object({
+    role: localDevRoleSchema,
+    subjectPublicId: z.string().regex(/^usr_synthetic_[a-z0-9_]{3,80}$/),
+    tenantPublicId: z
+      .string()
+      .regex(/^biz_synthetic_[a-z0-9_]{3,80}$/)
+      .optional(),
+  })
+  .superRefine((value, context) => {
+    const tenantRole = ['business_owner', 'business_manager', 'venue_staff'].includes(value.role);
+    if (tenantRole && !value.tenantPublicId) {
+      context.addIssue({
+        code: 'custom',
+        message: 'A synthetic tenant is required for Business and Venue Staff roles.',
+        path: ['tenantPublicId'],
+      });
+    }
+    if (!tenantRole && value.tenantPublicId) {
+      context.addIssue({
+        code: 'custom',
+        message: 'This role cannot assume a Business tenant.',
+        path: ['tenantPublicId'],
+      });
+    }
+  });
+export const localDevTokenResponseSchema = z.object({
+  accessToken: z.string().min(32),
+  expiresIn: z.literal(900),
+  tokenType: z.literal('Bearer'),
+});
+
+export const idempotencyKeySchema = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{15,127}$/);
+export const optimisticVersionSchema = z.int().positive();
+
 export const campaignStatusSchema = z.enum([
   'draft',
   'submitted',
@@ -447,6 +563,21 @@ export const identityTenantConflictCodeSchema = z.enum([
 ]);
 
 export type AppEnvironment = z.infer<typeof appEnvironmentSchema>;
+export type ApiCorrelationId = z.infer<typeof apiCorrelationIdSchema>;
+export type ApiCursor = z.infer<typeof apiCursorSchema>;
+export type ApiErrorCode = z.infer<typeof apiErrorCodeSchema>;
+export type ApiErrorEnvelope = z.infer<typeof apiErrorEnvelopeSchema>;
+export type ApiPaginationQuery = z.infer<typeof apiPaginationQuerySchema>;
+export type ApiRequestId = z.infer<typeof apiRequestIdSchema>;
+export type BuildInfo = z.infer<typeof buildInfoSchema>;
+export type LivenessStatus = z.infer<typeof livenessStatusSchema>;
+export type LocalDevRole = z.infer<typeof localDevRoleSchema>;
+export type LocalDevTokenRequest = z.infer<typeof localDevTokenRequestSchema>;
+export type LocalDevTokenResponse = z.infer<typeof localDevTokenResponseSchema>;
+export type MissionTemplatePage = z.infer<typeof missionTemplatePageSchema>;
+export type MissionTemplateSummary = z.infer<typeof missionTemplateSummarySchema>;
+export type ReadinessStatus = z.infer<typeof readinessStatusSchema>;
+export type V1Index = z.infer<typeof v1IndexSchema>;
 export type BusinessMembershipRole = z.infer<typeof businessMembershipRoleSchema>;
 export type BusinessMembershipStatus = z.infer<typeof businessMembershipStatusSchema>;
 export type CampaignConflictCode = z.infer<typeof campaignConflictCodeSchema>;

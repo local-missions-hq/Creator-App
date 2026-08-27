@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildHealthStatus } from './health.js';
+import { buildLegacyHealthStatus } from './health.js';
 
-describe('buildHealthStatus', () => {
+describe('buildLegacyHealthStatus', () => {
   it('returns a local non-secret status payload', () => {
-    expect(buildHealthStatus('local')).toEqual({
+    expect(buildLegacyHealthStatus()).toEqual({
       environment: 'local',
       service: 'local-missions-api',
       status: 'ok',

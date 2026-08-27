@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  apiErrorEnvelopeSchema,
+  apiPaginationQuerySchema,
+  apiRequestIdSchema,
   businessMembershipRoleSchema,
   campaignRecordSchema,
   disputeReasonCodeSchema,
@@ -21,6 +24,8 @@ import {
   notificationDeliveryStatusSchema,
   notificationEventTypeSchema,
   notificationOutboxStatusSchema,
+  localDevTokenRequestSchema,
+  missionTemplatePageSchema,
 } from './index.js';
 
 describe('healthStatusSchema', () => {
@@ -42,6 +47,49 @@ describe('healthStatusSchema', () => {
         service: 'local-missions-api',
         status: 'ok',
         version: '0.1.0',
+      }),
+    ).toThrow();
+  });
+});
+
+describe('versioned API foundation contracts', () => {
+  it('bounds request IDs, cursor pagination, and standard safe errors', () => {
+    expect(apiRequestIdSchema.parse('req_local_00000001')).toBe('req_local_00000001');
+    expect(apiPaginationQuerySchema.parse({ limit: '100' })).toEqual({ limit: 100 });
+    expect(() => apiPaginationQuerySchema.parse({ limit: 101 })).toThrow();
+    expect(
+      apiErrorEnvelopeSchema.parse({
+        correlationId: 'corr_local_0000001',
+        error: {
+          code: 'VALIDATION_FAILED',
+          details: [{ code: 'INVALID_FORMAT', path: 'query.cursor' }],
+          message: 'Request validation failed.',
+        },
+        requestId: 'req_local_00000001',
+      }),
+    ).toBeTruthy();
+  });
+
+  it('accepts an opaque paginated mission-template response', () => {
+    expect(
+      missionTemplatePageSchema.parse({
+        data: [{ code: 'visit_create', name: 'Visit & Create', version: 1 }],
+        page: { hasMore: true, limit: 1, nextCursor: 'eyJ2IjoxfQ' },
+      }),
+    ).toBeTruthy();
+  });
+
+  it('allows dev tokens only for visibly synthetic local identities', () => {
+    expect(
+      localDevTokenRequestSchema.parse({
+        role: 'creator',
+        subjectPublicId: 'usr_synthetic_creator_001',
+      }),
+    ).toBeTruthy();
+    expect(() =>
+      localDevTokenRequestSchema.parse({
+        role: 'creator',
+        subjectPublicId: 'usr_real_person_001',
       }),
     ).toThrow();
   });

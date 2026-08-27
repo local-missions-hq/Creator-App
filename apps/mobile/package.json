@@ -12,6 +12,7 @@
     "test:e2e:mobile": "node ../../scripts/validate-maestro.mjs"
   },
   "dependencies": {
+    "@local-missions/api-client": "workspace:*",
     "@expo/metro-runtime": "57.0.13",
     "@expo/vector-icons": "15.0.3",
     "expo": "57.0.16",

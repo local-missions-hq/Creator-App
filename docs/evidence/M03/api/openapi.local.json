@@ -1,0 +1,1135 @@
+{
+  "components": {
+    "headers": {
+      "CorrelationId": {
+        "description": "Correlation ID assigned to this request.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "RequestId": {
+        "description": "Unique request ID assigned to this request.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "parameters": {
+      "CorrelationId": {
+        "description": "Optional caller correlation ID. Invalid values are replaced.",
+        "in": "header",
+        "name": "x-correlation-id",
+        "required": false,
+        "schema": {
+          "maxLength": 128,
+          "minLength": 8,
+          "type": "string"
+        }
+      },
+      "IdempotencyKey": {
+        "description": "Required on retryable money, submission, approval, and payout writes.",
+        "in": "header",
+        "name": "idempotency-key",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/IdempotencyKey"
+        }
+      },
+      "IfMatchVersion": {
+        "description": "Expected positive resource version for optimistic concurrency.",
+        "in": "header",
+        "name": "if-match-version",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/OptimisticVersion"
+        }
+      },
+      "RequestId": {
+        "description": "Optional caller request ID. Invalid values are replaced.",
+        "in": "header",
+        "name": "x-request-id",
+        "required": false,
+        "schema": {
+          "maxLength": 128,
+          "minLength": 8,
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiErrorEnvelope"
+            }
+          }
+        },
+        "description": "Request validation failed.",
+        "headers": {
+          "x-correlation-id": {
+            "$ref": "#/components/headers/CorrelationId"
+          },
+          "x-request-id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        }
+      },
+      "Conflict": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiErrorEnvelope"
+            }
+          }
+        },
+        "description": "The request conflicts with current state.",
+        "headers": {
+          "x-correlation-id": {
+            "$ref": "#/components/headers/CorrelationId"
+          },
+          "x-request-id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        }
+      },
+      "DependencyUnavailable": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiErrorEnvelope"
+            }
+          }
+        },
+        "description": "A required service is temporarily unavailable.",
+        "headers": {
+          "x-correlation-id": {
+            "$ref": "#/components/headers/CorrelationId"
+          },
+          "x-request-id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        }
+      },
+      "Forbidden": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiErrorEnvelope"
+            }
+          }
+        },
+        "description": "Access is denied.",
+        "headers": {
+          "x-correlation-id": {
+            "$ref": "#/components/headers/CorrelationId"
+          },
+          "x-request-id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        }
+      },
+      "NotFound": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiErrorEnvelope"
+            }
+          }
+        },
+        "description": "The requested resource was not found.",
+        "headers": {
+          "x-correlation-id": {
+            "$ref": "#/components/headers/CorrelationId"
+          },
+          "x-request-id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        }
+      },
+      "RateLimited": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiErrorEnvelope"
+            }
+          }
+        },
+        "description": "Too many requests.",
+        "headers": {
+          "x-correlation-id": {
+            "$ref": "#/components/headers/CorrelationId"
+          },
+          "x-request-id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        }
+      },
+      "Unauthorized": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiErrorEnvelope"
+            }
+          }
+        },
+        "description": "Authentication is required.",
+        "headers": {
+          "x-correlation-id": {
+            "$ref": "#/components/headers/CorrelationId"
+          },
+          "x-request-id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ApiErrorEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "correlationId": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+            "type": "string"
+          },
+          "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "enum": [
+                  "ACCESS_DENIED",
+                  "AUTHENTICATION_REQUIRED",
+                  "DEPENDENCY_UNAVAILABLE",
+                  "IDEMPOTENCY_KEY_REQUIRED",
+                  "INTERNAL_ERROR",
+                  "NOT_FOUND",
+                  "RATE_LIMITED",
+                  "STATE_CONFLICT",
+                  "VALIDATION_FAILED",
+                  "VERSION_CONFLICT"
+                ],
+                "type": "string"
+              },
+              "details": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "pattern": "^[A-Z0-9_]+$",
+                      "type": "string"
+                    },
+                    "path": {
+                      "maxLength": 160,
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": ["code", "path"],
+                  "type": "object"
+                },
+                "maxItems": 25,
+                "type": "array"
+              },
+              "message": {
+                "maxLength": 240,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "type": "object"
+          },
+          "requestId": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+            "type": "string"
+          }
+        },
+        "required": ["correlationId", "error", "requestId"],
+        "type": "object"
+      },
+      "CursorPage": {
+        "additionalProperties": false,
+        "properties": {
+          "hasMore": {
+            "type": "boolean"
+          },
+          "limit": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9_-]{8,512}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["hasMore", "limit", "nextCursor"],
+        "type": "object"
+      },
+      "IdempotencyKey": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{15,127}$",
+        "type": "string"
+      },
+      "OptimisticVersion": {
+        "exclusiveMinimum": 0,
+        "maximum": 9007199254740991,
+        "type": "integer"
+      }
+    },
+    "securitySchemes": {
+      "entra-bearer": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "contact": {},
+    "description": "Versioned Local Missions API. The committed production contract intentionally excludes local-only authentication helpers.",
+    "title": "Local Missions API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/build-info": {
+      "get": {
+        "operationId": "HealthController_getBuildInfo",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "builtAt": {
+                      "anyOf": [
+                        {
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                          "type": "string"
+                        },
+                        {
+                          "const": "local",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "commit": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-f0-9]{7,40}$",
+                          "type": "string"
+                        },
+                        {
+                          "const": "local",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "service": {
+                      "const": "local-missions-api",
+                      "type": "string"
+                    },
+                    "version": {
+                      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["builtAt", "commit", "service", "version"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "summary": "Non-secret build provenance",
+        "tags": ["operations"]
+      }
+    },
+    "/health": {
+      "get": {
+        "deprecated": true,
+        "operationId": "HealthController_getLegacyHealth",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "environment": {
+                      "enum": ["local", "development", "staging", "production"],
+                      "type": "string"
+                    },
+                    "service": {
+                      "const": "local-missions-api",
+                      "type": "string"
+                    },
+                    "status": {
+                      "const": "ok",
+                      "type": "string"
+                    },
+                    "version": {
+                      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["environment", "service", "status", "version"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "summary": "Compatibility health response",
+        "tags": ["operations"]
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "HealthController_getLiveness",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "service": {
+                      "const": "local-missions-api",
+                      "type": "string"
+                    },
+                    "status": {
+                      "const": "ok",
+                      "type": "string"
+                    },
+                    "version": {
+                      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["service", "status", "version"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "summary": "Process liveness; never checks dependencies",
+        "tags": ["operations"]
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "HealthController_getReadiness",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "dependencies": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "database": {
+                          "const": "up",
+                          "type": "string"
+                        }
+                      },
+                      "required": ["database"],
+                      "type": "object"
+                    },
+                    "service": {
+                      "const": "local-missions-api",
+                      "type": "string"
+                    },
+                    "status": {
+                      "const": "ready",
+                      "type": "string"
+                    },
+                    "version": {
+                      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["dependencies", "service", "status", "version"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "summary": "Readiness including PostgreSQL connectivity",
+        "tags": ["operations"]
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "OpenApiController_getDocument",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "summary": "OpenAPI 3 contract for the running API surface",
+        "tags": ["operations"]
+      }
+    },
+    "/v1": {
+      "get": {
+        "operationId": "V1Controller_getIndex",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "resources": {
+                      "items": {
+                        "enum": ["mission-templates"],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "version": {
+                      "const": "v1",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["resources", "version"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "summary": "Discover implemented V1 resources",
+        "tags": ["v1"]
+      }
+    },
+    "/v1/dev/token": {
+      "post": {
+        "operationId": "DevTokenController_createToken",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "role": {
+                    "enum": [
+                      "creator",
+                      "business_owner",
+                      "business_manager",
+                      "venue_staff",
+                      "platform_admin"
+                    ],
+                    "type": "string"
+                  },
+                  "subjectPublicId": {
+                    "pattern": "^usr_synthetic_[a-z0-9_]{3,80}$",
+                    "type": "string"
+                  },
+                  "tenantPublicId": {
+                    "pattern": "^biz_synthetic_[a-z0-9_]{3,80}$",
+                    "type": "string"
+                  }
+                },
+                "required": ["role", "subjectPublicId"],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "accessToken": {
+                      "minLength": 32,
+                      "type": "string"
+                    },
+                    "expiresIn": {
+                      "const": 900,
+                      "type": "number"
+                    },
+                    "tokenType": {
+                      "const": "Bearer",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["accessToken", "expiresIn", "tokenType"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "summary": "Issue a short-lived token for synthetic local identities only",
+        "tags": ["local-only"]
+      }
+    },
+    "/v1/mission-templates": {
+      "get": {
+        "operationId": "V1Controller_listMissionTemplates",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "code": {
+                            "enum": [
+                              "visit_create",
+                              "visit_share",
+                              "event_attendance",
+                              "private_experience_feedback"
+                            ],
+                            "type": "string"
+                          },
+                          "name": {
+                            "maxLength": 120,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "version": {
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991,
+                            "type": "integer"
+                          }
+                        },
+                        "required": ["code", "name", "version"],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "page": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "hasMore": {
+                          "type": "boolean"
+                        },
+                        "limit": {
+                          "maximum": 100,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "nextCursor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^[A-Za-z0-9_-]{8,512}$",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": ["hasMore", "limit", "nextCursor"],
+                      "type": "object"
+                    }
+                  },
+                  "required": ["data", "page"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "summary": "List mission template versions with stable cursor pagination",
+        "tags": ["v1"]
+      }
+    }
+  },
+  "servers": [],
+  "tags": []
+}

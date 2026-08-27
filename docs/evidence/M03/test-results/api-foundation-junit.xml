@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="7" failures="0" errors="0" time="0.068105458">
+    <testsuite name="src/api.integration.test.ts" timestamp="2026-08-27T18:04:40.907Z" hostname="local-development-host" tests="7" failures="0" errors="0" skipped="0" time="0.068105458">
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; keeps liveness independent, readiness database-backed, and build info non-secret" time="0.020096209">
+        </testcase>
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; returns a stable cursor page without duplicate mission-template versions" time="0.007620667">
+        </testcase>
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; returns bounded validation details and propagates valid request context IDs" time="0.000712625">
+        </testcase>
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; replaces untrusted request headers and writes only allowlisted structured log fields" time="0.001441542">
+        </testcase>
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; serves the matching contract and excludes local auth from production routes" time="0.001690541">
+        </testcase>
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; fails closed if local token code is instantiated for a deployed environment" time="0.000240417">
+        </testcase>
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; keeps liveness up and readiness safely unavailable when PostgreSQL is unreachable" time="0.004229">
+        </testcase>
+    </testsuite>
+</testsuites>

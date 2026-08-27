@@ -8,9 +8,9 @@ describe('parseServerEnvironment', () => {
       parseServerEnvironment({
         APP_ENV: 'local',
         DATABASE_URL: 'postgresql://local_missions:local@127.0.0.1:5432/local_missions',
-        PORT: '3001',
+        PORT: '4000',
       }),
-    ).toMatchObject({ APP_ENV: 'local', PORT: 3001 });
+    ).toMatchObject({ APP_ENV: 'local', PORT: 4000 });
   });
 
   it('fails closed when the database URL is missing', () => {
