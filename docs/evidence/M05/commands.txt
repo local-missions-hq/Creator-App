@@ -41,3 +41,34 @@ pnpm test:gitleaks
 PASS — Gitleaks found no leaks in approximately 15.24 MB.
 
 No Azure CLI command, Azure login, provider configuration, remote backend, subscription plan, resource creation, networking activation, cloud identity, apply, destroy, or cost-incurring action was used. M5 and final M4 external/native gates remain open.
+
+M05-terraform-resource-module-contract-local-002 — 2026-08-28
+
+Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0 were used locally.
+
+terraform -chdir=infra/terraform/environments/dev init -backend=false -input=false -no-color
+PASS — resolved signed hashicorp/azurerm 5.0.1 package/checksums from Terraform Registry with the Azure backend disabled; no Azure provider configuration or account input existed.
+
+terraform -chdir=infra/terraform/environments/dev validate -no-color
+PASS — disposable root plus resource-group and workload-contract modules were valid.
+
+terraform -chdir=infra/terraform/environments/dev test -json -verbose -no-color -var-file=fixtures/local-plan.tfvars.json
+PASS — 2/2 dev tests passed: the default fixture planned zero changes and the mock-only enabled run planned exactly one create at module.workload_resource_group[0].azurerm_resource_group.this.
+
+pnpm terraform:check
+PASS — validated two roots, three plan tests, eight refusal tests, zero default resource changes, one mock-only resource-group change, eleven workload tags, twelve workload safeguards, ten low-cost defaults, four expiration fixtures, and eight blocked external gates.
+
+tflint --chdir=infra/terraform/control-plane --format compact
+tflint --chdir=infra/terraform/environments/dev --recursive --format compact
+PASS — both roots and recursive dev modules had zero TFLint findings.
+
+pnpm verify
+PASS — formatting, prerequisite/external-auth/authorization/Terraform validation, lint, strict type checks, all repository unit tests including 111 mobile tests, reviewed API/migration contracts, production local-marker exclusion, and all nine builds passed.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 496 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks found no leaks in approximately 15.27 MB.
+
+No Azure CLI command, Azure login, account identifier, provider configuration, credential, subscription, remote backend, provider-backed refresh/plan, resource, networking activation, import, apply, destroy, or cost-incurring action was used. M5 and final M4 external/native gates remain open.

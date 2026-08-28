@@ -10,6 +10,18 @@ variable "location" {
   }
 }
 
+variable "environment" {
+  description = "Exact isolated workload environment. This root is development-only."
+  type        = string
+  default     = "development"
+  nullable    = false
+
+  validation {
+    condition     = var.environment == "development"
+    error_message = "The disposable dev root can plan only the development environment."
+  }
+}
+
 variable "workload_resource_group_name" {
   description = "Exact disposable development workload target. Broad or retained targets are forbidden."
   type        = string
@@ -142,33 +154,6 @@ variable "extension_count" {
   }
 }
 
-variable "network_mode" {
-  description = "Pre-private-network development allows only an explicitly restricted public boundary."
-  type        = string
-  default     = "restricted_public"
-  nullable    = false
-
-  validation {
-    condition     = var.network_mode == "restricted_public"
-    error_message = "Only restricted_public is defined for the pre-private-network dev checkpoint."
-  }
-}
-
-variable "allowed_ipv4_cidrs" {
-  description = "Narrow reviewed ingress allowlist. Empty is allowed only while Azure activation is disabled."
-  type        = list(string)
-  default     = []
-  nullable    = false
-
-  validation {
-    condition = alltrue([
-      for cidr in var.allowed_ipv4_cidrs :
-      can(cidrnetmask(cidr)) && cidr != "0.0.0.0/0"
-    ])
-    error_message = "Every ingress range must be a valid narrow IPv4 CIDR; 0.0.0.0/0 is forbidden."
-  }
-}
-
 variable "alert_destination_reference" {
   description = "Non-secret reference to a verified monitored cost/cleanup destination."
   type        = string
@@ -226,7 +211,7 @@ variable "azure_resource_creation_enabled" {
         length(trimspace(var.apply_approval_reference)) >= 8 &&
         var.approved_monthly_budget_usd > 0 &&
         var.region_and_sku_revalidated &&
-        length(var.allowed_ipv4_cidrs) > 0 &&
+        length(var.network_contract.allowed_ipv4_cidrs) > 0 &&
         length(trimspace(var.cleanup_controller_reference)) >= 8 &&
         !endswith(lower(var.alert_destination_reference), ".example")
       )
@@ -281,5 +266,119 @@ variable "low_cost_defaults" {
       var.low_cost_defaults.container_registry_sku == "Basic"
     )
     error_message = "low_cost_defaults exceeds the local V1 planning ceilings."
+  }
+}
+
+variable "scale_contract" {
+  description = "Conservative planning-only replica bounds for the API and worker."
+  type = object({
+    api_min_replicas    = number
+    api_max_replicas    = number
+    worker_min_replicas = number
+    worker_max_replicas = number
+  })
+  default = {
+    api_min_replicas    = 0
+    api_max_replicas    = 1
+    worker_min_replicas = 0
+    worker_max_replicas = 1
+  }
+  nullable = false
+
+  validation {
+    condition = (
+      var.scale_contract.api_min_replicas == 0 &&
+      var.scale_contract.worker_min_replicas == 0 &&
+      var.scale_contract.api_max_replicas >= 1 &&
+      var.scale_contract.api_max_replicas <= 2 &&
+      var.scale_contract.worker_max_replicas >= 1 &&
+      var.scale_contract.worker_max_replicas <= 2
+    )
+    error_message = "Scale contract requires zero minimum replicas and one-to-two replica ceilings."
+  }
+}
+
+variable "network_contract" {
+  description = "Pre-private-network safeguards; public access is narrow, explicit, and temporary."
+  type = object({
+    mode                                   = string
+    allowed_ipv4_cidrs                     = list(string)
+    minimum_tls_version                    = string
+    postgres_public_network_access_enabled = bool
+    postgres_firewall_allow_azure_services = bool
+    postgres_firewall_allow_all            = bool
+  })
+  default = {
+    mode                                   = "restricted_public"
+    allowed_ipv4_cidrs                     = []
+    minimum_tls_version                    = "TLS1_2"
+    postgres_public_network_access_enabled = true
+    postgres_firewall_allow_azure_services = false
+    postgres_firewall_allow_all            = false
+  }
+  nullable = false
+
+  validation {
+    condition = (
+      var.network_contract.mode == "restricted_public" &&
+      var.network_contract.minimum_tls_version == "TLS1_2" &&
+      var.network_contract.postgres_public_network_access_enabled &&
+      !var.network_contract.postgres_firewall_allow_azure_services &&
+      !var.network_contract.postgres_firewall_allow_all &&
+      alltrue([
+        for cidr in var.network_contract.allowed_ipv4_cidrs :
+        can(cidrnetmask(cidr)) && cidr != "0.0.0.0/0"
+      ])
+    )
+    error_message = "Network contract requires restricted public mode, TLS 1.2, and narrow PostgreSQL CIDRs without allow-all or trusted-services bypasses."
+  }
+}
+
+variable "backup_contract" {
+  description = "Planning-only PostgreSQL recovery bounds."
+  type = object({
+    postgres_retention_days        = number
+    geo_redundant_backup_enabled   = bool
+    point_in_time_restore_required = bool
+  })
+  default = {
+    postgres_retention_days        = 7
+    geo_redundant_backup_enabled   = false
+    point_in_time_restore_required = true
+  }
+  nullable = false
+
+  validation {
+    condition = (
+      var.backup_contract.postgres_retention_days >= 7 &&
+      var.backup_contract.postgres_retention_days <= 14 &&
+      !var.backup_contract.geo_redundant_backup_enabled &&
+      var.backup_contract.point_in_time_restore_required
+    )
+    error_message = "Backup contract requires 7-14 day retention, point-in-time restore, and no unapproved geo-redundant backup."
+  }
+}
+
+variable "storage_access_contract" {
+  description = "Anonymous Blob access and unused static website hosting remain disabled."
+  type = object({
+    blob_public_access_enabled = bool
+    static_website_enabled     = bool
+    container_access_type      = string
+  })
+  default = {
+    blob_public_access_enabled = false
+    static_website_enabled     = false
+    container_access_type      = "private"
+  }
+  nullable = false
+
+  validation {
+    condition = (
+      !var.storage_access_contract.blob_public_access_enabled &&
+      !var.storage_access_contract.static_website_enabled &&
+      var.storage_access_contract.container_access_type == "private"
+    )
+    error_message = "Storage access contract forbids anonymous Blob access and static website hosting."
   }
 }

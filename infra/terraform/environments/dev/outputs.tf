@@ -1,6 +1,6 @@
 output "activation_status" {
-  description = "Confirms that the local checkpoint cannot create Azure resources."
-  value       = var.azure_resource_creation_enabled ? "unexpected-enabled" : "local-contract-only"
+  description = "Distinguishes the default zero-resource plan from the mock-only enabled test."
+  value       = var.azure_resource_creation_enabled ? "mock-enabled-contract" : "local-contract-only"
 }
 
 output "backend_contract" {
@@ -45,8 +45,22 @@ output "planning_contract" {
   description = "Non-secret candidate deployment values that remain externally gated."
   value = {
     candidate_location = var.location
-    network_mode       = var.network_mode
+    network_mode       = var.network_contract.mode
   }
+}
+
+output "resource_group_contract" {
+  description = "Resource-group module plan shape; count remains zero outside the mock-enabled test."
+  value = {
+    planned_count = length(module.workload_resource_group)
+    names         = [for resource_group in module.workload_resource_group : resource_group.name]
+    tags          = local.required_tags
+  }
+}
+
+output "workload_safeguards" {
+  description = "Provider-independent safety contract passed to future workload modules."
+  value       = module.workload_contract.safeguards
 }
 
 output "root_kind" {

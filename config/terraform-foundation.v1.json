@@ -1,7 +1,7 @@
 {
   "activationStatus": "local_contract_only",
   "azureCompletionClaimed": false,
-  "checkpoint": "M05-terraform-ephemeral-foundation-local-001",
+  "checkpoint": "M05-terraform-resource-module-contract-local-002",
   "expirationPolicy": {
     "cutoffHourAmericaNewYork": 23,
     "fixtures": [
@@ -46,6 +46,47 @@
     "Independent Terraform and live-Azure teardown reconciliation"
   ],
   "foundationVersion": 1,
+  "mockProviderContract": {
+    "allowedResourceTypes": ["azurerm_resource_group"],
+    "enabledPlanResourceChanges": 1,
+    "providerSource": "hashicorp/azurerm",
+    "providerVersion": "5.0.1",
+    "rootId": "workload-dev"
+  },
+  "refusalFixtures": [
+    {
+      "fixture": "fixtures/invalid-target.tfvars.json",
+      "marker": "workload_resource_group_name"
+    },
+    {
+      "fixture": "fixtures/invalid-expiration.tfvars.json",
+      "marker": "expires_at"
+    },
+    {
+      "fixture": "fixtures/invalid-activation.tfvars.json",
+      "marker": "Azure activation requires"
+    },
+    {
+      "fixture": "fixtures/invalid-environment.tfvars.json",
+      "marker": "development environment"
+    },
+    {
+      "fixture": "fixtures/invalid-scale.tfvars.json",
+      "marker": "Scale contract"
+    },
+    {
+      "fixture": "fixtures/invalid-network.tfvars.json",
+      "marker": "Network contract"
+    },
+    {
+      "fixture": "fixtures/invalid-backup.tfvars.json",
+      "marker": "Backup contract"
+    },
+    {
+      "fixture": "fixtures/invalid-anonymous-access.tfvars.json",
+      "marker": "Storage access contract"
+    }
+  ],
   "requiredTags": [
     "application",
     "environment",
@@ -65,6 +106,7 @@
       "fixture": "fixtures/local-plan.tfvars.json",
       "kind": "retained_control_plane",
       "path": "infra/terraform/control-plane",
+      "planTests": 1,
       "resourceGroupClass": "retained",
       "rootId": "control-plane"
     },
@@ -73,6 +115,7 @@
       "fixture": "fixtures/local-plan.tfvars.json",
       "kind": "disposable_workload",
       "path": "infra/terraform/environments/dev",
+      "planTests": 2,
       "resourceGroupClass": "disposable",
       "rootId": "workload-dev"
     }
@@ -86,6 +129,20 @@
     "postgresSkuName": "B_Standard_B1ms",
     "postgresStorageMb": 32768,
     "serviceBusSku": "Basic",
+    "workerMaxReplicas": 1,
+    "workerMinReplicas": 0
+  },
+  "workloadSafeguards": {
+    "anonymousBlobAccess": false,
+    "apiMaxReplicas": 1,
+    "apiMinReplicas": 0,
+    "containerAccessType": "private",
+    "geoRedundantBackup": false,
+    "minimumTlsVersion": "TLS1_2",
+    "postgresAllowAll": false,
+    "postgresBackupRetentionDays": 7,
+    "postgresPointInTimeRestore": true,
+    "staticWebsiteEnabled": false,
     "workerMaxReplicas": 1,
     "workerMinReplicas": 0
   },

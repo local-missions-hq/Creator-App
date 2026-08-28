@@ -21,9 +21,11 @@ Run only:
 pnpm terraform:check
 ```
 
-The gate runs Terraform 1.15.7 formatting, backend-disabled initialization/validation, and plan-only tests with synthetic fixture values. It asserts zero Azure provider/resource blocks and zero planned resource changes. It also requires three negative plans to refuse a retained/broad target, an over-eight-hour expiration, and activation without approval/budget/current price review/narrow CIDRs/cleanup controller/monitored destination.
+The gate runs Terraform 1.15.7 formatting, backend-disabled initialization/validation, and plan-only tests with synthetic fixture values. The default fixtures plan zero resource changes. The only enabled-shape test replaces AzureRM with Terraform's mock provider and expects exactly one disposable resource-group create. Eight refusal fixtures cover retained/broad targets, over-eight-hour expiration, activation without approvals, wrong environment, unsafe scale, broad/weak networking, unbounded backup, and anonymous Blob access.
 
-The gate strips Azure, ARM, and `TF_VAR_*` values from Terraform subprocesses. It does not execute `az`, contact Azure, configure a backend, create state, or call `terraform apply`.
+The gate strips Azure, ARM, and `TF_VAR_*` values from Terraform subprocesses. It does not execute `az`, contact Azure, configure a provider or backend, create remote state, perform a provider-backed refresh/plan, or call `terraform apply`.
+
+The pinned AzureRM package and checksums support deterministic schema validation. They do not approve Azure access or any candidate service/SKU. Mock-provider behavior follows [HashiCorp's Terraform test guidance](https://developer.hashicorp.com/terraform/language/tests/mocking). Storage contracts keep anonymous Blob access and unused static website hosting disabled, consistent with [Microsoft's Blob security guidance](https://learn.microsoft.com/en-us/azure/storage/blobs/secure-blobs). The PostgreSQL contract retains seven-day point-in-time recovery within [Azure PostgreSQL Flexible Server's documented retention range](https://learn.microsoft.com/en-us/azure/postgresql/backup-restore/concepts-backup-restore).
 
 ## Required future apply metadata
 

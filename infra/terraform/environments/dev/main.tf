@@ -26,11 +26,26 @@ locals {
   }
 }
 
-check "checkpoint_has_no_cloud_resources" {
-  assert {
-    condition     = var.azure_resource_creation_enabled == false
-    error_message = "This local checkpoint must not activate Azure resources."
-  }
+module "workload_contract" {
+  source = "../../modules/workload-contract"
+
+  environment                     = var.environment
+  workload_resource_group_name    = var.workload_resource_group_name
+  retained_resource_group_names   = [var.control_plane_resource_group_name, var.state_resource_group_name]
+  scale_contract                  = var.scale_contract
+  network_contract                = var.network_contract
+  backup_contract                 = var.backup_contract
+  storage_access_contract         = var.storage_access_contract
+  azure_resource_creation_enabled = var.azure_resource_creation_enabled
+}
+
+module "workload_resource_group" {
+  count  = var.azure_resource_creation_enabled ? 1 : 0
+  source = "../../modules/resource-group"
+
+  name     = var.workload_resource_group_name
+  location = var.location
+  tags     = local.required_tags
 }
 
 check "retained_and_disposable_scopes_are_distinct" {
