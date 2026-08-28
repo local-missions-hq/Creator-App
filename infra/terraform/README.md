@@ -19,4 +19,6 @@ The intended progression is:
 
 `pnpm saved-plan:check` proves two synthetic apply/destroy producer-consumer manifests, SHA-256 artifact and canonical review binding, exact source/target/cost/approval/expiry evidence, strict sanitization, transient-copy deletion, and fail-closed mutations. Harmless `.synthetic.fixture` text is used instead of a Terraform plan binary.
 
+`pnpm run-ledger:check` proves the complete synthetic apply/test/continue-or-rollback/destroy/reconcile state machine, independent state/live inventory checks, retained-control-plane separation, and attached escalation for timeout, failure, or orphan outcomes. It executes no Terraform or cloud command.
+
 Do not add credentials, subscription identifiers, broad targets, persistent dev resources, or resource mutations merely to make the foundation look complete. Current region/SKU prices, named owners, alert delivery, OIDC identities, budgets, saved plans, and every apply/destroy action remain separate external gates.

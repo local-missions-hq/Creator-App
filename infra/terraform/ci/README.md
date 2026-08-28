@@ -6,4 +6,6 @@ This directory contains documentation-only CI shapes. Files here are not GitHub 
 
 The separate saved-plan producer-consumer, digest, sanitization, cost, approval, expiry, and retention rules live in `config/saved-plan-evidence.v1.json` and are checked by `pnpm saved-plan:check` using synthetic fixtures only.
 
+The later apply/test/rollback/destroy/reconcile lifecycle and truthful clean-versus-escalated report live in `config/ephemeral-run-ledger.v1.json` and are checked by `pnpm run-ledger:check` using synthetic ledgers only.
+
 Do not activate the template until the external subject-preview, identity, scope, environment-protection, action-pin, plan/cost, and explicit approval gates in `docs/operations/github-azure-oidc-plan-gate.md` all have evidence.

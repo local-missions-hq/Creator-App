@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 1,
+  "fixtureStatus": "synthetic_only",
+  "scenario": "orphan_escalated",
+  "ledgerDigestSha256": "13c239e6b462f7eb5250d08e61943f40b81ab79770a143b93ee9d54198365efe",
+  "run": {
+    "runId": "synthetic:ephemeral-run:orphan:001",
+    "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "terraformRoot": "infra/terraform/environments/dev",
+    "targetResourceGroup": "rg-local-missions-dev-example",
+    "operator": "synthetic:actor:operator",
+    "cleanupController": "synthetic:identity:cleanup-controller",
+    "startedAt": "2026-08-28T14:30:00-04:00",
+    "expiresAt": "2026-08-28T22:00:00-04:00",
+    "warningAt": "2026-08-28T21:00:00-04:00",
+    "endedAt": "2026-08-28T21:00:00-04:00",
+    "lockStatus": "acquired",
+    "extensionCount": 0
+  },
+  "planBindings": {
+    "applyArtifactSha256": "3801717dc87b4467e37574c436c81be4644ebae5fefbadd74bafaab128ae52d1",
+    "applyReviewPayloadSha256": "93f7f1342d72104a53a47396d4c68b35c5378b78b06094cfd02e56439980b5fc",
+    "destroyArtifactSha256": "f171666bbb73dedeb37e39cacf5d77f92fe1e1cdc4dd4a9c448c2fbd676689c4",
+    "destroyReviewPayloadSha256": "fa5851ffb25b0dafbf34df709aa1a17abca2542e8081960907067794b70ff1bd"
+  },
+  "evidence": {
+    "apply": {
+      "status": "succeeded",
+      "startedAt": "2026-08-28T14:35:00-04:00",
+      "finishedAt": "2026-08-28T14:50:00-04:00",
+      "actor": "synthetic:identity:apply",
+      "evidenceRef": "synthetic:evidence:apply:orphan:001"
+    },
+    "tests": {
+      "status": "passed",
+      "startedAt": "2026-08-28T14:55:00-04:00",
+      "finishedAt": "2026-08-28T16:20:00-04:00",
+      "gates": {
+        "smoke": "passed",
+        "integration": "passed",
+        "e2e": "passed",
+        "authorization": "passed",
+        "upload": "passed",
+        "queue": "passed",
+        "webhook": "passed",
+        "backup_restore": "passed",
+        "reconciliation": "passed",
+        "dashboard": "passed",
+        "environment_isolation": "passed"
+      },
+      "evidenceRef": "synthetic:evidence:tests:orphan:001"
+    },
+    "decision": {
+      "kind": "continue",
+      "decidedAt": "2026-08-28T16:25:00-04:00",
+      "actor": "synthetic:actor:run-reviewer",
+      "reasonCode": "all_critical_tests_passed"
+    },
+    "rollback": {
+      "status": "not_required",
+      "startedAt": null,
+      "finishedAt": null,
+      "actor": null,
+      "evidenceRef": null
+    },
+    "destroy": {
+      "status": "timed_out",
+      "startedAt": "2026-08-28T19:00:00-04:00",
+      "finishedAt": "2026-08-28T20:01:00-04:00",
+      "actor": "synthetic:identity:destroy",
+      "evidenceRef": "synthetic:evidence:destroy-timeout:001"
+    },
+    "reconciliation": {
+      "status": "orphan_detected",
+      "startedAt": "2026-08-28T20:10:00-04:00",
+      "finishedAt": "2026-08-28T20:20:00-04:00",
+      "actor": "synthetic:actor:independent-reconciler",
+      "stateQueryRef": "synthetic:evidence:state-query:orphan:001",
+      "liveQueryRef": "synthetic:evidence:live-query:orphan:001"
+    }
+  },
+  "inventories": {
+    "disposableBefore": {
+      "total": 28,
+      "typeCounts": {
+        "containerApps": 13,
+        "keyVault": 1,
+        "postgresql": 4,
+        "registry": 1,
+        "resourceGroup": 1,
+        "serviceBus": 2,
+        "storage": 4,
+        "telemetry": 2
+      }
+    },
+    "disposableAfter": {
+      "terraformStateCount": 0,
+      "liveResourceCount": 1,
+      "orphanRefs": ["synthetic:resource:orphan:telemetry:001"]
+    },
+    "retained": {
+      "expectedClasses": [
+        "terraform-state-backend",
+        "terraform-state-lock",
+        "github-azure-oidc-identities",
+        "entra-app-registrations",
+        "stable-verification-dns",
+        "subscription-budgets-alerts-policy"
+      ],
+      "observedClasses": [
+        "terraform-state-backend",
+        "terraform-state-lock",
+        "github-azure-oidc-identities",
+        "entra-app-registrations",
+        "stable-verification-dns",
+        "subscription-budgets-alerts-policy"
+      ],
+      "unexpectedRefs": []
+    }
+  },
+  "incident": {
+    "status": "open_attached",
+    "reasonCode": "destroy_timeout_with_orphan",
+    "openedAt": "2026-08-28T20:02:00-04:00",
+    "owner": "synthetic:actor:incident-owner",
+    "nextReviewAt": "2026-08-28T21:30:00-04:00",
+    "evidenceRefs": [
+      "synthetic:evidence:destroy-timeout:001",
+      "synthetic:evidence:live-query:orphan:001"
+    ]
+  },
+  "events": [
+    {
+      "sequence": 1,
+      "from": "plan_approved",
+      "to": "apply_started",
+      "at": "2026-08-28T14:35:00-04:00",
+      "actor": "synthetic:identity:apply",
+      "evidenceRef": "synthetic:evidence:apply-start:orphan:001",
+      "reasonCode": "approved_plan_consumed"
+    },
+    {
+      "sequence": 2,
+      "from": "apply_started",
+      "to": "apply_succeeded",
+      "at": "2026-08-28T14:50:00-04:00",
+      "actor": "synthetic:identity:apply",
+      "evidenceRef": "synthetic:evidence:apply:orphan:001",
+      "reasonCode": "apply_succeeded"
+    },
+    {
+      "sequence": 3,
+      "from": "apply_succeeded",
+      "to": "tests_started",
+      "at": "2026-08-28T14:55:00-04:00",
+      "actor": "synthetic:actor:test-runner",
+      "evidenceRef": "synthetic:evidence:tests-start:orphan:001",
+      "reasonCode": "test_gate_started"
+    },
+    {
+      "sequence": 4,
+      "from": "tests_started",
+      "to": "tests_passed",
+      "at": "2026-08-28T16:20:00-04:00",
+      "actor": "synthetic:actor:test-runner",
+      "evidenceRef": "synthetic:evidence:tests:orphan:001",
+      "reasonCode": "all_critical_tests_passed"
+    },
+    {
+      "sequence": 5,
+      "from": "tests_passed",
+      "to": "continue_approved",
+      "at": "2026-08-28T16:25:00-04:00",
+      "actor": "synthetic:actor:run-reviewer",
+      "evidenceRef": "synthetic:evidence:decision:orphan:001",
+      "reasonCode": "continue_after_pass"
+    },
+    {
+      "sequence": 6,
+      "from": "continue_approved",
+      "to": "destroy_plan_reviewed",
+      "at": "2026-08-28T18:55:00-04:00",
+      "actor": "synthetic:actor:destroy-reviewer",
+      "evidenceRef": "synthetic:evidence:destroy-plan-review:orphan:001",
+      "reasonCode": "exact_target_reviewed"
+    },
+    {
+      "sequence": 7,
+      "from": "destroy_plan_reviewed",
+      "to": "destroy_started",
+      "at": "2026-08-28T19:00:00-04:00",
+      "actor": "synthetic:identity:destroy",
+      "evidenceRef": "synthetic:evidence:destroy-start:orphan:001",
+      "reasonCode": "reviewed_destroy_plan_consumed"
+    },
+    {
+      "sequence": 8,
+      "from": "destroy_started",
+      "to": "destroy_timed_out",
+      "at": "2026-08-28T20:01:00-04:00",
+      "actor": "synthetic:identity:destroy",
+      "evidenceRef": "synthetic:evidence:destroy-timeout:001",
+      "reasonCode": "destroy_exceeded_timeout"
+    },
+    {
+      "sequence": 9,
+      "from": "destroy_timed_out",
+      "to": "incident_opened",
+      "at": "2026-08-28T20:02:00-04:00",
+      "actor": "synthetic:actor:incident-owner",
+      "evidenceRef": "synthetic:evidence:incident:001",
+      "reasonCode": "cleanup_failure_attached"
+    },
+    {
+      "sequence": 10,
+      "from": "incident_opened",
+      "to": "reconciliation_started",
+      "at": "2026-08-28T20:10:00-04:00",
+      "actor": "synthetic:actor:independent-reconciler",
+      "evidenceRef": "synthetic:evidence:reconcile-start:orphan:001",
+      "reasonCode": "independent_queries_started"
+    },
+    {
+      "sequence": 11,
+      "from": "reconciliation_started",
+      "to": "orphan_detected",
+      "at": "2026-08-28T20:20:00-04:00",
+      "actor": "synthetic:actor:independent-reconciler",
+      "evidenceRef": "synthetic:evidence:live-query:orphan:001",
+      "reasonCode": "live_resource_not_in_state"
+    },
+    {
+      "sequence": 12,
+      "from": "orphan_detected",
+      "to": "escalated",
+      "at": "2026-08-28T21:00:00-04:00",
+      "actor": "synthetic:actor:incident-owner",
+      "evidenceRef": "synthetic:evidence:escalation:001",
+      "reasonCode": "orphan_remains_attached"
+    }
+  ],
+  "finalReport": {
+    "outcome": "escalated",
+    "disposableWorkloadStatus": "not_empty",
+    "retainedControlPlaneStatus": "expected",
+    "claim": "synthetic_only",
+    "completedAt": "2026-08-28T21:00:00-04:00"
+  }
+}

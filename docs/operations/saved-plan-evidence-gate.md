@@ -57,3 +57,5 @@ Do not turn a fixture status into a live claim. A separately approved checkpoint
 7. separately authorize the matching apply or destroy consumer.
 
 No step in this checkpoint performed that sequence.
+
+After future plan approval, operation evidence must follow the separate [ephemeral run-ledger gate](./ephemeral-run-ledger-gate.md); a valid saved plan alone never proves apply, testing, rollback, destroy, or independent reconciliation.

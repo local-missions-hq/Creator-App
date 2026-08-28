@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "fixtureStatus": "synthetic_only",
+  "scenario": "continue_complete",
+  "ledgerDigestSha256": "b9c37c54bc00b130c65636141f2504fdd4648decd8d7e9943a0096b05e909e3e",
+  "run": {
+    "runId": "synthetic:ephemeral-run:continue:001",
+    "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "terraformRoot": "infra/terraform/environments/dev",
+    "targetResourceGroup": "rg-local-missions-dev-example",
+    "operator": "synthetic:actor:operator",
+    "cleanupController": "synthetic:identity:cleanup-controller",
+    "startedAt": "2026-08-28T14:30:00-04:00",
+    "expiresAt": "2026-08-28T22:00:00-04:00",
+    "warningAt": "2026-08-28T21:00:00-04:00",
+    "endedAt": "2026-08-28T18:10:00-04:00",
+    "lockStatus": "acquired",
+    "extensionCount": 0
+  },
+  "planBindings": {
+    "applyArtifactSha256": "3801717dc87b4467e37574c436c81be4644ebae5fefbadd74bafaab128ae52d1",
+    "applyReviewPayloadSha256": "93f7f1342d72104a53a47396d4c68b35c5378b78b06094cfd02e56439980b5fc",
+    "destroyArtifactSha256": "f171666bbb73dedeb37e39cacf5d77f92fe1e1cdc4dd4a9c448c2fbd676689c4",
+    "destroyReviewPayloadSha256": "fa5851ffb25b0dafbf34df709aa1a17abca2542e8081960907067794b70ff1bd"
+  },
+  "evidence": {
+    "apply": {
+      "status": "succeeded",
+      "startedAt": "2026-08-28T14:35:00-04:00",
+      "finishedAt": "2026-08-28T14:50:00-04:00",
+      "actor": "synthetic:identity:apply",
+      "evidenceRef": "synthetic:evidence:apply:001"
+    },
+    "tests": {
+      "status": "passed",
+      "startedAt": "2026-08-28T14:55:00-04:00",
+      "finishedAt": "2026-08-28T16:20:00-04:00",
+      "gates": {
+        "smoke": "passed",
+        "integration": "passed",
+        "e2e": "passed",
+        "authorization": "passed",
+        "upload": "passed",
+        "queue": "passed",
+        "webhook": "passed",
+        "backup_restore": "passed",
+        "reconciliation": "passed",
+        "dashboard": "passed",
+        "environment_isolation": "passed"
+      },
+      "evidenceRef": "synthetic:evidence:tests:continue:001"
+    },
+    "decision": {
+      "kind": "continue",
+      "decidedAt": "2026-08-28T16:25:00-04:00",
+      "actor": "synthetic:actor:run-reviewer",
+      "reasonCode": "all_critical_tests_passed"
+    },
+    "rollback": {
+      "status": "not_required",
+      "startedAt": null,
+      "finishedAt": null,
+      "actor": null,
+      "evidenceRef": null
+    },
+    "destroy": {
+      "status": "succeeded",
+      "startedAt": "2026-08-28T16:40:00-04:00",
+      "finishedAt": "2026-08-28T17:30:00-04:00",
+      "actor": "synthetic:identity:destroy",
+      "evidenceRef": "synthetic:evidence:destroy:continue:001"
+    },
+    "reconciliation": {
+      "status": "clean",
+      "startedAt": "2026-08-28T17:35:00-04:00",
+      "finishedAt": "2026-08-28T17:45:00-04:00",
+      "actor": "synthetic:actor:independent-reconciler",
+      "stateQueryRef": "synthetic:evidence:state-query:continue:001",
+      "liveQueryRef": "synthetic:evidence:live-query:continue:001"
+    }
+  },
+  "inventories": {
+    "disposableBefore": {
+      "total": 28,
+      "typeCounts": {
+        "containerApps": 13,
+        "keyVault": 1,
+        "postgresql": 4,
+        "registry": 1,
+        "resourceGroup": 1,
+        "serviceBus": 2,
+        "storage": 4,
+        "telemetry": 2
+      }
+    },
+    "disposableAfter": {
+      "terraformStateCount": 0,
+      "liveResourceCount": 0,
+      "orphanRefs": []
+    },
+    "retained": {
+      "expectedClasses": [
+        "terraform-state-backend",
+        "terraform-state-lock",
+        "github-azure-oidc-identities",
+        "entra-app-registrations",
+        "stable-verification-dns",
+        "subscription-budgets-alerts-policy"
+      ],
+      "observedClasses": [
+        "terraform-state-backend",
+        "terraform-state-lock",
+        "github-azure-oidc-identities",
+        "entra-app-registrations",
+        "stable-verification-dns",
+        "subscription-budgets-alerts-policy"
+      ],
+      "unexpectedRefs": []
+    }
+  },
+  "incident": null,
+  "events": [
+    {
+      "sequence": 1,
+      "from": "plan_approved",
+      "to": "apply_started",
+      "at": "2026-08-28T14:35:00-04:00",
+      "actor": "synthetic:identity:apply",
+      "evidenceRef": "synthetic:evidence:apply-start:001",
+      "reasonCode": "approved_plan_consumed"
+    },
+    {
+      "sequence": 2,
+      "from": "apply_started",
+      "to": "apply_succeeded",
+      "at": "2026-08-28T14:50:00-04:00",
+      "actor": "synthetic:identity:apply",
+      "evidenceRef": "synthetic:evidence:apply:001",
+      "reasonCode": "apply_succeeded"
+    },
+    {
+      "sequence": 3,
+      "from": "apply_succeeded",
+      "to": "tests_started",
+      "at": "2026-08-28T14:55:00-04:00",
+      "actor": "synthetic:actor:test-runner",
+      "evidenceRef": "synthetic:evidence:tests-start:001",
+      "reasonCode": "test_gate_started"
+    },
+    {
+      "sequence": 4,
+      "from": "tests_started",
+      "to": "tests_passed",
+      "at": "2026-08-28T16:20:00-04:00",
+      "actor": "synthetic:actor:test-runner",
+      "evidenceRef": "synthetic:evidence:tests:continue:001",
+      "reasonCode": "all_critical_tests_passed"
+    },
+    {
+      "sequence": 5,
+      "from": "tests_passed",
+      "to": "continue_approved",
+      "at": "2026-08-28T16:25:00-04:00",
+      "actor": "synthetic:actor:run-reviewer",
+      "evidenceRef": "synthetic:evidence:decision:continue:001",
+      "reasonCode": "continue_after_pass"
+    },
+    {
+      "sequence": 6,
+      "from": "continue_approved",
+      "to": "destroy_plan_reviewed",
+      "at": "2026-08-28T16:35:00-04:00",
+      "actor": "synthetic:actor:destroy-reviewer",
+      "evidenceRef": "synthetic:evidence:destroy-plan-review:001",
+      "reasonCode": "exact_target_reviewed"
+    },
+    {
+      "sequence": 7,
+      "from": "destroy_plan_reviewed",
+      "to": "destroy_started",
+      "at": "2026-08-28T16:40:00-04:00",
+      "actor": "synthetic:identity:destroy",
+      "evidenceRef": "synthetic:evidence:destroy-start:001",
+      "reasonCode": "reviewed_destroy_plan_consumed"
+    },
+    {
+      "sequence": 8,
+      "from": "destroy_started",
+      "to": "destroy_succeeded",
+      "at": "2026-08-28T17:30:00-04:00",
+      "actor": "synthetic:identity:destroy",
+      "evidenceRef": "synthetic:evidence:destroy:continue:001",
+      "reasonCode": "destroy_succeeded"
+    },
+    {
+      "sequence": 9,
+      "from": "destroy_succeeded",
+      "to": "reconciliation_started",
+      "at": "2026-08-28T17:35:00-04:00",
+      "actor": "synthetic:actor:independent-reconciler",
+      "evidenceRef": "synthetic:evidence:reconcile-start:001",
+      "reasonCode": "independent_queries_started"
+    },
+    {
+      "sequence": 10,
+      "from": "reconciliation_started",
+      "to": "reconciled_clean",
+      "at": "2026-08-28T17:45:00-04:00",
+      "actor": "synthetic:actor:independent-reconciler",
+      "evidenceRef": "synthetic:evidence:reconciled-clean:001",
+      "reasonCode": "state_and_live_empty"
+    },
+    {
+      "sequence": 11,
+      "from": "reconciled_clean",
+      "to": "complete",
+      "at": "2026-08-28T18:10:00-04:00",
+      "actor": "synthetic:actor:run-reviewer",
+      "evidenceRef": "synthetic:evidence:final-report:continue:001",
+      "reasonCode": "independently_reconciled_clean"
+    }
+  ],
+  "finalReport": {
+    "outcome": "complete",
+    "disposableWorkloadStatus": "empty",
+    "retainedControlPlaneStatus": "expected",
+    "claim": "synthetic_only",
+    "completedAt": "2026-08-28T18:10:00-04:00"
+  }
+}

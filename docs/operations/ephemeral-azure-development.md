@@ -29,6 +29,8 @@ The gate strips Azure, ARM, and `TF_VAR_*` values from Terraform subprocesses. I
 
 `pnpm saved-plan:check` validates the static [saved-plan evidence gate](./saved-plan-evidence-gate.md). Two harmless text fixtures model apply and destroy producer-consumer binding across artifact/review digests, source and target, synthetic cost ceilings, independent review/approval, same-day expiry, exact commands, and transient deletion. It never creates or reads a Terraform plan binary.
 
+`pnpm run-ledger:check` validates the static [ephemeral run-ledger gate](./ephemeral-run-ledger-gate.md). Three synthetic ledgers cover clean continuation, successful application rollback after a failed test, and destroy-timeout/orphan escalation. The gate separates Terraform-state, live disposable, and retained-control-plane inventories and never contacts Azure.
+
 The pinned AzureRM package and checksums support deterministic schema validation. They do not approve Azure access or any candidate service/SKU. Mock-provider behavior follows [HashiCorp's Terraform test guidance](https://developer.hashicorp.com/terraform/language/tests/mocking). Storage contracts keep anonymous Blob access, Shared Key, and unused static website hosting disabled. PostgreSQL uses Entra-only authentication and seven-day point-in-time recovery. Container Apps use separate managed identities, scoped RBAC, and digest-pinned image references without registry passwords. Key Vault is RBAC-only and Terraform creates no secret values.
 
 ## Required future apply metadata
