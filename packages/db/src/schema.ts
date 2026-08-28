@@ -79,6 +79,52 @@ export const missionSlotStatus = pgEnum('mission_slot_status', [
   'canceled',
 ]);
 export const reachLevel = pgEnum('reach_level', ['level_1', 'level_2', 'level_3']);
+export const socialPlatform = pgEnum('social_platform', ['instagram', 'tiktok', 'youtube']);
+export const reachCapabilityStatus = pgEnum('reach_capability_status', [
+  'disabled',
+  'enabled',
+  'outage',
+]);
+export const reachAnalyticsSourceType = pgEnum('reach_analytics_source_type', [
+  'official_platform_api',
+  'approved_analytics_provider',
+]);
+export const reachAnalyticsConsentStatus = pgEnum('reach_analytics_consent_status', [
+  'active',
+  'revoked',
+]);
+export const reachAuthenticityStatus = pgEnum('reach_authenticity_status', [
+  'passed',
+  'failed',
+  'review_required',
+]);
+export const reachVerificationStatus = pgEnum('reach_verification_status', [
+  'pending_review',
+  'verified',
+  'rejected',
+  'appeal_pending',
+  'final_rejected',
+]);
+export const reachQualificationStatus = pgEnum('reach_qualification_status', [
+  'active',
+  'superseded',
+  'expired',
+  'revoked',
+]);
+export const reachEvidenceDeletionStatus = pgEnum('reach_evidence_deletion_status', [
+  'pending',
+  'processing',
+  'completed',
+  'dead_letter',
+]);
+export const reachEvidenceDeletionOutcome = pgEnum('reach_evidence_deletion_outcome', [
+  'deleted',
+  'failed',
+]);
+export const reachProviderOutageStatus = pgEnum('reach_provider_outage_status', [
+  'active',
+  'resolved',
+]);
 export const missionApplicationStatus = pgEnum('mission_application_status', [
   'submitted',
   'accepted',
@@ -595,6 +641,447 @@ export const businessLocations = pgTable(
   ],
 );
 
+export const reachPlatformCapabilities = pgTable(
+  'reach_platform_capabilities',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    platform: socialPlatform('platform').notNull(),
+    status: reachCapabilityStatus('status').default('disabled').notNull(),
+    approvedSourceType: reachAnalyticsSourceType('approved_source_type'),
+    approvedProviderKey: text('approved_provider_key'),
+    methodologyVersion: text('methodology_version'),
+    feasibilityApproved: boolean('feasibility_approved').default(false).notNull(),
+    securityApproved: boolean('security_approved').default(false).notNull(),
+    privacyApproved: boolean('privacy_approved').default(false).notNull(),
+    providerPolicyApproved: boolean('provider_policy_approved').default(false).notNull(),
+    reliabilityApproved: boolean('reliability_approved').default(false).notNull(),
+    retentionApproved: boolean('retention_approved').default(false).notNull(),
+    operationsApproved: boolean('operations_approved').default(false).notNull(),
+    reviewedByUserId: uuid('reviewed_by_user_id').references(() => users.id, {
+      onDelete: 'restrict',
+    }),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    disabledAt: timestamp('disabled_at', { withTimezone: true }),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('reach_platform_capabilities_public_id_uq').on(table.publicId),
+    uniqueIndex('reach_platform_capabilities_platform_uq').on(table.platform),
+    check(
+      'reach_platform_capabilities_provider_key_ck',
+      sql`${table.approvedProviderKey} IS NULL OR ${table.approvedProviderKey} ~ '^[a-z0-9][a-z0-9._-]{2,79}$'`,
+    ),
+    check(
+      'reach_platform_capabilities_methodology_ck',
+      sql`${table.methodologyVersion} IS NULL OR ${table.methodologyVersion} ~ '^[a-z0-9][a-z0-9._-]{2,39}$'`,
+    ),
+    check(
+      'reach_platform_capabilities_enabled_ck',
+      sql`${table.status} = 'disabled' OR (
+        ${table.approvedSourceType} IS NOT NULL AND ${table.approvedProviderKey} IS NOT NULL
+        AND ${table.methodologyVersion} IS NOT NULL AND ${table.reviewedByUserId} IS NOT NULL
+        AND ${table.reviewedAt} IS NOT NULL AND ${table.feasibilityApproved} = true
+        AND ${table.securityApproved} = true AND ${table.privacyApproved} = true
+        AND ${table.providerPolicyApproved} = true AND ${table.reliabilityApproved} = true
+        AND ${table.retentionApproved} = true AND ${table.operationsApproved} = true
+      )`,
+    ),
+    check('reach_platform_capabilities_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const reachAnalyticsConsents = pgTable(
+  'reach_analytics_consents',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => creatorProfiles.userId, { onDelete: 'restrict' }),
+    platform: socialPlatform('platform').notNull(),
+    status: reachAnalyticsConsentStatus('status').default('active').notNull(),
+    consentVersion: text('consent_version').notNull(),
+    grantedAt: timestamp('granted_at', { withTimezone: true }).defaultNow().notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    version: integer('version').default(1).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('reach_analytics_consents_public_id_uq').on(table.publicId),
+    uniqueIndex('reach_analytics_consents_creator_platform_uq').on(
+      table.creatorUserId,
+      table.platform,
+    ),
+    check(
+      'reach_analytics_consents_version_name_ck',
+      sql`${table.consentVersion} ~ '^reach-consent-v[1-9][0-9]*$'`,
+    ),
+    check(
+      'reach_analytics_consents_status_ck',
+      sql`(${table.status} = 'active' AND ${table.revokedAt} IS NULL) OR
+          (${table.status} = 'revoked' AND ${table.revokedAt} IS NOT NULL)`,
+    ),
+    check('reach_analytics_consents_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const reachAnalyticsConsentHistory = pgTable(
+  'reach_analytics_consent_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    reachAnalyticsConsentId: uuid('reach_analytics_consent_id')
+      .notNull()
+      .references(() => reachAnalyticsConsents.id, { onDelete: 'restrict' }),
+    fromStatus: reachAnalyticsConsentStatus('from_status'),
+    toStatus: reachAnalyticsConsentStatus('to_status').notNull(),
+    consentVersion: integer('consent_version').notNull(),
+    actorUserId: uuid('actor_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    reason: text('reason').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('reach_analytics_consent_history_version_uq').on(
+      table.reachAnalyticsConsentId,
+      table.consentVersion,
+    ),
+    check('reach_analytics_consent_history_version_ck', sql`${table.consentVersion} > 0`),
+    check('reach_analytics_consent_history_reason_ck', sql`length(btrim(${table.reason})) > 0`),
+  ],
+);
+
+export const reachVerifications = pgTable(
+  'reach_verifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => creatorProfiles.userId, { onDelete: 'restrict' }),
+    platform: socialPlatform('platform').notNull(),
+    reachAnalyticsConsentId: uuid('reach_analytics_consent_id')
+      .notNull()
+      .references(() => reachAnalyticsConsents.id, { onDelete: 'restrict' }),
+    status: reachVerificationStatus('status').default('pending_review').notNull(),
+    sourceType: reachAnalyticsSourceType('source_type').notNull(),
+    providerKey: text('provider_key').notNull(),
+    providerConnectionReference: text('provider_connection_reference'),
+    evidenceReference: text('evidence_reference'),
+    estimatedLocalAudienceCount: integer('estimated_local_audience_count'),
+    authenticityStatus: reachAuthenticityStatus('authenticity_status').notNull(),
+    methodologyVersion: text('methodology_version').notNull(),
+    reviewerUserId: uuid('reviewer_user_id').references(() => users.id, {
+      onDelete: 'restrict',
+    }),
+    reviewReason: text('review_reason'),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    appealDeadline: timestamp('appeal_deadline', { withTimezone: true }),
+    appealedAt: timestamp('appealed_at', { withTimezone: true }),
+    appealReviewerUserId: uuid('appeal_reviewer_user_id').references(() => users.id, {
+      onDelete: 'restrict',
+    }),
+    appealDecidedAt: timestamp('appeal_decided_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    evidenceDeletionDueAt: timestamp('evidence_deletion_due_at', { withTimezone: true }),
+    evidenceDeletedAt: timestamp('evidence_deleted_at', { withTimezone: true }),
+    submittedAt: timestamp('submitted_at', { withTimezone: true }).defaultNow().notNull(),
+    version: integer('version').default(1).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('reach_verifications_public_id_uq').on(table.publicId),
+    uniqueIndex('reach_verifications_active_creator_platform_uq')
+      .on(table.creatorUserId, table.platform)
+      .where(sql`${table.status} IN ('pending_review','appeal_pending')`),
+    index('reach_verifications_creator_platform_idx').on(
+      table.creatorUserId,
+      table.platform,
+      table.submittedAt,
+    ),
+    index('reach_verifications_deletion_due_idx').on(
+      table.evidenceDeletionDueAt,
+      table.evidenceDeletedAt,
+    ),
+    check(
+      'reach_verifications_provider_key_ck',
+      sql`${table.providerKey} ~ '^[a-z0-9][a-z0-9._-]{2,79}$'`,
+    ),
+    check(
+      'reach_verifications_private_references_ck',
+      sql`(${table.providerConnectionReference} IS NULL OR
+           ${table.providerConnectionReference} ~ '^private/reach/[a-z0-9/_-]{8,180}$') AND
+          (${table.evidenceReference} IS NULL OR
+           ${table.evidenceReference} ~ '^private/reach/[a-z0-9/_-]{8,180}$')`,
+    ),
+    check(
+      'reach_verifications_audience_ck',
+      sql`${table.estimatedLocalAudienceCount} IS NULL OR ${table.estimatedLocalAudienceCount} >= 0`,
+    ),
+    check(
+      'reach_verifications_methodology_ck',
+      sql`${table.methodologyVersion} ~ '^[a-z0-9][a-z0-9._-]{2,39}$'`,
+    ),
+    check(
+      'reach_verifications_review_shape_ck',
+      sql`${table.status} IN ('pending_review','appeal_pending') OR (
+        ${table.reviewerUserId} IS NOT NULL AND ${table.reviewReason} IS NOT NULL
+        AND ${table.reviewedAt} IS NOT NULL AND ${table.completedAt} IS NOT NULL
+        AND ${table.evidenceDeletionDueAt} IS NOT NULL
+      )`,
+    ),
+    check(
+      'reach_verifications_verified_shape_ck',
+      sql`${table.status} <> 'verified' OR (
+        ${table.verifiedAt} IS NOT NULL AND ${table.expiresAt} = ${table.verifiedAt} + interval '90 days'
+      )`,
+    ),
+    check(
+      'reach_verifications_deleted_shape_ck',
+      sql`${table.evidenceDeletedAt} IS NULL OR (
+        ${table.providerConnectionReference} IS NULL AND ${table.evidenceReference} IS NULL
+        AND ${table.estimatedLocalAudienceCount} IS NULL
+      )`,
+    ),
+    check('reach_verifications_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const reachVerificationStatusHistory = pgTable(
+  'reach_verification_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    reachVerificationId: uuid('reach_verification_id')
+      .notNull()
+      .references(() => reachVerifications.id, { onDelete: 'restrict' }),
+    fromStatus: reachVerificationStatus('from_status'),
+    toStatus: reachVerificationStatus('to_status').notNull(),
+    verificationVersion: integer('verification_version').notNull(),
+    actorUserId: uuid('actor_user_id').references(() => users.id, { onDelete: 'restrict' }),
+    actorType: auditActorType('actor_type').notNull(),
+    reasonCode: text('reason_code').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('reach_verification_status_history_version_uq').on(
+      table.reachVerificationId,
+      table.verificationVersion,
+    ),
+    check(
+      'reach_verification_status_history_reason_ck',
+      sql`${table.reasonCode} ~ '^[A-Z0-9_]{2,80}$'`,
+    ),
+    check('reach_verification_status_history_version_ck', sql`${table.verificationVersion} > 0`),
+  ],
+);
+
+export const reachQualifications = pgTable(
+  'reach_qualifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    reachVerificationId: uuid('reach_verification_id')
+      .notNull()
+      .references(() => reachVerifications.id, { onDelete: 'restrict' }),
+    creatorUserId: uuid('creator_user_id')
+      .notNull()
+      .references(() => creatorProfiles.userId, { onDelete: 'restrict' }),
+    platform: socialPlatform('platform').notNull(),
+    tier: reachLevel('tier').notNull(),
+    status: reachQualificationStatus('status').default('active').notNull(),
+    sourceType: reachAnalyticsSourceType('source_type').notNull(),
+    methodologyVersion: text('methodology_version').notNull(),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }).notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    graceGrantedAt: timestamp('grace_granted_at', { withTimezone: true }),
+    graceUntil: timestamp('grace_until', { withTimezone: true }),
+    graceProviderOutageId: uuid('grace_provider_outage_id'),
+    supersededAt: timestamp('superseded_at', { withTimezone: true }),
+    expiredAt: timestamp('expired_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('reach_qualifications_public_id_uq').on(table.publicId),
+    uniqueIndex('reach_qualifications_verification_uq').on(table.reachVerificationId),
+    uniqueIndex('reach_qualifications_active_creator_platform_uq')
+      .on(table.creatorUserId, table.platform)
+      .where(sql`${table.status} = 'active'`),
+    index('reach_qualifications_eligibility_idx').on(
+      table.creatorUserId,
+      table.platform,
+      table.status,
+      table.expiresAt,
+    ),
+    check(
+      'reach_qualifications_term_ck',
+      sql`${table.expiresAt} = ${table.verifiedAt} + interval '90 days'`,
+    ),
+    check(
+      'reach_qualifications_grace_ck',
+      sql`(${table.graceGrantedAt} IS NULL AND ${table.graceUntil} IS NULL
+          AND ${table.graceProviderOutageId} IS NULL) OR
+          (${table.graceGrantedAt} IS NOT NULL AND ${table.graceUntil} = ${table.expiresAt} + interval '14 days'
+          AND ${table.graceProviderOutageId} IS NOT NULL)`,
+    ),
+    check(
+      'reach_qualifications_terminal_ck',
+      sql`(${table.status} = 'active' AND ${table.supersededAt} IS NULL
+          AND ${table.expiredAt} IS NULL AND ${table.revokedAt} IS NULL) OR
+          (${table.status} = 'superseded' AND ${table.supersededAt} IS NOT NULL) OR
+          (${table.status} = 'expired' AND ${table.expiredAt} IS NOT NULL) OR
+          (${table.status} = 'revoked' AND ${table.revokedAt} IS NOT NULL)`,
+    ),
+    check('reach_qualifications_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const reachProviderOutages = pgTable(
+  'reach_provider_outages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    platform: socialPlatform('platform').notNull(),
+    status: reachProviderOutageStatus('status').default('active').notNull(),
+    reasonCode: text('reason_code').notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+    createdByUserId: uuid('created_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    resolvedByUserId: uuid('resolved_by_user_id').references(() => users.id, {
+      onDelete: 'restrict',
+    }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('reach_provider_outages_public_id_uq').on(table.publicId),
+    uniqueIndex('reach_provider_outages_active_platform_uq')
+      .on(table.platform)
+      .where(sql`${table.status} = 'active'`),
+    check('reach_provider_outages_reason_ck', sql`${table.reasonCode} ~ '^[A-Z0-9_]{2,80}$'`),
+    check(
+      'reach_provider_outages_status_ck',
+      sql`(${table.status} = 'active' AND ${table.resolvedAt} IS NULL
+          AND ${table.resolvedByUserId} IS NULL) OR
+          (${table.status} = 'resolved' AND ${table.resolvedAt} IS NOT NULL
+          AND ${table.resolvedByUserId} IS NOT NULL)`,
+    ),
+  ],
+);
+
+export const reachEvidenceDeletionJobs = pgTable(
+  'reach_evidence_deletion_jobs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    reachVerificationId: uuid('reach_verification_id')
+      .notNull()
+      .references(() => reachVerifications.id, { onDelete: 'restrict' }),
+    status: reachEvidenceDeletionStatus('status').default('pending').notNull(),
+    availableAt: timestamp('available_at', { withTimezone: true }).notNull(),
+    attemptCount: integer('attempt_count').default(0).notNull(),
+    maxAttempts: integer('max_attempts').default(5).notNull(),
+    lockToken: uuid('lock_token'),
+    lockedBy: text('locked_by'),
+    lockedUntil: timestamp('locked_until', { withTimezone: true }),
+    lastErrorCode: text('last_error_code'),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    deadLetteredAt: timestamp('dead_lettered_at', { withTimezone: true }),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('reach_evidence_deletion_jobs_public_id_uq').on(table.publicId),
+    uniqueIndex('reach_evidence_deletion_jobs_verification_uq').on(table.reachVerificationId),
+    index('reach_evidence_deletion_jobs_due_idx').on(table.status, table.availableAt),
+    check(
+      'reach_evidence_deletion_jobs_attempts_ck',
+      sql`${table.attemptCount} >= 0 AND ${table.maxAttempts} BETWEEN 1 AND 10
+          AND ${table.attemptCount} <= ${table.maxAttempts}`,
+    ),
+    check(
+      'reach_evidence_deletion_jobs_lock_ck',
+      sql`(${table.status} = 'processing' AND ${table.lockToken} IS NOT NULL
+          AND ${table.lockedBy} IS NOT NULL AND ${table.lockedUntil} IS NOT NULL) OR
+          (${table.status} <> 'processing' AND ${table.lockToken} IS NULL
+          AND ${table.lockedBy} IS NULL AND ${table.lockedUntil} IS NULL)`,
+    ),
+    check(
+      'reach_evidence_deletion_jobs_terminal_ck',
+      sql`(${table.status} = 'completed' AND ${table.completedAt} IS NOT NULL
+          AND ${table.deadLetteredAt} IS NULL) OR
+          (${table.status} = 'dead_letter' AND ${table.deadLetteredAt} IS NOT NULL
+          AND ${table.completedAt} IS NULL) OR
+          (${table.status} IN ('pending','processing') AND ${table.completedAt} IS NULL
+          AND ${table.deadLetteredAt} IS NULL)`,
+    ),
+    check('reach_evidence_deletion_jobs_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const reachEvidenceDeletionAttempts = pgTable(
+  'reach_evidence_deletion_attempts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    reachEvidenceDeletionJobId: uuid('reach_evidence_deletion_job_id')
+      .notNull()
+      .references(() => reachEvidenceDeletionJobs.id, { onDelete: 'restrict' }),
+    attemptNumber: integer('attempt_number').notNull(),
+    outcome: reachEvidenceDeletionOutcome('outcome').notNull(),
+    workerId: text('worker_id').notNull(),
+    errorCode: text('error_code'),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('reach_evidence_deletion_attempts_public_id_uq').on(table.publicId),
+    uniqueIndex('reach_evidence_deletion_attempts_number_uq').on(
+      table.reachEvidenceDeletionJobId,
+      table.attemptNumber,
+    ),
+    check('reach_evidence_deletion_attempts_number_ck', sql`${table.attemptNumber} > 0`),
+    check(
+      'reach_evidence_deletion_attempts_error_ck',
+      sql`(${table.outcome} = 'failed' AND ${table.errorCode} ~ '^[A-Z0-9_]{2,80}$') OR
+          (${table.outcome} = 'deleted' AND ${table.errorCode} IS NULL)`,
+    ),
+    check(
+      'reach_evidence_deletion_attempts_time_ck',
+      sql`${table.completedAt} >= ${table.startedAt}`,
+    ),
+  ],
+);
+
+export const reachRetentionAlerts = pgTable(
+  'reach_retention_alerts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    reachEvidenceDeletionJobId: uuid('reach_evidence_deletion_job_id')
+      .notNull()
+      .references(() => reachEvidenceDeletionJobs.id, { onDelete: 'restrict' }),
+    code: text('code').notNull(),
+    attemptCount: integer('attempt_count').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('reach_retention_alerts_public_id_uq').on(table.publicId),
+    uniqueIndex('reach_retention_alerts_job_uq').on(table.reachEvidenceDeletionJobId),
+    check('reach_retention_alerts_code_ck', sql`${table.code} = 'REACH_EVIDENCE_DELETION_FAILED'`),
+    check('reach_retention_alerts_attempts_ck', sql`${table.attemptCount} > 0`),
+  ],
+);
+
 export const campaigns = pgTable(
   'campaigns',
   {
@@ -764,6 +1251,7 @@ export const missionSlots = pgTable(
     bonusRewardMinor: integer('bonus_reward_minor').default(0).notNull(),
     rewardMinor: integer('reward_minor').notNull(),
     reachLevel: reachLevel('reach_level'),
+    reachPlatform: socialPlatform('reach_platform'),
     currency: text('currency').default('USD').notNull(),
     version: integer('version').default(1).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -791,9 +1279,11 @@ export const missionSlots = pgTable(
     check(
       'mission_slots_community_reach_ck',
       sql`(
-        ${table.type} = 'community' AND ${table.reachLevel} IS NULL AND ${table.reachBonusMinor} = 0
+        ${table.type} = 'community' AND ${table.reachLevel} IS NULL
+          AND ${table.reachPlatform} IS NULL AND ${table.reachBonusMinor} = 0
       ) OR (
-        ${table.type} = 'reach' AND ${table.reachLevel} IS NOT NULL AND ${table.reachBonusMinor} > 0
+        ${table.type} = 'reach' AND ${table.reachLevel} IS NOT NULL
+          AND ${table.reachPlatform} IS NOT NULL AND ${table.reachBonusMinor} > 0
       )`,
     ),
     check(
@@ -846,6 +1336,11 @@ export const slotReservations = pgTable(
     applicationId: uuid('application_id')
       .notNull()
       .references(() => missionApplications.id, { onDelete: 'restrict' }),
+    reachQualificationId: uuid('reach_qualification_id').references(() => reachQualifications.id, {
+      onDelete: 'restrict',
+    }),
+    reachPlatformSnapshot: socialPlatform('reach_platform_snapshot'),
+    reachLevelSnapshot: reachLevel('reach_level_snapshot'),
     status: slotReservationStatus('status').default('active').notNull(),
     reservedAt: timestamp('reserved_at', { withTimezone: true }).defaultNow().notNull(),
     releasedAt: timestamp('released_at', { withTimezone: true }),
@@ -860,6 +1355,13 @@ export const slotReservations = pgTable(
       'slot_reservations_release_ck',
       sql`(${table.status} IN ('active', 'converted') AND ${table.releasedAt} IS NULL) OR
           (${table.status} IN ('released', 'expired') AND ${table.releasedAt} IS NOT NULL)`,
+    ),
+    check(
+      'slot_reservations_reach_snapshot_shape_ck',
+      sql`(${table.reachQualificationId} IS NULL AND ${table.reachPlatformSnapshot} IS NULL
+          AND ${table.reachLevelSnapshot} IS NULL) OR
+          (${table.reachQualificationId} IS NOT NULL AND ${table.reachPlatformSnapshot} IS NOT NULL
+          AND ${table.reachLevelSnapshot} IS NOT NULL)`,
     ),
   ],
 );
@@ -3426,6 +3928,16 @@ export const initialSchemaTables = [
   'business_memberships',
   'platform_staff_memberships',
   'business_locations',
+  'reach_platform_capabilities',
+  'reach_analytics_consents',
+  'reach_analytics_consent_history',
+  'reach_verifications',
+  'reach_verification_status_history',
+  'reach_qualifications',
+  'reach_provider_outages',
+  'reach_evidence_deletion_jobs',
+  'reach_evidence_deletion_attempts',
+  'reach_retention_alerts',
   'campaigns',
   'campaign_status_history',
   'mission_templates',

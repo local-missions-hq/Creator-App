@@ -6,6 +6,7 @@ export * from './local-pass-store.js';
 export * from './locality-proof-store.js';
 export * from './notification-store.js';
 export * from './rights-store.js';
+export * from './reach-qualification-store.js';
 export * from './mission-application-store.js';
 export * from './schema.js';
 export * from './submission-store.js';

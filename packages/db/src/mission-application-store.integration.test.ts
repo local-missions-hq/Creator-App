@@ -31,6 +31,9 @@ const currentSchemaMigrations = [
   '0011_perpetual_ender_wiggin.sql',
   '0012_notification_preference_history_backfill.sql',
   '0013_brave_maddog.sql',
+  '0014_serious_terror.sql',
+  '0015_slim_joshua_kane.sql',
+  '0016_normal_meltdown.sql',
 ].map((name) => fileURLToPath(new URL(`../drizzle/${name}`, import.meta.url)));
 const databaseName = `local_missions_m3_capacity_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());

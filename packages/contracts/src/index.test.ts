@@ -28,6 +28,9 @@ import {
   localityVerificationStatusSchema,
   missionTemplatePageSchema,
   platformStaffRoleSchema,
+  reachAnalyticsSourceTypeSchema,
+  reachLevelSchema,
+  socialPlatformSchema,
 } from './index.js';
 
 describe('healthStatusSchema', () => {
@@ -255,5 +258,18 @@ describe('objective dispute and all-or-nothing outcome contracts', () => {
     expect(notificationEventTypeSchema.options).toContain('payout_available');
     expect(notificationEventTypeSchema.safeParse('promotional_offer').success).toBe(false);
     expect(notificationEventTypeSchema.safeParse('follower_milestone').success).toBe(false);
+  });
+});
+
+describe('privacy-safe Reach qualification contracts', () => {
+  it('keeps platforms independent and excludes manual audience evidence', () => {
+    expect(socialPlatformSchema.options).toEqual(['instagram', 'tiktok', 'youtube']);
+    expect(reachLevelSchema.options).toEqual(['level_1', 'level_2', 'level_3']);
+    expect(reachAnalyticsSourceTypeSchema.options).toEqual([
+      'official_platform_api',
+      'approved_analytics_provider',
+    ]);
+    expect(reachAnalyticsSourceTypeSchema.safeParse('manual_screenshot').success).toBe(false);
+    expect(socialPlatformSchema.safeParse('combined_audience').success).toBe(false);
   });
 });

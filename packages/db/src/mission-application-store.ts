@@ -7,6 +7,7 @@ import type {
   MissionSlotType,
   MissionTemplateCode,
   ReachLevel,
+  SocialPlatform,
 } from '@local-missions/contracts';
 import type { Pool, PoolClient, QueryResultRow } from 'pg';
 
@@ -18,6 +19,7 @@ export type CampaignSlotInput = {
   ordinal: number;
   publicId: string;
   reachLevel?: ReachLevel;
+  reachPlatform?: SocialPlatform;
   type: MissionSlotType;
 };
 
@@ -172,7 +174,22 @@ export class MissionApplicationStore {
         );
       }
 
-      this.assertSlotContract(input.slots, campaign);
+      const slotCapabilityColumns = await client.query<{
+        supports_bonus_components: boolean;
+        supports_reach_platform: boolean;
+      }>(
+        `SELECT
+           bool_or(column_name = 'contract_add_on_bonus_minor') AS supports_bonus_components,
+           bool_or(column_name = 'reach_platform') AS supports_reach_platform
+           FROM information_schema.columns
+          WHERE table_schema = $1 AND table_name = 'mission_slots'`,
+        [this.schemaName],
+      );
+      const supportsBonusComponents =
+        slotCapabilityColumns.rows[0]?.supports_bonus_components === true;
+      const supportsReachPlatform = slotCapabilityColumns.rows[0]?.supports_reach_platform === true;
+
+      this.assertSlotContract(input.slots, campaign, supportsReachPlatform);
       await client.query(
         `INSERT INTO campaign_brief_versions (
            campaign_id, version, mission_template_id, plain_language_brief, checklist, created_by
@@ -186,15 +203,6 @@ export class MissionApplicationStore {
         ],
       );
 
-      const bonusComponentColumns = await client.query<{ supported: boolean }>(
-        `SELECT EXISTS (
-           SELECT 1 FROM information_schema.columns
-            WHERE table_schema = $1 AND table_name = 'mission_slots'
-              AND column_name = 'contract_add_on_bonus_minor'
-         ) AS supported`,
-        [this.schemaName],
-      );
-      const supportsBonusComponents = bonusComponentColumns.rows[0]?.supported === true;
       if (
         !supportsBonusComponents &&
         input.slots.some((slot) => (slot.contractAddOnBonusMinor ?? 0) > 0)
@@ -205,14 +213,44 @@ export class MissionApplicationStore {
           'The database must be upgraded before paid contract add-ons can be configured.',
         );
       }
+      if (!supportsReachPlatform && input.slots.some((slot) => slot.reachPlatform)) {
+        throw new MissionApplicationError(
+          'CAMPAIGN_CONTRACT_INCOMPLETE',
+          409,
+          'The database must be upgraded before platform-specific Reach slots can be configured.',
+        );
+      }
 
       for (const slot of input.slots) {
         const contractAddOnBonusMinor = slot.contractAddOnBonusMinor ?? 0;
-        if (supportsBonusComponents) {
+        if (supportsBonusComponents && supportsReachPlatform) {
           await client.query(
             `INSERT INTO mission_slots (
                public_id, campaign_id, ordinal, type, base_reward_minor, reach_bonus_minor,
-               contract_add_on_bonus_minor, bonus_reward_minor, reward_minor, reach_level, currency
+               contract_add_on_bonus_minor, bonus_reward_minor, reward_minor,
+               reach_level, reach_platform, currency
+             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+            [
+              slot.publicId,
+              input.campaignId,
+              slot.ordinal,
+              slot.type,
+              slot.baseRewardMinor,
+              slot.bonusRewardMinor,
+              contractAddOnBonusMinor,
+              slot.bonusRewardMinor + contractAddOnBonusMinor,
+              slot.baseRewardMinor + slot.bonusRewardMinor + contractAddOnBonusMinor,
+              slot.reachLevel ?? null,
+              slot.reachPlatform ?? null,
+              slot.currency,
+            ],
+          );
+        } else if (supportsBonusComponents) {
+          await client.query(
+            `INSERT INTO mission_slots (
+               public_id, campaign_id, ordinal, type, base_reward_minor, reach_bonus_minor,
+               contract_add_on_bonus_minor, bonus_reward_minor, reward_minor,
+               reach_level, currency
              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
             [
               slot.publicId,
@@ -225,6 +263,25 @@ export class MissionApplicationStore {
               slot.bonusRewardMinor + contractAddOnBonusMinor,
               slot.baseRewardMinor + slot.bonusRewardMinor + contractAddOnBonusMinor,
               slot.reachLevel ?? null,
+              slot.currency,
+            ],
+          );
+        } else if (supportsReachPlatform) {
+          await client.query(
+            `INSERT INTO mission_slots (
+               public_id, campaign_id, ordinal, type, base_reward_minor, bonus_reward_minor,
+               reward_minor, reach_level, reach_platform, currency
+             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [
+              slot.publicId,
+              input.campaignId,
+              slot.ordinal,
+              slot.type,
+              slot.baseRewardMinor,
+              slot.bonusRewardMinor,
+              slot.baseRewardMinor + slot.bonusRewardMinor,
+              slot.reachLevel ?? null,
+              slot.reachPlatform ?? null,
               slot.currency,
             ],
           );
@@ -407,6 +464,168 @@ export class MissionApplicationStore {
     }
   }
 
+  async applyForReachMission(input: {
+    campaignId: string;
+    correlationId: string;
+    creatorUserId: string;
+    idempotencyKey?: string;
+    publicId: string;
+  }): Promise<MissionApplicationRecord> {
+    try {
+      return await this.withTransaction(async (client) => {
+        const operation = 'mission-application.apply-reach';
+        if (input.idempotencyKey) {
+          const replay = await this.claimApplicationIdempotency(
+            client,
+            operation,
+            input.idempotencyKey,
+            requestHash({
+              campaignId: input.campaignId,
+              creatorUserId: input.creatorUserId,
+              publicId: input.publicId,
+            }),
+          );
+          if (replay) return replay;
+        }
+        const eligible = await client.query(
+          `SELECT 1 FROM creator_profiles
+            WHERE user_id = $1 AND status = 'approved'
+              AND locality_status = 'verified' AND locality_expires_at > now()`,
+          [input.creatorUserId],
+        );
+        if (eligible.rowCount !== 1) {
+          throw new MissionApplicationError(
+            'CREATOR_NOT_QUALIFIED',
+            403,
+            'Creator must be approved with a current verified locality credential.',
+          );
+        }
+        const slotResult = await client.query<{
+          id: string;
+          qualification_id: string;
+          reach_level: ReachLevel;
+          reach_platform: SocialPlatform;
+          type: MissionSlotType;
+        }>(
+          `SELECT slot.id, slot.type, slot.reach_level, slot.reach_platform,
+                  qualification.id AS qualification_id
+             FROM campaigns campaign
+             JOIN mission_slots slot ON slot.campaign_id = campaign.id
+              AND slot.type = 'reach' AND slot.status = 'available'
+             JOIN reach_qualifications qualification
+               ON qualification.creator_user_id = $2
+              AND qualification.platform = slot.reach_platform
+              AND qualification.tier = slot.reach_level
+              AND qualification.status = 'active'
+             JOIN reach_analytics_consents consent
+               ON consent.creator_user_id = qualification.creator_user_id
+              AND consent.platform = qualification.platform AND consent.status = 'active'
+             JOIN reach_platform_capabilities capability
+               ON capability.platform = qualification.platform
+            WHERE campaign.id = $1 AND campaign.status = 'published'
+              AND ((capability.status = 'enabled' AND qualification.expires_at > now()) OR
+                   (capability.status = 'outage' AND qualification.grace_until > now()
+                    AND EXISTS (
+                      SELECT 1 FROM reach_provider_outages outage
+                       WHERE outage.id = qualification.grace_provider_outage_id
+                         AND outage.platform = qualification.platform AND outage.status = 'active'
+                    )))
+            ORDER BY slot.ordinal
+            FOR UPDATE OF slot SKIP LOCKED LIMIT 1`,
+          [input.campaignId, input.creatorUserId],
+        );
+        const slot = slotResult.rows[0];
+        if (!slot) {
+          const campaign = await client.query(
+            `SELECT 1 FROM campaigns WHERE id = $1 AND status = 'published'`,
+            [input.campaignId],
+          );
+          if (campaign.rowCount !== 1) {
+            throw new MissionApplicationError(
+              'CAMPAIGN_NOT_AVAILABLE',
+              409,
+              'Campaign is not currently published for creator applications.',
+            );
+          }
+          throw new MissionApplicationError(
+            'CREATOR_NOT_QUALIFIED',
+            403,
+            'A current consented tier on the exact contracted platform is required.',
+          );
+        }
+        const applicationResult = await client.query<{
+          campaign_id: string;
+          creator_user_id: string;
+          id: string;
+          public_id: string;
+          status: MissionApplicationStatus;
+          version: number;
+        }>(
+          `INSERT INTO mission_applications (public_id, campaign_id, creator_user_id)
+           VALUES ($1,$2,$3)
+           RETURNING id, public_id, campaign_id, creator_user_id, status, version`,
+          [input.publicId, input.campaignId, input.creatorUserId],
+        );
+        const application = applicationResult.rows[0];
+        if (!application) throw new Error('Reach application insert returned no row.');
+        await client.query(
+          `UPDATE mission_slots
+              SET status = 'reserved', version = version + 1, updated_at = now()
+            WHERE id = $1 AND status = 'available'`,
+          [slot.id],
+        );
+        await client.query(
+          `INSERT INTO slot_reservations (
+             mission_slot_id, application_id, reach_qualification_id,
+             reach_platform_snapshot, reach_level_snapshot
+           ) VALUES ($1,$2,$3,$4,$5)`,
+          [slot.id, application.id, slot.qualification_id, slot.reach_platform, slot.reach_level],
+        );
+        await client.query(
+          `INSERT INTO mission_application_status_history (
+             application_id, from_status, to_status, application_version, actor_id, reason
+           ) VALUES ($1,NULL,'submitted',1,$2,'Creator reserved an exact-platform Reach Slot')`,
+          [application.id, input.creatorUserId],
+        );
+        await this.appendAudit(client, {
+          action: 'mission-application.reach-submitted',
+          actorId: input.creatorUserId,
+          correlationId: input.correlationId,
+          details: {
+            reachLevel: slot.reach_level,
+            reachPlatform: slot.reach_platform,
+            rewardLocked: true,
+          },
+          subjectId: application.id,
+          subjectType: 'mission-application',
+        });
+        const record = toApplicationRecord({
+          ...application,
+          reserved_slot_id: slot.id,
+          slot_type: slot.type,
+        });
+        if (input.idempotencyKey) {
+          await client.query(
+            `UPDATE idempotency_records
+                SET response_status = 201, response_body = $3::jsonb, completed_at = now()
+              WHERE operation = $1 AND idempotency_key = $2`,
+            [operation, input.idempotencyKey, JSON.stringify(record)],
+          );
+        }
+        return record;
+      });
+    } catch (error) {
+      if (postgresConstraint(error) === 'mission_applications_campaign_creator_uq') {
+        throw new MissionApplicationError(
+          'APPLICATION_ALREADY_EXISTS',
+          409,
+          'A creator can apply only once to a campaign.',
+        );
+      }
+      throw error;
+    }
+  }
+
   private async claimApplicationIdempotency(
     client: PoolClient,
     operation: string,
@@ -552,6 +771,7 @@ export class MissionApplicationStore {
   private assertSlotContract(
     slots: readonly CampaignSlotInput[],
     campaign: { creator_reward_pool_minor: number; currency: string; slot_count: number },
+    requiresReachPlatform: boolean,
   ): void {
     const ordinals = slots.map((slot) => slot.ordinal).sort((a, b) => a - b);
     const expectedOrdinals = Array.from({ length: campaign.slot_count }, (_, index) => index + 1);
@@ -566,8 +786,14 @@ export class MissionApplicationStore {
       (slot) =>
         Number.isInteger(slot.contractAddOnBonusMinor ?? 0) &&
         (slot.contractAddOnBonusMinor ?? 0) >= 0 &&
-        ((slot.type === 'community' && !slot.reachLevel && slot.bonusRewardMinor === 0) ||
-          (slot.type === 'reach' && Boolean(slot.reachLevel) && slot.bonusRewardMinor > 0)),
+        ((slot.type === 'community' &&
+          !slot.reachLevel &&
+          !slot.reachPlatform &&
+          slot.bonusRewardMinor === 0) ||
+          (slot.type === 'reach' &&
+            Boolean(slot.reachLevel) &&
+            (!requiresReachPlatform || Boolean(slot.reachPlatform)) &&
+            slot.bonusRewardMinor > 0)),
     );
 
     if (

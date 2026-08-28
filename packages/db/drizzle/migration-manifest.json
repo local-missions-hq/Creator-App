@@ -112,6 +112,13 @@
       "snapshotSha256": "7afce80ab876831d14a8c49f353ef7266d97d1c7093d99cc219993cd92f4b602",
       "sqlSha256": "c740ac28d5f171aa7a335eb3fcda5d23126f6a9a29ec085975937d3e2ea2e0b6",
       "tag": "0015_slim_joshua_kane"
+    },
+    {
+      "index": 16,
+      "journalTimestamp": 1787874904894,
+      "snapshotSha256": "05b5999acddb61df304d08c7fce1bf6ba46e5508c249c005e46acad94e4ffe20",
+      "sqlSha256": "00e5521d7df322191129a8f200c8dc1dfef1d2c0e26634bbc517f9b4685ff2b5",
+      "tag": "0016_normal_meltdown"
     }
   ],
   "hashAlgorithm": "sha256",

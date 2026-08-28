@@ -219,6 +219,33 @@ export const missionSlotStatusSchema = z.enum([
   'canceled',
 ]);
 export const reachLevelSchema = z.enum(['level_1', 'level_2', 'level_3']);
+export const socialPlatformSchema = z.enum(['instagram', 'tiktok', 'youtube']);
+export const reachCapabilityStatusSchema = z.enum(['disabled', 'enabled', 'outage']);
+export const reachAnalyticsSourceTypeSchema = z.enum([
+  'official_platform_api',
+  'approved_analytics_provider',
+]);
+export const reachAnalyticsConsentStatusSchema = z.enum(['active', 'revoked']);
+export const reachAuthenticityStatusSchema = z.enum(['passed', 'failed', 'review_required']);
+export const reachVerificationStatusSchema = z.enum([
+  'pending_review',
+  'verified',
+  'rejected',
+  'appeal_pending',
+  'final_rejected',
+]);
+export const reachQualificationStatusSchema = z.enum([
+  'active',
+  'superseded',
+  'expired',
+  'revoked',
+]);
+export const reachEvidenceDeletionStatusSchema = z.enum([
+  'pending',
+  'processing',
+  'completed',
+  'dead_letter',
+]);
 export const missionApplicationStatusSchema = z.enum([
   'submitted',
   'accepted',
@@ -651,6 +678,19 @@ export const missionApplicationConflictCodeSchema = z.enum([
   'MISSION_CAPACITY_FULL',
 ]);
 
+export const reachConflictCodeSchema = z.enum([
+  'REACH_ACCESS_DENIED',
+  'REACH_APPEAL_INVALID',
+  'REACH_CAPABILITY_DISABLED',
+  'REACH_CONSENT_REQUIRED',
+  'REACH_EVIDENCE_INVALID',
+  'REACH_NOT_FOUND',
+  'REACH_PROVIDER_NOT_APPROVED',
+  'REACH_QUALIFICATION_REQUIRED',
+  'REACH_REVIEW_INVALID',
+  'REACH_TRANSITION_CONFLICT',
+]);
+
 export const missionApplicationRecordSchema = z.object({
   campaignId: z.uuid(),
   creatorUserId: z.uuid(),
@@ -866,6 +906,15 @@ export type PayoutOnboardingStatus = z.infer<typeof payoutOnboardingStatusSchema
 export type PlatformStaffRole = z.infer<typeof platformStaffRoleSchema>;
 export type PlatformStaffStatus = z.infer<typeof platformStaffStatusSchema>;
 export type ReachLevel = z.infer<typeof reachLevelSchema>;
+export type SocialPlatform = z.infer<typeof socialPlatformSchema>;
+export type ReachCapabilityStatus = z.infer<typeof reachCapabilityStatusSchema>;
+export type ReachAnalyticsSourceType = z.infer<typeof reachAnalyticsSourceTypeSchema>;
+export type ReachAnalyticsConsentStatus = z.infer<typeof reachAnalyticsConsentStatusSchema>;
+export type ReachAuthenticityStatus = z.infer<typeof reachAuthenticityStatusSchema>;
+export type ReachVerificationStatus = z.infer<typeof reachVerificationStatusSchema>;
+export type ReachQualificationStatus = z.infer<typeof reachQualificationStatusSchema>;
+export type ReachEvidenceDeletionStatus = z.infer<typeof reachEvidenceDeletionStatusSchema>;
+export type ReachConflictCode = z.infer<typeof reachConflictCodeSchema>;
 export type SlotReservationStatus = z.infer<typeof slotReservationStatusSchema>;
 export type SubmissionConflictCode = z.infer<typeof submissionConflictCodeSchema>;
 export type SubmissionReviewDecisionType = z.infer<typeof submissionReviewDecisionTypeSchema>;
