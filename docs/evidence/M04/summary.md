@@ -1,10 +1,10 @@
 # M04 authentication and account lifecycle evidence
 
-Status: M4 in progress; phone-free account lifecycle, authenticated read/UI, mutation, mobile session, and OIDC client-boundary checkpoints passed
+Status: M4 in progress; phone-free account lifecycle, authenticated read/UI, mutation, mobile session, OIDC client, and Entra verifier-boundary checkpoints passed
 
 Date: 2026-08-28
 
-Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`, `M04-mobile-auth-session-local-003`, `M04-oidc-client-boundary-local-004`
+Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`, `M04-mobile-auth-session-local-003`, `M04-oidc-client-boundary-local-004`, `M04-entra-verifier-local-005`
 
 Environment baseline: Node 24.19.0 and pnpm 11.24.0. The mutation continuation used pnpm 11.24.0 with shell Node 25.9.0 and an engine warning. PostgreSQL 17 Alpine ran on loopback Docker.
 
@@ -98,3 +98,16 @@ JUnit evidence: [`test-results/oidc-client-boundary-junit.xml`](./test-results/o
 Visual evidence: [`screenshots/oidc-pkce-request-ready.png`](./screenshots/oidc-pkce-request-ready.png)
 
 No Entra registration, provider launch, token exchange, JWT validation, Azure resource, Stripe action, phone, payment, message, external account, or real customer data was used. Real provider routing/round trips, system-browser/deep-link execution, server token verification, and the physical-device gate remain open.
+
+## Entra access-token verifier boundary
+
+- Added a production-buildable, fail-closed Entra verifier configuration boundary. It requires one exact HTTPS v2 issuer, same-host discovery JWKS URI, external tenant UUID, API audience UUID, and delegated API scope; absent configuration stays unavailable and partial/unsafe values are rejected.
+- Added pinned `jose` 6.2.10 RS256 signature verification with exact issuer, audience, tenant, v2 version, scope, type, key ID, issued-at, not-before, expiration, subject, token-size, and lifetime checks. Header-supplied key URLs/material are rejected.
+- Added trusted remote JWKS resolution with a three-second timeout, bounded refresh cooldown, ten-minute cache age, no redirect following, cached reuse, and unknown-key rotation reload.
+- The verified result contains only external issuer/subject evidence, tenant, version, and scopes. Token-carried role, email, and profile fields are ignored and cannot become app authorization. External identity mapping, selected Creator/Business mode, and workspace membership remain separate server/database decisions.
+
+Fourteen locally signed fixture tests pass every positive and negative verifier path, including algorithm confusion, wrong signature, attacker key location, cache reuse, rotation, and generic errors with no token/provider detail. API lint, strict TypeScript, production build, and the complete nine-workspace repository verification pass. The security scan passes 424 text files, and Gitleaks finds no leak in approximately 14.14 MB.
+
+JUnit evidence: [`test-results/entra-token-verifier-junit.xml`](./test-results/entra-token-verifier-junit.xml)
+
+No Entra metadata endpoint, provider, external JWKS, Azure resource, token exchange, real identity, phone, payment, message, or customer data was used. Production bearer activation, issuer/subject account mapping, ID-token nonce validation, real provider round trips, and physical-device proof remain open.

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="14" failures="0" errors="0" time="0.069871291">
+    <testsuite name="src/entra-token-verifier.test.ts" timestamp="2026-08-28T14:03:42.517Z" hostname="local-development-host" tests="14" failures="0" errors="0" skipped="0" time="0.069871291">
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; fails closed for absent, partial, unsafe, or cross-host configuration" time="0.003041375">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; accepts complete trusted configuration and returns identity evidence without app roles" time="0.002303083">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; rejects a wrong issuer with one bounded authentication error" time="0.000993542">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; rejects a wrong audience with one bounded authentication error" time="0.000505042">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; rejects a wrong tenant with one bounded authentication error" time="0.00053025">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; rejects a wrong version with one bounded authentication error" time="0.000623167">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; rejects a wrong scope with one bounded authentication error" time="0.0005455">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; rejects a wrong duplicate scope with one bounded authentication error" time="0.000503375">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; rejects a wrong expired time with one bounded authentication error" time="0.000485042">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; rejects a wrong future not-before with one bounded authentication error" time="0.000517209">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; rejects a wrong future issued-at with one bounded authentication error" time="0.000503833">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; rejects algorithm confusion, a wrong signing key, unknown key, malformed token, and oversized token" time="0.001874459">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; caches a trusted JWKS and reloads once for a rotated signing key" time="0.008080792">
+        </testcase>
+        <testcase classname="src/entra-token-verifier.test.ts" name="Entra access-token verifier boundary &gt; never exposes token claims, key IDs, or provider failures in verification errors" time="0.000527">
+        </testcase>
+    </testsuite>
+</testsuites>
