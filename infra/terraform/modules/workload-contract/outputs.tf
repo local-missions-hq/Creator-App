@@ -9,5 +9,6 @@ output "safeguards" {
     network                              = var.network_contract
     backup                               = var.backup_contract
     storage_access                       = var.storage_access_contract
+    secret_references                    = var.secret_reference_contract
   }
 }

@@ -5,7 +5,7 @@ This directory defines two independently owned Terraform roots while the M5 Phas
 - [`control-plane/`](./control-plane/) is retained and uses `local-missions/control-plane.tfstate`.
 - [`environments/dev/`](./environments/dev/) is disposable and uses `local-missions/dev-workload.tfstate`.
 
-The disposable root pins AzureRM 5.0.1 and locks its checksums, but has no real provider configuration. Its only Azure resource block is the reviewed disposable resource-group module behind `azure_resource_creation_enabled = false`. Backend examples are partial, identifier-free contracts; local verification initializes with `-backend=false` and replaces AzureRM with Terraform's mock provider. No provider-backed refresh/plan or apply command belongs in the automated local gate.
+The disposable root pins AzureRM 5.0.1 and locks its checksums, but has no real provider configuration. Seventeen reviewed Azure resource types cover the disposable resource group, Storage, PostgreSQL, Container Apps, Service Bus, registry, Key Vault, and telemetry contracts. Every resource remains behind `azure_resource_creation_enabled = false`. Backend examples are partial, identifier-free contracts; local verification initializes with `-backend=false` and replaces AzureRM with Terraform's mock provider. No provider-backed refresh/plan or apply command belongs in the automated local gate.
 
 The intended progression is:
 
@@ -13,6 +13,6 @@ The intended progression is:
 2. Disposable, low-cost Azure development workloads that are built, tested, and destroyed the same day.
 3. Private-network staging/production only after ordinary infrastructure and UI flows are complete and the security/cost gates approve it.
 
-`pnpm terraform:check` proves formatting, backend-disabled initialization and validation, three plan-only tests, eight refusal tests, zero default resource changes, one mock-only resource-group change, distinct state/scope ownership, required disposable tags, twelve workload safeguards, low-cost planning ceilings, and expiration-policy fixtures. It removes Azure/ARM/TF_VAR values from the subprocess environment and never invokes `az`, configures an Azure provider, or calls `terraform apply`.
+`pnpm terraform:check` proves formatting, backend-disabled initialization and validation, three plan-only tests, eleven refusal tests, zero default resource changes, and exactly 28 create-only changes across the 17-type mock workload. It also proves distinct state/scope ownership, eleven disposable tags, scale/network/backup/access/secret safeguards, conservative planning ceilings, and expiration-policy fixtures. It removes Azure/ARM/TF_VAR values from the subprocess environment and never invokes `az`, configures an Azure provider, or calls `terraform apply`.
 
 Do not add credentials, subscription identifiers, broad targets, persistent dev resources, or resource mutations merely to make the foundation look complete. Current region/SKU prices, named owners, alert delivery, OIDC identities, budgets, saved plans, and every apply/destroy action remain separate external gates.

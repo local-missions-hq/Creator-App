@@ -211,6 +211,10 @@ variable "azure_resource_creation_enabled" {
         length(trimspace(var.apply_approval_reference)) >= 8 &&
         var.approved_monthly_budget_usd > 0 &&
         var.region_and_sku_revalidated &&
+        var.identity_references_revalidated &&
+        var.artifact_references_revalidated &&
+        length(var.identity_reference_contract.tenant_id) > 0 &&
+        length(var.identity_reference_contract.postgres_administrator_object_id) > 0 &&
         length(var.network_contract.allowed_ipv4_cidrs) > 0 &&
         length(trimspace(var.cleanup_controller_reference)) >= 8 &&
         !endswith(lower(var.alert_destination_reference), ".example")
@@ -242,7 +246,7 @@ variable "low_cost_defaults" {
     postgres_sku_name              = "B_Standard_B1ms"
     postgres_storage_mb            = 32768
     postgres_backup_retention_days = 7
-    service_bus_sku                = "Basic"
+    service_bus_sku                = "Standard"
     container_registry_sku         = "Basic"
     log_retention_days             = 30
   }
@@ -262,7 +266,7 @@ variable "low_cost_defaults" {
       var.low_cost_defaults.postgres_backup_retention_days <= 14 &&
       var.low_cost_defaults.log_retention_days >= 30 &&
       var.low_cost_defaults.log_retention_days <= 30 &&
-      contains(["Basic", "Standard"], var.low_cost_defaults.service_bus_sku) &&
+      var.low_cost_defaults.service_bus_sku == "Standard" &&
       var.low_cost_defaults.container_registry_sku == "Basic"
     )
     error_message = "low_cost_defaults exceeds the local V1 planning ceilings."
@@ -380,5 +384,125 @@ variable "storage_access_contract" {
       var.storage_access_contract.container_access_type == "private"
     )
     error_message = "Storage access contract forbids anonymous Blob access and static website hosting."
+  }
+}
+
+variable "resource_name_suffix" {
+  description = "Synthetic or approved unique suffix for global resource names."
+  type        = string
+  default     = "example"
+  nullable    = false
+
+  validation {
+    condition     = can(regex("^[a-z0-9]{6,12}$", var.resource_name_suffix))
+    error_message = "resource_name_suffix must be six-to-twelve lowercase letters or numbers."
+  }
+}
+
+variable "identity_reference_contract" {
+  description = "Non-secret Microsoft Entra references; empty until separately reviewed."
+  type = object({
+    tenant_id                        = string
+    postgres_administrator_object_id = string
+    postgres_administrator_name      = string
+    postgres_administrator_type      = string
+  })
+  default = {
+    tenant_id                        = ""
+    postgres_administrator_object_id = ""
+    postgres_administrator_name      = ""
+    postgres_administrator_type      = "Group"
+  }
+  nullable = false
+
+  validation {
+    condition = (
+      (
+        var.identity_reference_contract.tenant_id == "" &&
+        var.identity_reference_contract.postgres_administrator_object_id == "" &&
+        var.identity_reference_contract.postgres_administrator_name == ""
+      ) ||
+      (
+        can(regex("^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", lower(var.identity_reference_contract.tenant_id))) &&
+        can(regex("^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", lower(var.identity_reference_contract.postgres_administrator_object_id))) &&
+        can(regex("^[a-z][a-z0-9-]{2,63}$", var.identity_reference_contract.postgres_administrator_name)) &&
+        var.identity_reference_contract.postgres_administrator_type == "Group"
+      )
+    )
+    error_message = "Identity references must be entirely empty or complete reviewed UUID/group references; credentials are forbidden."
+  }
+}
+
+variable "identity_references_revalidated" {
+  description = "True only after the non-secret tenant and PostgreSQL administrator references are reviewed."
+  type        = bool
+  default     = false
+  nullable    = false
+}
+
+variable "image_contract" {
+  description = "Immutable image repository and digest references; tags and credentials are forbidden."
+  type = object({
+    api_repository    = string
+    api_digest        = string
+    worker_repository = string
+    worker_digest     = string
+  })
+  default = {
+    api_repository    = "local-missions/api"
+    api_digest        = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    worker_repository = "local-missions/worker"
+    worker_digest     = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  }
+  nullable = false
+
+  validation {
+    condition = (
+      can(regex("^[a-z0-9][a-z0-9._/-]{2,127}$", var.image_contract.api_repository)) &&
+      can(regex("^[0-9a-f]{64}$", var.image_contract.api_digest)) &&
+      can(regex("^[a-z0-9][a-z0-9._/-]{2,127}$", var.image_contract.worker_repository)) &&
+      can(regex("^[0-9a-f]{64}$", var.image_contract.worker_digest))
+    )
+    error_message = "Images must use stable repositories and lowercase 64-character SHA-256 digests."
+  }
+}
+
+variable "artifact_references_revalidated" {
+  description = "True only after both immutable image digests are built, scanned, and reviewed."
+  type        = bool
+  default     = false
+  nullable    = false
+}
+
+variable "secret_reference_contract" {
+  description = "Fail-closed contract preventing credentials or inline secrets from entering Terraform state."
+  type = object({
+    inline_secret_blocks            = number
+    key_vault_reference_only        = bool
+    postgres_password_auth_enabled  = bool
+    registry_password_references    = number
+    shared_key_auth_enabled         = bool
+    terraform_managed_secret_values = number
+  })
+  default = {
+    inline_secret_blocks            = 0
+    key_vault_reference_only        = true
+    postgres_password_auth_enabled  = false
+    registry_password_references    = 0
+    shared_key_auth_enabled         = false
+    terraform_managed_secret_values = 0
+  }
+  nullable = false
+
+  validation {
+    condition = (
+      var.secret_reference_contract.inline_secret_blocks == 0 &&
+      var.secret_reference_contract.key_vault_reference_only &&
+      !var.secret_reference_contract.postgres_password_auth_enabled &&
+      var.secret_reference_contract.registry_password_references == 0 &&
+      !var.secret_reference_contract.shared_key_auth_enabled &&
+      var.secret_reference_contract.terraform_managed_secret_values == 0
+    )
+    error_message = "Secret/reference contract forbids inline, password, registry-password, Shared Key, and Terraform-managed secret values."
   }
 }

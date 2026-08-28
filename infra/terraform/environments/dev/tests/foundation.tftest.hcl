@@ -1,4 +1,50 @@
-mock_provider "azurerm" {}
+mock_provider "azurerm" {
+  mock_resource "azurerm_container_registry" {
+    defaults = {
+      id           = "/subscriptions/00000000-0000-4000-8000-000000000003/resourceGroups/rg-local-missions-dev-example/providers/Microsoft.ContainerRegistry/registries/acrlmdevexample"
+      login_server = "acrlmdevexample.azurecr.io"
+    }
+  }
+
+  mock_resource "azurerm_key_vault" {
+    defaults = {
+      id        = "/subscriptions/00000000-0000-4000-8000-000000000003/resourceGroups/rg-local-missions-dev-example/providers/Microsoft.KeyVault/vaults/kvlmdev-example"
+      vault_uri = "https://kvlmdev-example.vault.azure.net/"
+    }
+  }
+
+  mock_resource "azurerm_postgresql_flexible_server" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-4000-8000-000000000003/resourceGroups/rg-local-missions-dev-example/providers/Microsoft.DBforPostgreSQL/flexibleServers/psql-local-missions-dev-example"
+      fqdn = "psql-local-missions-dev-example.postgres.database.azure.com"
+    }
+  }
+
+  mock_resource "azurerm_servicebus_namespace" {
+    defaults = {
+      id = "/subscriptions/00000000-0000-4000-8000-000000000003/resourceGroups/rg-local-missions-dev-example/providers/Microsoft.ServiceBus/namespaces/sb-local-missions-dev-example"
+    }
+  }
+
+  mock_resource "azurerm_storage_account" {
+    defaults = {
+      id = "/subscriptions/00000000-0000-4000-8000-000000000003/resourceGroups/rg-local-missions-dev-example/providers/Microsoft.Storage/storageAccounts/stlmdevexample"
+    }
+  }
+
+  mock_resource "azurerm_log_analytics_workspace" {
+    defaults = {
+      id = "/subscriptions/00000000-0000-4000-8000-000000000003/resourceGroups/rg-local-missions-dev-example/providers/Microsoft.OperationalInsights/workspaces/law-local-missions-dev-example"
+    }
+  }
+
+  mock_resource "azurerm_user_assigned_identity" {
+    defaults = {
+      client_id    = "00000000-0000-4000-8000-000000000013"
+      principal_id = "00000000-0000-4000-8000-000000000014"
+    }
+  }
+}
 
 run "local_disposable_workload_contract" {
   command = plan
@@ -32,6 +78,11 @@ run "local_disposable_workload_contract" {
     condition     = output.resource_group_contract.planned_count == 0
     error_message = "The default local fixture must plan zero resource groups."
   }
+
+  assert {
+    condition     = output.workload_resource_inventory.total == 0 && output.workload_resource_safeguards == null
+    error_message = "The default local fixture must plan zero workload resources and expose no enabled safeguards."
+  }
 }
 
 run "mock_enabled_resource_group_contract" {
@@ -43,7 +94,15 @@ run "mock_enabled_resource_group_contract" {
     approved_monthly_budget_usd     = 50
     azure_resource_creation_enabled = true
     cleanup_controller_reference    = "mock-cleanup-controller"
-    region_and_sku_revalidated      = true
+    artifact_references_revalidated = true
+    identity_references_revalidated = true
+    identity_reference_contract = {
+      tenant_id                        = "00000000-0000-4000-8000-000000000003"
+      postgres_administrator_object_id = "00000000-0000-4000-8000-000000000004"
+      postgres_administrator_name      = "local-missions-postgres-admins"
+      postgres_administrator_type      = "Group"
+    }
+    region_and_sku_revalidated = true
     network_contract = {
       mode                                   = "restricted_public"
       allowed_ipv4_cidrs                     = ["203.0.113.10/32"]
@@ -57,6 +116,17 @@ run "mock_enabled_resource_group_contract" {
   assert {
     condition     = output.activation_status == "mock-enabled-contract"
     error_message = "The enabled shape may be exercised only under the mock-provider contract."
+  }
+
+  assert {
+    condition = (
+      output.workload_resource_inventory.total == 28 &&
+      output.workload_resource_inventory.by_module.resource_group == 1 &&
+      output.workload_resource_inventory.by_module.storage == 4 &&
+      output.workload_resource_inventory.by_module.postgresql == 4 &&
+      output.workload_resource_inventory.by_module.container_apps == 13
+    )
+    error_message = "The mock-enabled plan must contain the exact 28-resource disposable workload inventory."
   }
 
   assert {
@@ -100,5 +170,63 @@ run "mock_enabled_resource_group_contract" {
       output.workload_safeguards.storage_access.container_access_type == "private"
     )
     error_message = "Anonymous storage access must remain disabled."
+  }
+
+  assert {
+    condition = (
+      output.workload_resource_safeguards.storage.anonymous_blob_access_enabled == false &&
+      output.workload_resource_safeguards.storage.shared_key_enabled == false &&
+      output.workload_resource_safeguards.storage.default_network_action == "Deny" &&
+      alltrue([for access_type in values(output.workload_resource_safeguards.storage.container_access_types) : access_type == "private"])
+    )
+    error_message = "Storage must remain OAuth-first, private, non-anonymous, and default-deny."
+  }
+
+  assert {
+    condition = (
+      output.workload_resource_safeguards.postgresql.active_directory_auth_enabled &&
+      !output.workload_resource_safeguards.postgresql.password_auth_enabled &&
+      output.workload_resource_safeguards.postgresql.administrator_password_fields == 0 &&
+      output.workload_resource_safeguards.postgresql.backup_retention_days == 7 &&
+      !output.workload_resource_safeguards.postgresql.geo_redundant_backup_enabled
+    )
+    error_message = "PostgreSQL must remain Entra-only with bounded point-in-time recovery and no password fields."
+  }
+
+  assert {
+    condition = (
+      !output.workload_resource_safeguards.registry.admin_enabled &&
+      !output.workload_resource_safeguards.registry.anonymous_pull_enabled &&
+      output.workload_resource_safeguards.registry.arm_audience_auth &&
+      !output.workload_resource_safeguards.service_bus.local_auth_enabled &&
+      output.workload_resource_safeguards.service_bus.duplicate_detection &&
+      output.workload_resource_safeguards.service_bus.default_network_action == "Deny"
+    )
+    error_message = "Registry and Service Bus must require identity and retain reliability/network safeguards."
+  }
+
+  assert {
+    condition = (
+      output.workload_resource_safeguards.key_vault.rbac_enabled &&
+      output.workload_resource_safeguards.key_vault.purge_protection_enabled &&
+      output.workload_resource_safeguards.key_vault.secret_resources == 0 &&
+      output.workload_resource_safeguards.key_vault.default_network_action == "Deny" &&
+      !output.workload_resource_safeguards.telemetry.workspace_local_auth &&
+      !output.workload_resource_safeguards.telemetry.application_insights_local_auth
+    )
+    error_message = "Key Vault and telemetry must remain RBAC/identity-only without Terraform secret values."
+  }
+
+  assert {
+    condition = (
+      output.workload_resource_safeguards.container_apps.managed_identity_count == 2 &&
+      output.workload_resource_safeguards.container_apps.api_role_count == 4 &&
+      output.workload_resource_safeguards.container_apps.worker_role_count == 4 &&
+      output.workload_resource_safeguards.container_apps.image_references_use_digests &&
+      output.workload_resource_safeguards.container_apps.inline_secret_blocks == 0 &&
+      output.workload_resource_safeguards.container_apps.registry_password_references == 0 &&
+      !output.workload_resource_safeguards.container_apps.worker_has_ingress
+    )
+    error_message = "Container Apps must use separate managed identities, scoped RBAC, digest images, and no inline secrets."
   }
 }

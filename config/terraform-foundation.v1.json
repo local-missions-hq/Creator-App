@@ -1,7 +1,7 @@
 {
   "activationStatus": "local_contract_only",
   "azureCompletionClaimed": false,
-  "checkpoint": "M05-terraform-resource-module-contract-local-002",
+  "checkpoint": "M05-workload-resource-modules-local-003",
   "expirationPolicy": {
     "cutoffHourAmericaNewYork": 23,
     "fixtures": [
@@ -47,11 +47,67 @@
   ],
   "foundationVersion": 1,
   "mockProviderContract": {
-    "allowedResourceTypes": ["azurerm_resource_group"],
-    "enabledPlanResourceChanges": 1,
+    "allowedResourceTypes": [
+      "azurerm_application_insights",
+      "azurerm_container_app",
+      "azurerm_container_app_environment",
+      "azurerm_container_registry",
+      "azurerm_key_vault",
+      "azurerm_log_analytics_workspace",
+      "azurerm_postgresql_flexible_server",
+      "azurerm_postgresql_flexible_server_active_directory_administrator",
+      "azurerm_postgresql_flexible_server_database",
+      "azurerm_postgresql_flexible_server_firewall_rule",
+      "azurerm_resource_group",
+      "azurerm_role_assignment",
+      "azurerm_servicebus_namespace",
+      "azurerm_servicebus_queue",
+      "azurerm_storage_account",
+      "azurerm_storage_container",
+      "azurerm_user_assigned_identity"
+    ],
+    "enabledPlanResourceChanges": 28,
     "providerSource": "hashicorp/azurerm",
     "providerVersion": "5.0.1",
-    "rootId": "workload-dev"
+    "plannedResourceTypeCounts": {
+      "azurerm_application_insights": 1,
+      "azurerm_container_app": 2,
+      "azurerm_container_app_environment": 1,
+      "azurerm_container_registry": 1,
+      "azurerm_key_vault": 1,
+      "azurerm_log_analytics_workspace": 1,
+      "azurerm_postgresql_flexible_server": 1,
+      "azurerm_postgresql_flexible_server_active_directory_administrator": 1,
+      "azurerm_postgresql_flexible_server_database": 1,
+      "azurerm_postgresql_flexible_server_firewall_rule": 1,
+      "azurerm_resource_group": 1,
+      "azurerm_role_assignment": 8,
+      "azurerm_servicebus_namespace": 1,
+      "azurerm_servicebus_queue": 1,
+      "azurerm_storage_account": 1,
+      "azurerm_storage_container": 3,
+      "azurerm_user_assigned_identity": 2
+    },
+    "rootId": "workload-dev",
+    "syntheticIdentityReferences": [
+      "00000000-0000-4000-8000-000000000003",
+      "00000000-0000-4000-8000-000000000004",
+      "00000000-0000-4000-8000-000000000013",
+      "00000000-0000-4000-8000-000000000014"
+    ],
+    "taggableResourceTypes": [
+      "azurerm_application_insights",
+      "azurerm_container_app",
+      "azurerm_container_app_environment",
+      "azurerm_container_registry",
+      "azurerm_key_vault",
+      "azurerm_log_analytics_workspace",
+      "azurerm_postgresql_flexible_server",
+      "azurerm_resource_group",
+      "azurerm_servicebus_namespace",
+      "azurerm_storage_account",
+      "azurerm_user_assigned_identity"
+    ]
   },
   "refusalFixtures": [
     {
@@ -85,6 +141,18 @@
     {
       "fixture": "fixtures/invalid-anonymous-access.tfvars.json",
       "marker": "Storage access contract"
+    },
+    {
+      "fixture": "fixtures/invalid-identity-reference.tfvars.json",
+      "marker": "Identity references"
+    },
+    {
+      "fixture": "fixtures/invalid-image-reference.tfvars.json",
+      "marker": "Images must use"
+    },
+    {
+      "fixture": "fixtures/invalid-secret-reference.tfvars.json",
+      "marker": "Secret/reference contract"
     }
   ],
   "requiredTags": [
@@ -128,7 +196,7 @@
     "postgresBackupRetentionDays": 7,
     "postgresSkuName": "B_Standard_B1ms",
     "postgresStorageMb": 32768,
-    "serviceBusSku": "Basic",
+    "serviceBusSku": "Standard",
     "workerMaxReplicas": 1,
     "workerMinReplicas": 0
   },
@@ -145,6 +213,17 @@
     "staticWebsiteEnabled": false,
     "workerMaxReplicas": 1,
     "workerMinReplicas": 0
+  },
+  "workloadResourceInventory": {
+    "containerApps": 13,
+    "keyVault": 1,
+    "postgresql": 4,
+    "registry": 1,
+    "resourceGroup": 1,
+    "serviceBus": 2,
+    "storage": 4,
+    "telemetry": 2,
+    "total": 28
   },
   "terraformVersion": "1.15.7"
 }

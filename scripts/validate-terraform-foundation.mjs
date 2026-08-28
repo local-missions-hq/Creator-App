@@ -94,10 +94,12 @@ function assertExpirationFixtures() {
 function assertSourceBoundary() {
   const terraformDirectory = join(repositoryRoot, 'infra/terraform');
   const source = walkFiles(terraformDirectory)
-    .filter((path) => path.endsWith('.tf') || path.endsWith('.tftest.hcl'))
+    .filter(
+      (path) =>
+        path.endsWith('.tf') || path.endsWith('.tftest.hcl') || path.endsWith('.tfvars.json'),
+    )
     .map((path) => readFileSync(path, 'utf8'))
     .join('\n');
-  const azureResources = source.match(/\bresource\s+"azurerm_/g) ?? [];
   const azureProviders = source.match(/\bprovider\s+"azurerm"/g) ?? [];
   const azureMockProviders = source.match(/\bmock_provider\s+"azurerm"/g) ?? [];
   const backendBlocks = source.match(/\bbackend\s+"azurerm"/g) ?? [];
@@ -105,9 +107,13 @@ function assertSourceBoundary() {
   const declaredResourceTypes = [...source.matchAll(/\bresource\s+"(azurerm_[^"]+)"/g)].map(
     (match) => match[1],
   );
+  const uniqueDeclaredResourceTypes = [...new Set(declaredResourceTypes)].sort();
+  const uniqueAllowedResourceTypes = [...allowedResources].sort();
   if (
-    azureResources.length !== allowedResources.length ||
-    declaredResourceTypes.some((resourceType) => !allowedResources.includes(resourceType))
+    uniqueDeclaredResourceTypes.length !== uniqueAllowedResourceTypes.length ||
+    uniqueDeclaredResourceTypes.some(
+      (resourceType, index) => resourceType !== uniqueAllowedResourceTypes[index],
+    )
   ) {
     fail(
       'Terraform source contains an Azure resource outside the reviewed mock-only module boundary.',
@@ -124,8 +130,46 @@ function assertSourceBoundary() {
   if (backendBlocks.length !== manifest.roots.length) {
     fail('Each Terraform root must declare exactly one independent azurerm backend boundary.');
   }
-  if (/\b(subscription_id|tenant_id|client_id|client_secret)\s*=/.test(source)) {
+  if (/\b(subscription_id|client_secret)\s*=/.test(source)) {
     fail('Terraform source must not contain Azure account identifiers or credentials.');
+  }
+  const uuidLiterals = [
+    ...source.matchAll(
+      /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi,
+    ),
+  ].map((match) => match[0].toLowerCase());
+  const syntheticIdentityReferences = new Set(
+    manifest.mockProviderContract.syntheticIdentityReferences.map((reference) =>
+      reference.toLowerCase(),
+    ),
+  );
+  if (uuidLiterals.some((reference) => !syntheticIdentityReferences.has(reference))) {
+    fail(
+      'Terraform source contains an identity reference outside the synthetic fixture allowlist.',
+    );
+  }
+  if (
+    /\n\s*secret\s*\{/.test(source) ||
+    /\bpassword_secret_name\s*=/.test(source) ||
+    /\badministrator_password(?:_wo)?\s*=/.test(source)
+  ) {
+    fail(
+      'Terraform source must not contain inline, registry-password, or PostgreSQL password fields.',
+    );
+  }
+  if (
+    /\b(?:admin_enabled|anonymous_pull_enabled|shared_access_key_enabled|allow_nested_items_to_be_public|password_auth_enabled|local_auth_enabled)\s*=\s*true\b/.test(
+      source,
+    )
+  ) {
+    fail('Terraform source attempted to enable a prohibited local or anonymous access path.');
+  }
+  const containerAppsSource = readFileSync(
+    join(terraformDirectory, 'modules/workload-container-apps/main.tf'),
+    'utf8',
+  );
+  if ((containerAppsSource.match(/@sha256:\$\{var\.images\.[^}]+\}/g) ?? []).length !== 2) {
+    fail('API and worker image references must both use immutable SHA-256 digests.');
   }
 
   const providerRoot = manifest.roots.find(
@@ -270,9 +314,60 @@ function assertMockWorkloadPlan(plan) {
         change.change?.actions?.join(',') !== 'create',
     )
   ) {
-    fail('The mock-enabled plan must create only the reviewed disposable resource-group shape.');
+    fail('The mock-enabled plan must create only the reviewed disposable workload shape.');
   }
+
+  const actualTypeCounts = Object.fromEntries(
+    manifest.mockProviderContract.allowedResourceTypes.map((resourceType) => [resourceType, 0]),
+  );
+  for (const change of changes) actualTypeCounts[change.type] += 1;
+  for (const [resourceType, expectedCount] of Object.entries(
+    manifest.mockProviderContract.plannedResourceTypeCounts,
+  )) {
+    if (actualTypeCounts[resourceType] !== expectedCount) {
+      fail(
+        `Mock plan ${resourceType} count drifted: expected ${expectedCount}, found ${actualTypeCounts[resourceType]}.`,
+      );
+    }
+  }
+
+  const expectedTags = plan.localOutputs.required_tags?.after ?? {};
+  for (const change of changes.filter((candidate) =>
+    manifest.mockProviderContract.taggableResourceTypes.includes(candidate.type),
+  )) {
+    const tags = change.change?.after?.tags ?? {};
+    if (
+      manifest.requiredTags.some((tag) => tags[tag] !== expectedTags[tag]) ||
+      tags.lifecycle !== 'disposable' ||
+      tags.terraform_root !== 'workload-dev' ||
+      tags.workload_resource_group !== 'rg-local-missions-dev-example'
+    ) {
+      fail(`${change.address} does not retain the exact disposable workload tags.`);
+    }
+  }
+
   const outputs = plan.mockPlan.output_changes ?? {};
+  const inventory = outputs.workload_resource_inventory?.after ?? {};
+  const expectedInventory = manifest.workloadResourceInventory;
+  const inventoryPairs = {
+    containerApps: 'container_apps',
+    keyVault: 'key_vault',
+    postgresql: 'postgresql',
+    registry: 'registry',
+    resourceGroup: 'resource_group',
+    serviceBus: 'service_bus',
+    storage: 'storage',
+    telemetry: 'telemetry',
+  };
+  if (inventory.total !== expectedInventory.total || inventory.enabled !== true) {
+    fail('The mock-enabled workload inventory total drifted.');
+  }
+  for (const [manifestKey, outputKey] of Object.entries(inventoryPairs)) {
+    if (inventory.by_module?.[outputKey] !== expectedInventory[manifestKey]) {
+      fail(`The mock-enabled ${outputKey} inventory count drifted.`);
+    }
+  }
+
   const safeguards = outputs.workload_safeguards?.after ?? {};
   const expected = manifest.workloadSafeguards;
   const checks = [
@@ -292,6 +387,43 @@ function assertMockWorkloadPlan(plan) {
     safeguards.storage_access?.container_access_type === expected.containerAccessType,
   ];
   if (!checks.every(Boolean)) fail('The mock-enabled workload safeguards drifted.');
+
+  const resourceSafeguards = outputs.workload_resource_safeguards?.after ?? {};
+  const resourceChecks = [
+    resourceSafeguards.storage?.anonymous_blob_access_enabled === false,
+    resourceSafeguards.storage?.shared_key_enabled === false,
+    resourceSafeguards.storage?.default_network_action === 'Deny',
+    Object.values(resourceSafeguards.storage?.container_access_types ?? {}).every(
+      (accessType) => accessType === 'private',
+    ),
+    resourceSafeguards.postgresql?.active_directory_auth_enabled === true,
+    resourceSafeguards.postgresql?.password_auth_enabled === false,
+    resourceSafeguards.postgresql?.administrator_password_fields === 0,
+    resourceSafeguards.postgresql?.backup_retention_days === 7,
+    resourceSafeguards.postgresql?.geo_redundant_backup_enabled === false,
+    resourceSafeguards.registry?.admin_enabled === false,
+    resourceSafeguards.registry?.anonymous_pull_enabled === false,
+    resourceSafeguards.registry?.arm_audience_auth === true,
+    resourceSafeguards.service_bus?.local_auth_enabled === false,
+    resourceSafeguards.service_bus?.duplicate_detection === true,
+    resourceSafeguards.service_bus?.default_network_action === 'Deny',
+    resourceSafeguards.key_vault?.rbac_enabled === true,
+    resourceSafeguards.key_vault?.purge_protection_enabled === true,
+    resourceSafeguards.key_vault?.secret_resources === 0,
+    resourceSafeguards.key_vault?.default_network_action === 'Deny',
+    resourceSafeguards.telemetry?.workspace_local_auth === false,
+    resourceSafeguards.telemetry?.application_insights_local_auth === false,
+    resourceSafeguards.container_apps?.managed_identity_count === 2,
+    resourceSafeguards.container_apps?.api_role_count === 4,
+    resourceSafeguards.container_apps?.worker_role_count === 4,
+    resourceSafeguards.container_apps?.image_references_use_digests === true,
+    resourceSafeguards.container_apps?.inline_secret_blocks === 0,
+    resourceSafeguards.container_apps?.registry_password_references === 0,
+    resourceSafeguards.container_apps?.worker_has_ingress === false,
+  ];
+  if (!resourceChecks.every(Boolean)) {
+    fail('Concrete workload resource safeguards drifted from the reviewed mock contract.');
+  }
 }
 
 function assertRefusals() {
@@ -332,7 +464,7 @@ try {
   const planTestCount = [...plans.values()].reduce((sum, plan) => sum + plan.tests, 0);
 
   console.log(
-    `Terraform foundation passed for ${manifest.roots.length} roots, ${planTestCount} plan tests, ${refusalCount} refusal tests, zero default resource changes, ${manifest.mockProviderContract.enabledPlanResourceChanges} mock-only resource change, ${manifest.requiredTags.length} workload tags, ${Object.keys(manifest.workloadSafeguards).length} workload safeguards, ${Object.keys(manifest.safeLowCostDefaults).length} low-cost defaults, and ${manifest.expirationPolicy.fixtures.length} expiration fixtures; Azure execution remains blocked behind ${manifest.externalGates.length} gates.`,
+    `Terraform foundation passed for ${manifest.roots.length} roots, ${planTestCount} plan tests, ${refusalCount} refusal tests, zero default resource changes, ${manifest.mockProviderContract.enabledPlanResourceChanges} mock-only resource changes across ${manifest.mockProviderContract.allowedResourceTypes.length} reviewed Azure resource types, ${manifest.requiredTags.length} workload tags, ${Object.keys(manifest.workloadSafeguards).length} workload safeguards, ${Object.keys(manifest.safeLowCostDefaults).length} low-cost defaults, and ${manifest.expirationPolicy.fixtures.length} expiration fixtures; Azure execution remains blocked behind ${manifest.externalGates.length} gates.`,
   );
 } finally {
   rmSync(temporaryDirectory, { force: true, recursive: true });

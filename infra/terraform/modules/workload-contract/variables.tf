@@ -113,3 +113,27 @@ variable "azure_resource_creation_enabled" {
   type     = bool
   nullable = false
 }
+
+variable "secret_reference_contract" {
+  type = object({
+    inline_secret_blocks            = number
+    key_vault_reference_only        = bool
+    postgres_password_auth_enabled  = bool
+    registry_password_references    = number
+    shared_key_auth_enabled         = bool
+    terraform_managed_secret_values = number
+  })
+  nullable = false
+
+  validation {
+    condition = (
+      var.secret_reference_contract.inline_secret_blocks == 0 &&
+      var.secret_reference_contract.key_vault_reference_only &&
+      !var.secret_reference_contract.postgres_password_auth_enabled &&
+      var.secret_reference_contract.registry_password_references == 0 &&
+      !var.secret_reference_contract.shared_key_auth_enabled &&
+      var.secret_reference_contract.terraform_managed_secret_values == 0
+    )
+    error_message = "Workload secret contract forbids credentials and inline/Terraform-managed secret values."
+  }
+}

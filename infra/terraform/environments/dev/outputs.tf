@@ -63,6 +63,51 @@ output "workload_safeguards" {
   value       = module.workload_contract.safeguards
 }
 
+output "workload_resource_inventory" {
+  description = "Exact mock-only workload resource counts; every default plan remains zero."
+  value = {
+    enabled = var.azure_resource_creation_enabled
+    by_module = {
+      container_apps = try(module.workload_container_apps[0].resource_count, 0)
+      key_vault      = try(module.workload_key_vault[0].resource_count, 0)
+      postgresql     = try(module.workload_postgresql[0].resource_count, 0)
+      registry       = try(module.workload_registry[0].resource_count, 0)
+      resource_group = length(module.workload_resource_group)
+      service_bus    = try(module.workload_service_bus[0].resource_count, 0)
+      storage        = try(module.workload_storage[0].resource_count, 0)
+      telemetry      = try(module.workload_telemetry[0].resource_count, 0)
+    }
+    total = (
+      try(module.workload_container_apps[0].resource_count, 0) +
+      try(module.workload_key_vault[0].resource_count, 0) +
+      try(module.workload_postgresql[0].resource_count, 0) +
+      try(module.workload_registry[0].resource_count, 0) +
+      length(module.workload_resource_group) +
+      try(module.workload_service_bus[0].resource_count, 0) +
+      try(module.workload_storage[0].resource_count, 0) +
+      try(module.workload_telemetry[0].resource_count, 0)
+    )
+  }
+}
+
+output "workload_resource_safeguards" {
+  description = "Concrete module safeguards, populated only by the mock-enabled plan."
+  value = var.azure_resource_creation_enabled ? {
+    container_apps = module.workload_container_apps[0].safeguards
+    key_vault      = module.workload_key_vault[0].safeguards
+    postgresql     = module.workload_postgresql[0].safeguards
+    registry       = module.workload_registry[0].safeguards
+    service_bus    = module.workload_service_bus[0].safeguards
+    storage        = module.workload_storage[0].safeguards
+    telemetry      = module.workload_telemetry[0].safeguards
+  } : null
+}
+
+output "workload_resource_names" {
+  description = "Synthetic name contract; every globally unique name must be replaced/reviewed before live planning."
+  value       = local.resource_names
+}
+
 output "root_kind" {
   value = "disposable_workload"
 }
