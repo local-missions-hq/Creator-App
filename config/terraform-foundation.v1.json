@@ -1,0 +1,93 @@
+{
+  "activationStatus": "local_contract_only",
+  "azureCompletionClaimed": false,
+  "checkpoint": "M05-terraform-ephemeral-foundation-local-001",
+  "expirationPolicy": {
+    "cutoffHourAmericaNewYork": 23,
+    "fixtures": [
+      {
+        "createdAt": "2026-01-15T14:00:00-05:00",
+        "cutoffAt": "2026-01-15T23:00:00-05:00",
+        "expectedExpiresAt": "2026-01-15T22:00:00-05:00",
+        "name": "eight-hour-deadline"
+      },
+      {
+        "createdAt": "2026-01-15T20:00:00-05:00",
+        "cutoffAt": "2026-01-15T23:00:00-05:00",
+        "expectedExpiresAt": "2026-01-15T23:00:00-05:00",
+        "name": "same-day-cutoff"
+      },
+      {
+        "createdAt": "2026-03-08T15:00:00-04:00",
+        "cutoffAt": "2026-03-08T23:00:00-04:00",
+        "expectedExpiresAt": "2026-03-08T23:00:00-04:00",
+        "name": "daylight-saving-start"
+      },
+      {
+        "createdAt": "2026-11-01T18:30:00-05:00",
+        "cutoffAt": "2026-11-01T23:00:00-05:00",
+        "expectedExpiresAt": "2026-11-01T23:00:00-05:00",
+        "name": "daylight-saving-end"
+      }
+    ],
+    "maxExtensions": 1,
+    "maxHours": 8,
+    "timeZone": "America/New_York",
+    "warningMinutes": 60
+  },
+  "externalGates": [
+    "Approved Azure subscription and least-privilege scopes",
+    "Named cost owner and verified monitored alert destination",
+    "Current eastus2 service, SKU, policy, and price review",
+    "Reviewed monthly budget amount and actual/forecast alert delivery",
+    "GitHub-Azure OIDC identities and scoped cleanup controller",
+    "Reviewed workload plan and estimated cost",
+    "Explicit same-day apply approval",
+    "Independent Terraform and live-Azure teardown reconciliation"
+  ],
+  "foundationVersion": 1,
+  "requiredTags": [
+    "application",
+    "environment",
+    "lifecycle",
+    "managed_by",
+    "owner",
+    "purpose",
+    "terraform_root",
+    "commit_sha",
+    "created_at",
+    "workload_resource_group",
+    "expires_at"
+  ],
+  "roots": [
+    {
+      "backendKey": "local-missions/control-plane.tfstate",
+      "fixture": "fixtures/local-plan.tfvars.json",
+      "kind": "retained_control_plane",
+      "path": "infra/terraform/control-plane",
+      "resourceGroupClass": "retained",
+      "rootId": "control-plane"
+    },
+    {
+      "backendKey": "local-missions/dev-workload.tfstate",
+      "fixture": "fixtures/local-plan.tfvars.json",
+      "kind": "disposable_workload",
+      "path": "infra/terraform/environments/dev",
+      "resourceGroupClass": "disposable",
+      "rootId": "workload-dev"
+    }
+  ],
+  "safeLowCostDefaults": {
+    "apiMaxReplicas": 1,
+    "apiMinReplicas": 0,
+    "containerRegistrySku": "Basic",
+    "logRetentionDays": 30,
+    "postgresBackupRetentionDays": 7,
+    "postgresSkuName": "B_Standard_B1ms",
+    "postgresStorageMb": 32768,
+    "serviceBusSku": "Basic",
+    "workerMaxReplicas": 1,
+    "workerMinReplicas": 0
+  },
+  "terraformVersion": "1.15.7"
+}

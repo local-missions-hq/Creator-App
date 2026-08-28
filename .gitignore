@@ -22,6 +22,8 @@ expo-env.d.ts
 *.key
 *.tfstate
 *.tfstate.*
+*.tfplan
+.terraform.tfstate.lock.info
 .terraform/
 crash.log
 

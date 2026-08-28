@@ -1,0 +1,5 @@
+resource_group_name  = "<retained-state-resource-group>"
+storage_account_name = "<retained-state-storage-account>"
+container_name       = "<retained-state-container>"
+key                  = "local-missions/dev-workload.tfstate"
+use_azuread_auth     = true

@@ -1,0 +1,43 @@
+M05-terraform-ephemeral-foundation-local-001 — 2026-08-28
+
+Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0 were used locally.
+
+terraform fmt -recursive infra/terraform
+PASS — both Terraform roots and their plan tests were formatted.
+
+terraform -chdir=infra/terraform/control-plane init -backend=false -input=false -no-color
+terraform -chdir=infra/terraform/control-plane validate -no-color
+terraform -chdir=infra/terraform/environments/dev init -backend=false -input=false -no-color
+terraform -chdir=infra/terraform/environments/dev validate -no-color
+PASS — both contract-only roots initialized with remote backends disabled and validated without a provider or Azure request.
+
+terraform -chdir=infra/terraform/control-plane test -no-color -var-file=fixtures/local-plan.tfvars.json
+terraform -chdir=infra/terraform/environments/dev test -no-color -var-file=fixtures/local-plan.tfvars.json
+PASS — two plan-only tests passed with synthetic values and no infrastructure creation.
+
+terraform -chdir=infra/terraform/environments/dev test -no-color -var-file=fixtures/invalid-target.tfvars.json
+EXPECTED REFUSAL — an overlapping retained/control-plane target was rejected.
+
+terraform -chdir=infra/terraform/environments/dev test -no-color -var-file=fixtures/invalid-expiration.tfvars.json
+EXPECTED REFUSAL — an expiration more than eight hours after creation was rejected.
+
+terraform -chdir=infra/terraform/environments/dev test -no-color -var-file=fixtures/invalid-activation.tfvars.json
+EXPECTED REFUSAL — activation without approval, budget, current price review, CIDRs, cleanup controller, and monitored destination was rejected.
+
+tflint --chdir=infra/terraform/control-plane --format compact
+tflint --chdir=infra/terraform/environments/dev --format compact
+PASS — both roots passed with zero TFLint findings.
+
+pnpm terraform:check
+PASS — validated two roots, two plan tests, three refusal tests, zero resource changes, eleven workload tags, ten low-cost defaults, four expiration fixtures, and eight blocked external gates.
+
+pnpm verify
+PASS — formatting, prerequisite/external-auth/authorization/Terraform validation, lint, strict type checks, all repository unit tests, reviewed API/migration contracts, production local-marker exclusion, and all nine builds passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 480 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks found no leaks in approximately 15.24 MB.
+
+No Azure CLI command, Azure login, provider configuration, remote backend, subscription plan, resource creation, networking activation, cloud identity, apply, destroy, or cost-incurring action was used. M5 and final M4 external/native gates remain open.

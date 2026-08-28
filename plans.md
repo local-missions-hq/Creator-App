@@ -6,7 +6,7 @@ Primary client: Native iPhone app with Creator and Business modes
 Companion client: Responsive admin/support web dashboard and optional desktop business views
 Cloud: Microsoft Azure
 Plan status: Executing locally; external/live gates remain closed
-Current milestone: M4 authentication, authorization, and account lifecycle; physical-iPhone VoiceOver is deferred to M16 by ADR-059
+Current milestone: M5 Phase A local infrastructure preparation; final M4 external/native proof remains deferred, and physical-iPhone VoiceOver is deferred to M16 by ADR-059
 Last updated: 2026-08-28
 
 ## Live execution checklist
@@ -151,7 +151,12 @@ Actual physical-iPhone VoiceOver gesture testing is intentionally deferred by AD
 - [x] Complete checkpoint `M04-external-auth-configuration-gate-local-010`: machine-validated secret-free mobile/API/web registration inputs, exact callback/provider/environment mappings, same-origin HTTPS endpoint contract, external consent/cancellation/email-code/device matrix, and separately owned approval gates without creating or contacting an external identity service.
 - [x] Complete checkpoint `M04-mobile-auth-transport-local-011`: production-buildable but unactivated HTTPS authorization-code/refresh and mobile JWKS adapters with exact tenant endpoints, public-client form bodies, no client secret or ambient credentials, rejected redirects, bounded time/content/body/key cache behavior, generic failures, and fixture-backed key rotation/session proof without external contact.
 - [x] Complete checkpoint `M04-authorization-matrix-audit-local-012`: machine-validated 12-row local authorization matrix, database-derived Creator/Business/Venue Staff/Support/Finance/Admin authority, privacy-minimized projections, immutable reasoned Admin audit, immediate disabled-state enforcement, email-independent identity collision safety, and replay/concurrency/recovery proof with synthetic fixtures and ephemeral PostgreSQL.
-- [ ] Complete real Entra External ID configuration, production token validation, provider round trips, authorization matrix, account API/UI, logout/cache purge, and physical-device M4 gate.
+- [ ] Complete real Entra External ID registration/runtime activation, network issuer/audience/JWKS proof, provider consent/cancellation/email-code round trips, native system-browser/deep-link execution, rerun the authorization matrix against the external session, and pass the physical-device M4 gate.
+
+### M5 — Azure dev foundation and continuous delivery
+
+- [x] Complete checkpoint `M05-terraform-ephemeral-foundation-local-001`: separate retained control-plane and disposable dev-workload Terraform roots, distinct backend keys and resource-group namespaces, required owner/commit/target/creation/expiry tags, eight-hour/11:00 PM New York expiration contract, low-cost planning ceilings, activation refusals, backend-disabled validation, plan-only tests, CI gate, and operational boundary with zero Azure resource changes.
+- [ ] Add reviewed AzureRM resource modules, provider lock, secretless OIDC plan path, cost estimate, saved-plan review, explicit apply approval, ephemeral deployment, cloud tests, scoped destroy, independent teardown reconciliation, rollback, restore drill, and complete M5 evidence.
 
 1. How to use this file
 
@@ -4283,3 +4288,15 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Decisions: This checkpoint proves local authorization behavior only. Entra registration/activation, real issuer/audience/network-key proof, provider round trips, native system-browser/deep-link execution, and physical-iPhone verification remain open. No external provider, real identity, Azure resource, Stripe action, or phone was used.
 - Blockers: None for another phone-free local preparation slice. Final M4 still requires user-controlled external registration/activation and native-device execution, so it remains unchecked and cannot be claimed from fixtures.
 - Next exact task: Begin `M05-terraform-ephemeral-foundation-local-001` as local preparation only: inspect the existing infrastructure boundary and define separate retained control-plane and disposable workload Terraform roots, required target/expiry/owner tags, safe low-cost defaults, and format/validate/security-plan gates. Do not log into Azure, create resources, activate networking, or claim the M5 gate; final M4 external/native proof remains deferred until the user is ready.
+
+### 2026-08-28 — Terraform ephemeral foundation passed locally
+
+- Milestone: M5 Azure dev foundation and continuous delivery in Phase A local preparation; final M4 external/native proof remains deferred
+- Completed: Replaced the empty Terraform placeholder with separate retained control-plane and disposable development-workload roots using distinct backend keys, resource-group namespaces, ownership contracts, and retained/disposable inventories. Both roots remain contract-only with zero Azure provider/resource blocks.
+- Completed: Added eleven workload tags, ten conservative cost/scale planning defaults, an eight-hour/11:00 PM `America/New_York` deadline contract with one-hour warning and one-extension ceiling, and activation refusal unless approval, budget, current region/SKU review, narrow CIDRs, cleanup controller, and monitored destination are all present.
+- Completed: Added `pnpm terraform:check` to local/CI verification, pinned Terraform 1.15.7 for CI, and documented the exact retained/disposable/runbook boundary. The validator strips Azure/ARM/TF_VAR values and invokes only format, backend-disabled init/validate, and plan-only Terraform tests.
+- Verification: Two roots, two plan tests, three refusal tests, zero resource changes, eleven tags, ten low-cost defaults, four expiration fixtures, and eight blocked external gates passed. Both roots passed TFLint with zero findings, the complete pinned Node 24.19.0/pnpm 11.24.0 repository verification passed, the security scan passed 480 text files, and Gitleaks found no leaks in approximately 15.24 MB.
+- Evidence: `config/terraform-foundation.v1.json`, `infra/terraform/control-plane/`, `infra/terraform/environments/dev/`, `scripts/validate-terraform-foundation.mjs`, `docs/operations/ephemeral-azure-development.md`, `docs/evidence/M05/summary.md`, and `docs/evidence/M05/commands.txt`.
+- Decisions: Planning defaults are safety ceilings, not current Azure price or SKU approval. The candidate region remains unapproved. The local gate cannot create resources, configure networking, initialize a remote backend, or contact Azure. CI has no Azure OIDC permission.
+- Blockers: M5 remains open for current official AzureRM/service/SKU/cost review, named subscription/cost/alert ownership, provider/resource modules, secretless OIDC, reviewed saved plan, explicit apply, cloud validation, rollback, backup/restore, same-day scoped destroy, and independent live-state reconciliation. Final M4 external/provider/device proof also remains open.
+- Next exact task: Build `M05-terraform-resource-module-contract-local-002` without Azure access: pin and lock the reviewed AzureRM provider, add resource-group/tag plus low-cost workload module contracts behind the disabled root, and use Terraform mock-provider plan tests to prove environment isolation, scale/network/backup/anonymous-access safeguards, and retained/disposable ownership. Do not initialize a remote backend, authenticate, apply, or represent candidate SKUs/prices as approved.
