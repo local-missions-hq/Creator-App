@@ -35,13 +35,17 @@ describe('mobile mission data adapter', () => {
     const get = vi.fn().mockResolvedValue(response);
     const adapter = createMobileMissionDataAdapter({
       accessToken: 'test-token-not-a-secret',
+      authorizationContext: { role: 'creator' },
       client: { GET: get } as never,
       mode: 'api',
     });
 
     await expect(adapter.getCreatorMissions()).resolves.toMatchObject({ source: 'api' });
     expect(get).toHaveBeenCalledWith('/v1/creator/missions', {
-      headers: { Authorization: 'Bearer test-token-not-a-secret' },
+      headers: {
+        Authorization: 'Bearer test-token-not-a-secret',
+        'x-local-missions-role': 'creator',
+      },
       params: { query: { limit: 20 } },
     });
   });

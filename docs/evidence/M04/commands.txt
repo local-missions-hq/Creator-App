@@ -236,3 +236,53 @@ pnpm test:gitleaks
 PASS — no leaks found in approximately 14.14 MB.
 
 No Entra endpoint, external JWKS, provider, Azure, Stripe, phone, payment, message, external account, or real customer action occurred.
+
+M04-external-principal-mapping-local-006 — 2026-08-28
+
+docker compose up -d postgres
+INITIAL FAIL — the first health-loop script assigned to zsh's reserved read-only `status` variable before migrations ran.
+RESOLUTION — renamed the loop variable to `creator_health`; PostgreSQL became healthy without changing data or another project's container.
+
+pnpm db:migrate
+pnpm db:seed
+pnpm db:check
+PASS — all nineteen migrations and deterministic seed completed; 96 tables and the synthetic identity/business/campaign contract were verified.
+
+pnpm openapi:generate
+pnpm --filter @local-missions/api-client build
+PASS — production/local OpenAPI and the generated client contain the optional untrusted role and Business workspace headers on protected routes.
+
+pnpm --filter @local-missions/mobile test
+INITIAL FAIL — five existing OIDC callback tests compared a fixed ten-minute August 28 fixture to the real wall clock later that day.
+RESOLUTION — supplied a deterministic callback clock while preserving the explicit expiry-boundary case; all 64 mobile tests then passed.
+
+pnpm --filter @local-missions/mobile typecheck
+pnpm --filter @local-missions/mobile lint
+PASS — strict TypeScript and lint passed with Creator/Business authorization-context derivation and account/mission/Reach adapter headers.
+
+pnpm --filter @local-missions/api typecheck
+pnpm --filter @local-missions/api test
+PASS — strict TypeScript and all 15 API unit tests passed.
+
+DATABASE_URL=<loopback-local-only> APP_ENV=local pnpm --filter @local-missions/api test:integration
+PASS — all 29 API integration tests passed across two suites against ephemeral loopback PostgreSQL.
+
+DATABASE_URL=<loopback-local-only> APP_ENV=local pnpm --filter @local-missions/api exec vitest run src/domain-api.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/external-principal-mapping-junit.xml
+PASS — retained 21 focused domain tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+pnpm --filter @local-missions/mobile exec vitest run lib/auth-session.test.ts lib/account-data.test.ts lib/mission-data.test.ts lib/reach-data.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/external-context-mobile-junit.xml
+PASS — retained 20 focused mobile session/header/adapter tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+pnpm verify
+PASS — formatting, prerequisites, lint, strict type checks, 64 mobile tests, 15 API unit tests, OpenAPI/migration contracts, production local-marker exclusion, and all nine builds passed.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 426 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 14.21 MB.
+
+docker compose down --volumes --remove-orphans
+PASS — removed the Creator App PostgreSQL container, disposable database volume, and Compose network. The unrelated `post-proof-demo-local-postgis` container remained running on its separate port.
+
+No Entra endpoint, external JWKS, real provider token, Azure, Stripe, phone, payment, message, external account, or customer action occurred.

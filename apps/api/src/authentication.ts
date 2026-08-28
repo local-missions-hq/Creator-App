@@ -3,11 +3,18 @@ import type { AuthenticatedRole } from '@local-missions/contracts';
 
 import { ApiProblem, dependencyUnavailable } from './api-errors.js';
 
-export type VerifiedBearerIdentity = {
+export type VerifiedLocalBearerIdentity = {
   role: AuthenticatedRole;
   subjectPublicId: string;
   tenantPublicId?: string;
 };
+
+export type VerifiedExternalBearerIdentity = {
+  issuer: string;
+  subject: string;
+};
+
+export type VerifiedBearerIdentity = VerifiedExternalBearerIdentity | VerifiedLocalBearerIdentity;
 
 export interface BearerVerifier {
   verify(token: string): Promise<VerifiedBearerIdentity>;

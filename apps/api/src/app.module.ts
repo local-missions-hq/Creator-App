@@ -8,6 +8,11 @@ import {
 import { DatabaseService } from './database.service.js';
 import { DomainApiService } from './domain-api.service.js';
 import { DomainController } from './domain.controller.js';
+import {
+  createRemoteEntraKeyResolver,
+  EntraAccessTokenVerifier,
+  readEntraVerifierConfiguration,
+} from './entra-token-verifier.js';
 import { HealthController } from './health.controller.js';
 import { OpenApiController } from './openapi.controller.js';
 import { OpenApiDocumentStore } from './openapi.js';
@@ -26,7 +31,17 @@ import { V1Controller } from './v1.controller.js';
     OpenApiDocumentStore,
     UnavailableProviderControlProofVerifier,
     UnavailableBearerVerifier,
-    { provide: BEARER_VERIFIER, useExisting: UnavailableBearerVerifier },
+    {
+      provide: BEARER_VERIFIER,
+      useFactory: () => {
+        const resolved = readEntraVerifierConfiguration(process.env);
+        if (!resolved.available) return new UnavailableBearerVerifier();
+        return new EntraAccessTokenVerifier(
+          resolved.configuration,
+          createRemoteEntraKeyResolver(resolved.configuration),
+        );
+      },
+    },
     {
       provide: PROVIDER_CONTROL_PROOF_VERIFIER,
       useExisting: UnavailableProviderControlProofVerifier,

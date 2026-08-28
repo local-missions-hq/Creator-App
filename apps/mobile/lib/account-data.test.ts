@@ -32,11 +32,15 @@ describe('mobile account data adapter', () => {
     const get = vi.fn().mockResolvedValue({ data: { identities: [], sessions: [] } });
     await createMobileAccountDataAdapter({
       accessToken: 'test-token-not-a-secret',
+      authorizationContext: { role: 'creator' },
       client: { GET: get } as never,
       mode: 'api',
     }).getAccountOverview();
     expect(get).toHaveBeenCalledWith('/v1/account', {
-      headers: { Authorization: 'Bearer test-token-not-a-secret' },
+      headers: {
+        Authorization: 'Bearer test-token-not-a-secret',
+        'x-local-missions-role': 'creator',
+      },
     });
   });
 
@@ -70,6 +74,10 @@ describe('mobile account data adapter', () => {
     const remove = vi.fn().mockResolvedValue({ data: { provider: 'google', status: 'revoked' } });
     const adapter = createMobileAccountDataAdapter({
       accessToken: 'test-token-not-a-secret',
+      authorizationContext: {
+        businessPublicId: 'biz_synthetic_orlando_001',
+        role: 'business_owner',
+      },
       client: { DELETE: remove, POST: post } as never,
       mode: 'api',
     });
@@ -86,11 +94,19 @@ describe('mobile account data adapter', () => {
         sessionPublicId: 'ses_synthetic_creator_001',
         type: 'export',
       },
-      headers: { Authorization: 'Bearer test-token-not-a-secret' },
+      headers: {
+        Authorization: 'Bearer test-token-not-a-secret',
+        'x-local-missions-business': 'biz_synthetic_orlando_001',
+        'x-local-missions-role': 'business_owner',
+      },
     });
     expect(remove).toHaveBeenCalledWith('/v1/account/identities/{provider}', {
       body: { recentAuthGrantPublicId: 'rag_synthetic_unlink_001' },
-      headers: { Authorization: 'Bearer test-token-not-a-secret' },
+      headers: {
+        Authorization: 'Bearer test-token-not-a-secret',
+        'x-local-missions-business': 'biz_synthetic_orlando_001',
+        'x-local-missions-role': 'business_owner',
+      },
       params: { path: { provider: 'google' } },
     });
   });

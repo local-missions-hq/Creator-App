@@ -4,10 +4,20 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+import { ApiProblem } from './api-errors.js';
+import type { ContextualRequest } from './api-context.js';
 import type { SafeRequestLog } from './api-logging.js';
 import { AppModule } from './app.module.js';
+import {
+  AuthenticationService,
+  type BearerVerifier,
+  type VerifiedExternalBearerIdentity,
+} from './authentication.js';
 import { createApiApplication } from './create-application.js';
+import { DatabaseService } from './database.service.js';
+import { DomainApiService } from './domain-api.service.js';
 import { LocalAppModule } from './local-only/local-app.module.js';
+import { UnavailableProviderControlProofVerifier } from './provider-control-proof.js';
 
 const localDatabaseUrl =
   'postgresql://local_missions:local_missions_local_only@127.0.0.1:5432/local_missions';
@@ -23,7 +33,34 @@ const decoyUserPublicId = 'usr_account_decoy_synthetic_001';
 let productionApp: NestFastifyApplication;
 let localApp: NestFastifyApplication;
 let pool: Pool;
+let externalDatabase: DatabaseService;
+let externalDomain: DomainApiService;
 const logs: SafeRequestLog[] = [];
+const externalEvidenceByToken = new Map<string, VerifiedExternalBearerIdentity>();
+
+class SyntheticExternalVerifier implements BearerVerifier {
+  async verify(token: string) {
+    const evidence = externalEvidenceByToken.get(token);
+    if (!evidence) {
+      throw new ApiProblem('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401);
+    }
+    return evidence;
+  }
+}
+
+function externalRequest(input: {
+  businessPublicId?: string;
+  role?: string;
+  token: string;
+}): ContextualRequest {
+  return {
+    headers: {
+      authorization: `Bearer ${input.token}`,
+      ...(input.businessPublicId ? { 'x-local-missions-business': input.businessPublicId } : {}),
+      ...(input.role ? { 'x-local-missions-role': input.role } : {}),
+    },
+  } as unknown as ContextualRequest;
+}
 
 async function issueToken(
   role: 'creator' | 'business_owner',
@@ -123,6 +160,33 @@ beforeAll(async () => {
   process.env.APP_ENV = 'local';
   process.env.DATABASE_URL = localDatabaseUrl;
   pool = new Pool({ connectionString: localDatabaseUrl });
+  externalEvidenceByToken.set('external.known.token', {
+    issuer: 'https://identity.local.test/v1',
+    subject: 'synthetic-provider-subject-001',
+  });
+  externalEvidenceByToken.set('external.unknown.token', {
+    issuer: 'https://identity.local.test/v1',
+    subject: 'synthetic-provider-subject-unknown-001',
+  });
+  externalEvidenceByToken.set('external.revoked.token', {
+    issuer: 'https://identity.local.test/v1',
+    subject: 'synthetic-provider-subject-revoked-001',
+  });
+  await pool.query(
+    `INSERT INTO external_identities (
+       user_id, provider, issuer, subject, verified_at, status, revoked_at
+     ) VALUES (
+       '10000000-0000-4000-8000-000000000001', 'microsoft',
+       'https://identity.local.test/v1', 'synthetic-provider-subject-revoked-001',
+       now(), 'revoked', now()
+     ) ON CONFLICT (issuer, subject) DO NOTHING`,
+  );
+  externalDatabase = new DatabaseService();
+  externalDomain = new DomainApiService(
+    new AuthenticationService(new SyntheticExternalVerifier()),
+    externalDatabase,
+    new UnavailableProviderControlProofVerifier(),
+  );
   const business = await pool.query<{ id: string }>(
     `SELECT id FROM businesses WHERE public_id = $1`,
     [tenantPublicId],
@@ -218,14 +282,160 @@ afterAll(async () => {
   await pool.query(`DELETE FROM businesses WHERE public_id = $1`, [otherTenantPublicId]);
   await localApp.close();
   await productionApp.close();
+  await externalDatabase.onModuleDestroy();
   await pool.end();
 });
 
 describe('authenticated Creator and Business API slice', () => {
+  it('maps one external issuer/subject to current Creator and Business contexts without trusting a token role', async () => {
+    const creator = await externalDomain.authenticate(
+      externalRequest({ role: 'creator', token: 'external.known.token' }),
+    );
+    const business = await externalDomain.authenticate(
+      externalRequest({
+        businessPublicId: tenantPublicId,
+        role: 'business_owner',
+        token: 'external.known.token',
+      }),
+    );
+
+    expect(creator.context).toMatchObject({
+      business: null,
+      creator: { profilePublicId: 'cr_orlando_synthetic_001' },
+      role: 'creator',
+      userPublicId: subjectPublicId,
+    });
+    expect(business.context).toMatchObject({
+      business: { membershipRole: 'owner', publicId: tenantPublicId },
+      creator: null,
+      role: 'business_owner',
+      userPublicId: subjectPublicId,
+    });
+  });
+
+  it.each([
+    ['missing role', { token: 'external.known.token' }],
+    ['invented role', { role: 'admin', token: 'external.known.token' }],
+    [
+      'Creator with Business context',
+      { businessPublicId: tenantPublicId, role: 'creator', token: 'external.known.token' },
+    ],
+    ['Business without workspace', { role: 'business_owner', token: 'external.known.token' }],
+    [
+      'cross-tenant workspace',
+      {
+        businessPublicId: otherTenantPublicId,
+        role: 'business_owner',
+        token: 'external.known.token',
+      },
+    ],
+    [
+      'invented membership role',
+      {
+        businessPublicId: tenantPublicId,
+        role: 'business_manager',
+        token: 'external.known.token',
+      },
+    ],
+  ])('denies untrusted external context: %s', async (_label, input) => {
+    await expect(externalDomain.authenticate(externalRequest(input))).rejects.toMatchObject({
+      apiCode: 'ACCESS_DENIED',
+      status: 403,
+    });
+  });
+
+  it('conceals unknown and revoked external subjects behind the same authentication response', async () => {
+    for (const token of ['external.unknown.token', 'external.revoked.token']) {
+      await expect(
+        externalDomain.authenticate(externalRequest({ role: 'creator', token })),
+      ).rejects.toMatchObject({ apiCode: 'AUTHENTICATION_REQUIRED', status: 401 });
+    }
+  });
+
+  it('rechecks account and membership state for every request made with the same external token', async () => {
+    const creatorRequest = externalRequest({ role: 'creator', token: 'external.known.token' });
+    const businessRequest = externalRequest({
+      businessPublicId: tenantPublicId,
+      role: 'business_owner',
+      token: 'external.known.token',
+    });
+    await expect(externalDomain.authenticate(creatorRequest)).resolves.toBeTruthy();
+    await pool.query(`UPDATE users SET status = 'disabled' WHERE public_id = $1`, [
+      subjectPublicId,
+    ]);
+    await expect(externalDomain.authenticate(creatorRequest)).rejects.toMatchObject({
+      apiCode: 'ACCESS_DENIED',
+      status: 403,
+    });
+    await pool.query(`UPDATE users SET status = 'active' WHERE public_id = $1`, [subjectPublicId]);
+
+    await expect(externalDomain.authenticate(businessRequest)).resolves.toBeTruthy();
+    await pool.query(
+      `UPDATE business_memberships SET status = 'disabled'
+        WHERE user_id = (SELECT id FROM users WHERE public_id = $1)
+          AND business_id = (SELECT id FROM businesses WHERE public_id = $2)`,
+      [subjectPublicId, tenantPublicId],
+    );
+    await expect(externalDomain.authenticate(businessRequest)).rejects.toMatchObject({
+      apiCode: 'ACCESS_DENIED',
+      status: 403,
+    });
+    await pool.query(
+      `UPDATE business_memberships SET status = 'active'
+        WHERE user_id = (SELECT id FROM users WHERE public_id = $1)
+          AND business_id = (SELECT id FROM businesses WHERE public_id = $2)`,
+      [subjectPublicId, tenantPublicId],
+    );
+  });
+
+  it('stops accepting the same external token immediately after its identity binding is revoked', async () => {
+    const suffix = randomUUID().replaceAll('-', '');
+    const publicId = `usr_external_revoke_synthetic_${suffix}`;
+    const creatorPublicId = `cr_external_revoke_synthetic_${suffix}`;
+    const issuer = 'https://identity.local.test/revocation';
+    const subject = `synthetic-provider-subject-${suffix}`;
+    const token = `external.${suffix}.token`;
+    const user = await pool.query<{ id: string }>(
+      `INSERT INTO users (public_id) VALUES ($1) RETURNING id`,
+      [publicId],
+    );
+    await pool.query(
+      `INSERT INTO external_identities (user_id, provider, issuer, subject, verified_at)
+       VALUES ($1,'google',$2,$3,now())`,
+      [user.rows[0]!.id, issuer, subject],
+    );
+    await pool.query(
+      `INSERT INTO creator_profiles (
+         user_id, public_id, status, locality_status, verified_postal_area,
+         locality_verified_at, locality_expires_at
+       ) VALUES ($1,$2,'approved','verified','32801',now(),now() + interval '1 year')`,
+      [user.rows[0]!.id, creatorPublicId],
+    );
+    externalEvidenceByToken.set(token, { issuer, subject });
+    const request = externalRequest({ role: 'creator', token });
+    await expect(externalDomain.authenticate(request)).resolves.toBeTruthy();
+    await pool.query(
+      `UPDATE external_identities
+          SET status = 'revoked', revoked_at = now(), version = version + 1, updated_at = now()
+        WHERE issuer = $1 AND subject = $2`,
+      [issuer, subject],
+    );
+    await expect(externalDomain.authenticate(request)).rejects.toMatchObject({
+      apiCode: 'AUTHENTICATION_REQUIRED',
+      status: 401,
+    });
+  });
+
   it('keeps deployed verification fail-closed and synthetic verification local-only', async () => {
+    const deployedToken = 'structurally.valid.token';
+    const privateWorkspaceMarker = 'biz_private_log_marker_0001';
     const missing = await productionApp.inject({ method: 'GET', url: '/v1/me' });
     const deployed = await productionApp.inject({
-      headers: { authorization: 'Bearer structurally.valid.token' },
+      headers: {
+        authorization: `Bearer ${deployedToken}`,
+        'x-local-missions-business': privateWorkspaceMarker,
+        'x-local-missions-role': 'business_owner',
+      },
       method: 'GET',
       url: '/v1/me',
     });
@@ -245,7 +455,11 @@ describe('authenticated Creator and Business API slice', () => {
       role: 'creator',
       userPublicId: subjectPublicId,
     });
-    expect(JSON.stringify(logs)).not.toContain(token);
+    const serializedLogs = JSON.stringify(logs);
+    expect(serializedLogs).not.toContain(token);
+    expect(serializedLogs).not.toContain(deployedToken);
+    expect(serializedLogs).not.toContain(privateWorkspaceMarker);
+    expect(serializedLogs).not.toContain('x-local-missions-role');
   });
 
   it('resolves a current Business workspace and denies invented tenant membership', async () => {

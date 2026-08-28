@@ -1,6 +1,7 @@
 import type { LocalMissionsApiClient, operations } from '@local-missions/api-client';
 
 import { createMobileApiClient } from './api-client';
+import { authenticatedMobileApiHeaders, type MobileApiAuthorizationContext } from './auth-session';
 
 export type CreatorMissionFeed =
   operations['DomainController_listCreatorMissions']['responses'][200]['content']['application/json'];
@@ -70,6 +71,7 @@ export const localBusinessCampaignPage: BusinessCampaignPage = {
 
 export type MobileMissionDataAdapterOptions = {
   accessToken?: string;
+  authorizationContext?: MobileApiAuthorizationContext;
   client?: LocalMissionsApiClient;
   mode?: 'api' | 'local-preview';
 };
@@ -80,10 +82,7 @@ export function createMobileMissionDataAdapter(options: MobileMissionDataAdapter
   const client = options.client ?? createMobileApiClient();
 
   function authorizationHeaders() {
-    if (!options.accessToken) {
-      throw new Error('API data mode requires an authenticated session token.');
-    }
-    return { Authorization: `Bearer ${options.accessToken}` };
+    return authenticatedMobileApiHeaders(options.accessToken, options.authorizationContext);
   }
 
   return {

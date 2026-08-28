@@ -1,6 +1,11 @@
 export type MobileAccountStatus = 'active' | 'deletion_requested' | 'disabled';
 export type MobileRole = 'business_manager' | 'business_owner' | 'creator' | 'venue_staff';
 export type MobileMode = 'business' | 'creator' | 'venue_staff';
+export type MobileApiRole = 'business_manager' | 'business_owner' | 'creator';
+export type MobileApiAuthorizationContext = {
+  businessPublicId?: string;
+  role: MobileApiRole;
+};
 export type RecentAuthPurpose =
   'account_deletion' | 'identity_link' | 'identity_unlink' | 'payout_change';
 
@@ -15,6 +20,7 @@ export type PersistedMobileSession = {
   userPublicId: string;
   version: 1;
   workspacePublicId?: string;
+  workspaceRole?: 'business_manager' | 'business_owner';
 };
 
 export type AuthenticatedMobileSession = PersistedMobileSession & {
@@ -123,6 +129,60 @@ export function createLocalPreviewSession(
     userPublicId: 'usr_synthetic_preview_001',
     version: 1,
     workspacePublicId: 'biz_synthetic_orlando_001',
+    workspaceRole: 'business_owner',
+  };
+}
+
+export function apiAuthorizationContextForSession(
+  session: AuthenticatedMobileSession,
+): MobileApiAuthorizationContext {
+  if (session.selectedMode === 'creator') {
+    if (!session.roles.includes('creator')) {
+      throw new Error('The signed-in account does not have Creator API access.');
+    }
+    return { role: 'creator' };
+  }
+
+  if (session.selectedMode === 'business') {
+    if (!session.workspacePublicId) {
+      throw new Error('Business API access requires a selected business workspace.');
+    }
+    const availableBusinessRoles = session.roles.filter(
+      (role): role is 'business_manager' | 'business_owner' =>
+        role === 'business_manager' || role === 'business_owner',
+    );
+    const workspaceRole =
+      session.workspaceRole ??
+      (availableBusinessRoles.length === 1 ? availableBusinessRoles[0] : undefined);
+    if (workspaceRole && availableBusinessRoles.includes(workspaceRole)) {
+      return { businessPublicId: session.workspacePublicId, role: workspaceRole };
+    }
+    throw new Error('Business API access requires the selected workspace role.');
+  }
+
+  throw new Error('Venue Staff API access is not available in this checkpoint.');
+}
+
+export function authenticatedMobileApiHeaders(
+  accessToken: string | undefined,
+  context: MobileApiAuthorizationContext | undefined,
+): Record<string, string> {
+  if (!accessToken) {
+    throw new Error('API data mode requires an authenticated session token.');
+  }
+  if (!context) {
+    throw new Error('API data mode requires an authenticated role context.');
+  }
+  if (context.role === 'creator' && context.businessPublicId) {
+    throw new Error('Creator API context cannot include a business workspace.');
+  }
+  if (context.role !== 'creator' && !context.businessPublicId) {
+    throw new Error('Business API context requires a selected business workspace.');
+  }
+  return {
+    Authorization: `Bearer ${accessToken}`,
+    'x-local-missions-role': context.role,
+    ...(context.businessPublicId ? { 'x-local-missions-business': context.businessPublicId } : {}),
   };
 }
 
@@ -211,5 +271,6 @@ export function persistedSessionFromRuntime(
     userPublicId: session.userPublicId,
     version: 1,
     workspacePublicId: session.workspacePublicId,
+    workspaceRole: session.workspaceRole,
   };
 }

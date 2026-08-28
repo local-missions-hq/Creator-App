@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  apiAuthorizationContextForSession,
+  authenticatedMobileApiHeaders,
   authorizeMobileResource,
   authorizeMobileRoute,
   createLocalPreviewSession,
@@ -130,6 +132,67 @@ describe('mobile auth session lifecycle', () => {
         'business',
       ),
     ).toThrow(/does not have that mode/);
+  });
+
+  it('derives API role and workspace context only from the selected authenticated mode', () => {
+    expect(apiAuthorizationContextForSession(createLocalPreviewSession('creator'))).toEqual({
+      role: 'creator',
+    });
+    expect(apiAuthorizationContextForSession(createLocalPreviewSession('business'))).toEqual({
+      businessPublicId: 'biz_synthetic_orlando_001',
+      role: 'business_owner',
+    });
+    expect(
+      apiAuthorizationContextForSession({
+        ...createLocalPreviewSession('business'),
+        roles: ['creator', 'business_manager'],
+        workspaceRole: 'business_manager',
+      }),
+    ).toEqual({
+      businessPublicId: 'biz_synthetic_orlando_001',
+      role: 'business_manager',
+    });
+    expect(() =>
+      apiAuthorizationContextForSession({
+        ...createLocalPreviewSession('business'),
+        workspacePublicId: undefined,
+      }),
+    ).toThrow(/selected business workspace/);
+    expect(() =>
+      apiAuthorizationContextForSession({
+        ...createLocalPreviewSession('business'),
+        roles: ['business_owner', 'business_manager'],
+        workspaceRole: undefined,
+      }),
+    ).toThrow(/selected workspace role/);
+    expect(() =>
+      apiAuthorizationContextForSession({
+        ...createLocalPreviewSession(),
+        selectedMode: 'venue_staff',
+      }),
+    ).toThrow(/not available/);
+  });
+
+  it('builds explicit API headers and rejects contradictory role context', () => {
+    expect(
+      authenticatedMobileApiHeaders('test-token-not-a-secret', {
+        businessPublicId: 'biz_synthetic_orlando_001',
+        role: 'business_owner',
+      }),
+    ).toEqual({
+      Authorization: 'Bearer test-token-not-a-secret',
+      'x-local-missions-business': 'biz_synthetic_orlando_001',
+      'x-local-missions-role': 'business_owner',
+    });
+    expect(() =>
+      authenticatedMobileApiHeaders('test-token-not-a-secret', {
+        businessPublicId: 'biz_synthetic_orlando_001',
+        role: 'creator',
+      }),
+    ).toThrow(/cannot include/);
+    expect(() =>
+      authenticatedMobileApiHeaders('test-token-not-a-secret', { role: 'business_manager' }),
+    ).toThrow(/requires a selected business workspace/);
   });
 
   it('keeps recent-auth proof purpose-specific, five-minute, and memory-only', () => {

@@ -12,6 +12,7 @@ import { Platform } from 'react-native';
 import { revokeSessionAndClearLocalState } from './account-actions';
 import { createMobileAccountDataAdapter } from './account-data';
 import {
+  apiAuthorizationContextForSession,
   createLocalPreviewSession,
   grantRecentAuthentication,
   hasRecentAuthentication,
@@ -109,6 +110,7 @@ export function MobileAuthSessionProvider({ children }: PropsWithChildren) {
       if (current.phase === 'authenticated' && current.session.source === 'api') {
         const adapter = createMobileAccountDataAdapter({
           accessToken: current.session.accessToken,
+          authorizationContext: apiAuthorizationContextForSession(current.session),
           mode: 'api',
         });
         await revokeSessionAndClearLocalState({

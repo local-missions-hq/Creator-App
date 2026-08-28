@@ -718,6 +718,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1030,6 +1050,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -1413,6 +1453,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           },
           {
             "in": "path",
@@ -1800,6 +1860,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -2101,6 +2181,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -2495,6 +2595,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           },
           {
             "in": "query",
@@ -2892,6 +3012,26 @@
             "$ref": "#/components/parameters/CorrelationId"
           },
           {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
+          },
+          {
             "in": "path",
             "name": "campaignPublicId",
             "required": true,
@@ -3250,6 +3390,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3528,6 +3688,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           },
           {
             "in": "query",
@@ -3922,6 +4102,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           },
           {
             "in": "path",
@@ -4321,6 +4521,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           },
           {
             "in": "path",
@@ -4822,6 +5042,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -5110,6 +5350,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           },
           {
             "in": "path",
@@ -5484,6 +5744,26 @@
             "$ref": "#/components/parameters/CorrelationId"
           },
           {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
+          },
+          {
             "in": "path",
             "name": "platform",
             "required": true,
@@ -5856,6 +6136,26 @@
           },
           {
             "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "description": "Requested Business workspace public ID; required only for Business roles.",
+            "in": "header",
+            "name": "x-local-missions-business",
+            "required": false,
+            "schema": {
+              "pattern": "^biz_[a-z0-9_]{8,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Requested app role; always re-authorized against current server state.",
+            "in": "header",
+            "name": "x-local-missions-role",
+            "required": false,
+            "schema": {
+              "enum": ["creator", "business_owner", "business_manager"],
+              "type": "string"
+            }
           }
         ],
         "responses": {

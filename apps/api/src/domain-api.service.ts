@@ -39,7 +39,11 @@ import type { QueryResultRow } from 'pg';
 import { z } from 'zod';
 
 import { ApiProblem, dependencyUnavailable, validationProblem } from './api-errors.js';
-import { AuthenticationService, type VerifiedBearerIdentity } from './authentication.js';
+import {
+  AuthenticationService,
+  type VerifiedBearerIdentity,
+  type VerifiedExternalBearerIdentity,
+} from './authentication.js';
 import type { ContextualRequest } from './api-context.js';
 import { DatabaseService } from './database.service.js';
 import {
@@ -86,6 +90,39 @@ const cursorSchema = z.object({
   publicId: z.string().min(1).max(120),
   v: z.literal(1),
 });
+
+const externalRoleSchema = z.enum(['creator', 'business_owner', 'business_manager']);
+const businessContextSchema = z.string().regex(/^biz_[a-z0-9_]{8,100}$/);
+
+function isExternalIdentity(
+  identity: VerifiedBearerIdentity,
+): identity is VerifiedExternalBearerIdentity {
+  return 'issuer' in identity;
+}
+
+function oneHeader(value: string | string[] | undefined): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function requestedExternalContext(request: ContextualRequest): {
+  role: AuthenticatedRole;
+  tenantPublicId?: string;
+} {
+  const parsedRole = externalRoleSchema.safeParse(
+    oneHeader(request.headers['x-local-missions-role']),
+  );
+  const businessValue = oneHeader(request.headers['x-local-missions-business']);
+  if (!parsedRole.success) throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
+  if (parsedRole.data === 'creator') {
+    if (businessValue !== undefined) {
+      throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
+    }
+    return { role: 'creator' };
+  }
+  const parsedBusiness = businessContextSchema.safeParse(businessValue);
+  if (!parsedBusiness.success) throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
+  return { role: parsedRole.data, tenantPublicId: parsedBusiness.data };
+}
 
 function encodeCursor(row: { created_at: Date; public_id: string }): string {
   return Buffer.from(
@@ -148,7 +185,7 @@ export class DomainApiService {
       request.headers.authorization,
     );
     try {
-      return await this.resolvePrincipal(identity);
+      return await this.resolvePrincipal(identity, request);
     } catch (error) {
       if (error instanceof ApiProblem) throw error;
       throw dependencyUnavailable();
@@ -684,17 +721,30 @@ export class DomainApiService {
 
   private async resolvePrincipal(
     identity: VerifiedBearerIdentity,
+    request: ContextualRequest,
   ): Promise<AuthenticatedPrincipal> {
     const pool = this.database.requirePool();
-    const user = await pool.query<{ id: string; public_id: string; status: string }>(
-      `SELECT id, public_id, status FROM users WHERE public_id = $1`,
-      [identity.subjectPublicId],
-    );
+    const requested = isExternalIdentity(identity)
+      ? requestedExternalContext(request)
+      : { role: identity.role, tenantPublicId: identity.tenantPublicId };
+    const user = isExternalIdentity(identity)
+      ? await pool.query<{ id: string; public_id: string; status: string }>(
+          `SELECT account_user.id, account_user.public_id, account_user.status
+             FROM external_identities identity
+             JOIN users account_user ON account_user.id = identity.user_id
+            WHERE identity.issuer = $1 AND identity.subject = $2
+              AND identity.status = 'active'`,
+          [identity.issuer, identity.subject],
+        )
+      : await pool.query<{ id: string; public_id: string; status: string }>(
+          `SELECT id, public_id, status FROM users WHERE public_id = $1`,
+          [identity.subjectPublicId],
+        );
     const row = user.rows[0];
     if (!row) throw new ApiProblem('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401);
     if (row.status !== 'active') throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
 
-    if (identity.role === 'creator') {
+    if (requested.role === 'creator') {
       const profile = await pool.query<{
         locality_expires_at: Date | null;
         locality_status: LocalityStatus;
@@ -726,8 +776,8 @@ export class DomainApiService {
       };
     }
 
-    if (!identity.tenantPublicId) throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
-    const expectedMembershipRole = identity.role === 'business_owner' ? 'owner' : 'manager';
+    if (!requested.tenantPublicId) throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
+    const expectedMembershipRole = requested.role === 'business_owner' ? 'owner' : 'manager';
     const business = await pool.query<{
       id: string;
       membership_role: 'owner' | 'manager';
@@ -741,7 +791,7 @@ export class DomainApiService {
           AND membership.user_id = $1
           AND membership.status = 'active'
         WHERE b.public_id = $2 AND membership.role = $3`,
-      [row.id, identity.tenantPublicId, expectedMembershipRole],
+      [row.id, requested.tenantPublicId, expectedMembershipRole],
     );
     const workspace = business.rows[0];
     if (!workspace) throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
@@ -754,7 +804,7 @@ export class DomainApiService {
           publicId: workspace.public_id,
         },
         creator: null,
-        role: identity.role,
+        role: requested.role,
         userPublicId: row.public_id,
       },
       userId: row.id,

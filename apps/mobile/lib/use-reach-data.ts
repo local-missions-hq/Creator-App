@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   createMobileReachDataAdapter,
@@ -7,6 +7,7 @@ import {
   type BusinessReachOptions,
   type CreatorReachOverview,
 } from './reach-data';
+import { apiAuthorizationContextForSession } from './auth-session';
 import { useMobileAuthSession } from './auth-session-context';
 
 type Source = 'api' | 'local-preview';
@@ -15,11 +16,22 @@ export function useCreatorReachOverview() {
   const auth = useMobileAuthSession();
   const accessToken =
     auth.state.phase === 'authenticated' ? auth.state.session.accessToken : undefined;
+  const authorizationContext = useMemo(
+    () =>
+      auth.state.phase === 'authenticated'
+        ? apiAuthorizationContextForSession(auth.state.session)
+        : undefined,
+    [auth.state],
+  );
   const [data, setData] = useState<CreatorReachOverview>(localCreatorReachOverview);
   const [source, setSource] = useState<Source>('local-preview');
   useEffect(() => {
     let active = true;
-    void createMobileReachDataAdapter({ accessToken, mode: auth.dataMode })
+    void createMobileReachDataAdapter({
+      accessToken,
+      authorizationContext,
+      mode: auth.dataMode,
+    })
       .getCreatorReach()
       .then((result) => {
         if (active) {
@@ -31,7 +43,7 @@ export function useCreatorReachOverview() {
     return () => {
       active = false;
     };
-  }, [accessToken, auth.cacheEpoch, auth.dataMode]);
+  }, [accessToken, auth.cacheEpoch, auth.dataMode, authorizationContext]);
   return { data, source };
 }
 
@@ -39,11 +51,22 @@ export function useBusinessReachOptions() {
   const auth = useMobileAuthSession();
   const accessToken =
     auth.state.phase === 'authenticated' ? auth.state.session.accessToken : undefined;
+  const authorizationContext = useMemo(
+    () =>
+      auth.state.phase === 'authenticated'
+        ? apiAuthorizationContextForSession(auth.state.session)
+        : undefined,
+    [auth.state],
+  );
   const [data, setData] = useState<BusinessReachOptions>(localBusinessReachOptions);
   const [source, setSource] = useState<Source>('local-preview');
   useEffect(() => {
     let active = true;
-    void createMobileReachDataAdapter({ accessToken, mode: auth.dataMode })
+    void createMobileReachDataAdapter({
+      accessToken,
+      authorizationContext,
+      mode: auth.dataMode,
+    })
       .getBusinessReachOptions()
       .then((result) => {
         if (active) {
@@ -55,6 +78,6 @@ export function useBusinessReachOptions() {
     return () => {
       active = false;
     };
-  }, [accessToken, auth.cacheEpoch, auth.dataMode]);
+  }, [accessToken, auth.cacheEpoch, auth.dataMode, authorizationContext]);
   return { data, source };
 }

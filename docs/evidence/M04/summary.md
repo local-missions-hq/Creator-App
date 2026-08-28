@@ -111,3 +111,19 @@ Fourteen locally signed fixture tests pass every positive and negative verifier 
 JUnit evidence: [`test-results/entra-token-verifier-junit.xml`](./test-results/entra-token-verifier-junit.xml)
 
 No Entra metadata endpoint, provider, external JWKS, Azure resource, token exchange, real identity, phone, payment, message, or customer data was used. Production bearer activation, issuer/subject account mapping, ID-token nonce validation, real provider round trips, and physical-device proof remain open.
+
+## External principal and selected-context mapping
+
+- Connected the production bearer injection boundary to the Entra access-token verifier only when the complete trusted configuration is present. Missing configuration still returns the existing bounded unavailable response; partial or unsafe configuration prevents API startup.
+- Kept external token evidence intentionally narrow: only the verified issuer and subject locate an active immutable `external_identities` row. The server then re-reads the active root account, Creator profile, or exact Business membership/workspace from PostgreSQL for every request.
+- Added explicit `x-local-missions-role` and `x-local-missions-business` request context. These values are never treated as claims: malformed combinations, invented roles, missing workspaces, cross-tenant workspaces, and membership-role elevation all receive the same bounded access denial.
+- Updated the reviewed OpenAPI snapshots, generated TypeScript client, mobile session projection, and account/mission/Reach adapters. Creator mode emits Creator context only; Business mode emits the selected server-resolved workspace and the account's available owner/manager role; contradictory context fails locally before a request.
+- Preserved privacy-safe logs. Bearer tokens, role headers, and workspace values are excluded from structured request logs.
+
+Twenty-one focused database-backed domain tests and all twenty-nine API integration tests pass. The same external evidence maps to Creator or Business only after current database authorization; unknown and revoked identities share one authentication response; disabled accounts and memberships take effect on the next request; and a newly revoked identity immediately stops the same token. All 64 mobile tests pass, including deterministic OIDC clock handling and the new role/workspace header contract. `pnpm verify` passes all nine workspaces and production marker checks; `db:check` verifies 96 tables; the security scan passes 426 text files; and Gitleaks finds no leak in approximately 14.21 MB.
+
+JUnit evidence: [`test-results/external-principal-mapping-junit.xml`](./test-results/external-principal-mapping-junit.xml), [`test-results/external-context-mobile-junit.xml`](./test-results/external-context-mobile-junit.xml)
+
+No Entra metadata/provider endpoint, real token, Azure resource, Stripe action, physical phone, payment, message, external account, or customer data was used. Real authorization-code exchange, ID-token nonce validation, refresh/revocation behavior, provider round trips, network JWKS proof, system-browser/deep-link execution, and the physical-device gate remain open.
+
+The disposable Creator App PostgreSQL container, volume, and Compose network were destroyed after verification. The unrelated Post Proof database container was left running and unchanged.

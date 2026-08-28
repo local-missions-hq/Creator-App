@@ -62,6 +62,18 @@ const publicIdParameterSchema = z.string().regex(/^cmp_[a-z0-9_]{8,100}$/);
 
 @ApiTags('authenticated-v1')
 @ApiBearerAuth('entra-bearer')
+@ApiHeader({
+  description: 'Requested app role; always re-authorized against current server state.',
+  name: 'x-local-missions-role',
+  required: false,
+  schema: { enum: ['creator', 'business_owner', 'business_manager'], type: 'string' },
+})
+@ApiHeader({
+  description: 'Requested Business workspace public ID; required only for Business roles.',
+  name: 'x-local-missions-business',
+  required: false,
+  schema: { pattern: '^biz_[a-z0-9_]{8,100}$', type: 'string' },
+})
 @ApiUnauthorizedResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
 @ApiForbiddenResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
 @Controller('v1')

@@ -37,12 +37,16 @@ describe('mobile Reach data adapter', () => {
     const get = vi.fn().mockResolvedValue({ data: { platforms: [] } });
     const adapter = createMobileReachDataAdapter({
       accessToken: 'test-token-not-a-secret',
+      authorizationContext: { role: 'creator' },
       client: { GET: get } as never,
       mode: 'api',
     });
     await adapter.getCreatorReach();
     expect(get).toHaveBeenCalledWith('/v1/creator/reach', {
-      headers: { Authorization: 'Bearer test-token-not-a-secret' },
+      headers: {
+        Authorization: 'Bearer test-token-not-a-secret',
+        'x-local-missions-role': 'creator',
+      },
     });
   });
 });

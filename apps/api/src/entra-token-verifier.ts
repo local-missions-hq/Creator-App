@@ -8,6 +8,8 @@ import {
   type JWTVerifyGetKey,
 } from 'jose';
 
+import type { BearerVerifier } from './authentication.js';
+
 export type EntraVerifierConfiguration = {
   audience: string;
   issuer: string;
@@ -125,7 +127,7 @@ export function createRemoteEntraKeyResolver(
   });
 }
 
-export class EntraAccessTokenVerifier {
+export class EntraAccessTokenVerifier implements BearerVerifier {
   constructor(
     private readonly configuration: EntraVerifierConfiguration,
     private readonly keyResolver: JWTVerifyGetKey,

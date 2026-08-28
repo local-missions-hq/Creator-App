@@ -732,6 +732,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -857,6 +861,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1023,6 +1031,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1190,6 +1202,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1322,6 +1338,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1495,6 +1515,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1636,6 +1660,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1774,6 +1802,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1885,6 +1917,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -2027,6 +2063,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -2182,6 +2222,10 @@ export interface operations {
         'idempotency-key': string;
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -2392,6 +2436,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -2506,6 +2554,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -2654,6 +2706,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -2802,6 +2858,10 @@ export interface operations {
       header?: {
         /** @description Optional caller correlation ID. Invalid values are replaced. */
         'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Requested Business workspace public ID; required only for Business roles. */
+        'x-local-missions-business'?: string;
+        /** @description Requested app role; always re-authorized against current server state. */
+        'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };

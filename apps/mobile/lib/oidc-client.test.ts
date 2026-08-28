@@ -55,6 +55,13 @@ async function request(now = new Date('2026-08-28T14:00:00.000Z')) {
   });
 }
 
+function consume(input: Parameters<typeof consumeOidcCallback>[0]) {
+  return consumeOidcCallback({
+    now: new Date('2026-08-28T14:05:00.000Z'),
+    ...input,
+  });
+}
+
 describe('mobile OIDC and PKCE boundary', () => {
   it('fails closed when configuration is absent, partial, insecure, or has the wrong redirect', () => {
     expect(readOidcConfiguration({})).toEqual({ available: false });
@@ -126,11 +133,11 @@ describe('mobile OIDC and PKCE boundary', () => {
     await store.save(created.transaction);
     const callback = `${configuration.redirectUri}?code=synthetic-code-001&state=${created.transaction.state}`;
 
-    await expect(consumeOidcCallback({ callbackUrl: callback, store })).resolves.toMatchObject({
+    await expect(consume({ callbackUrl: callback, store })).resolves.toMatchObject({
       code: 'synthetic-code-001',
       status: 'code_received',
     });
-    await expect(consumeOidcCallback({ callbackUrl: callback, store })).rejects.toMatchObject({
+    await expect(consume({ callbackUrl: callback, store })).rejects.toMatchObject({
       code: 'OIDC_STATE_INVALID',
       message: 'The secure sign-in request could not be verified.',
     });
@@ -141,23 +148,23 @@ describe('mobile OIDC and PKCE boundary', () => {
     const store = new MemoryOidcTransactionStore();
     await store.save(created.transaction);
     const wrongState = `${configuration.redirectUri}?code=synthetic-code-001&state=${'a'.repeat(43)}`;
-    await expect(consumeOidcCallback({ callbackUrl: wrongState, store })).rejects.toMatchObject({
+    await expect(consume({ callbackUrl: wrongState, store })).rejects.toMatchObject({
       code: 'OIDC_STATE_INVALID',
     });
     await expect(
-      consumeOidcCallback({
+      consume({
         callbackUrl: `localmissions://wrong/callback?code=synthetic-code-001&state=${created.transaction.state}`,
         store,
       }),
     ).rejects.toMatchObject({ code: 'OIDC_CALLBACK_INVALID' });
     await expect(
-      consumeOidcCallback({
+      consume({
         callbackUrl: `${configuration.redirectUri}?code=synthetic-code-001&state=${created.transaction.state}&provider=microsoft`,
         store,
       }),
     ).rejects.toMatchObject({ code: 'OIDC_CALLBACK_INVALID' });
     await expect(
-      consumeOidcCallback({
+      consume({
         callbackUrl: `${configuration.redirectUri}?code=synthetic-code-001&state=${created.transaction.state}`,
         store,
       }),
@@ -169,7 +176,7 @@ describe('mobile OIDC and PKCE boundary', () => {
     const store = new MemoryOidcTransactionStore();
     await store.save(created.transaction);
     await expect(
-      consumeOidcCallback({
+      consume({
         callbackUrl: `${configuration.redirectUri}?code=synthetic-code-001&state=${created.transaction.state}`,
         now: new Date('2026-08-28T14:10:00.000Z'),
         store,
@@ -177,7 +184,7 @@ describe('mobile OIDC and PKCE boundary', () => {
     ).rejects.toMatchObject({ code: 'OIDC_TRANSACTION_EXPIRED' });
     await store.save(created.transaction);
     await expect(
-      consumeOidcCallback({
+      consume({
         callbackUrl: `${configuration.redirectUri}?code=one&code=two&state=${created.transaction.state}`,
         store,
       }),
@@ -189,14 +196,14 @@ describe('mobile OIDC and PKCE boundary', () => {
     const store = new MemoryOidcTransactionStore();
     await store.save(created.transaction);
     await expect(
-      consumeOidcCallback({
+      consume({
         callbackUrl: `${configuration.redirectUri}?error=access_denied&error_description=private-marker&state=${created.transaction.state}`,
         store,
       }),
     ).resolves.toEqual({ reason: 'user_cancelled', status: 'cancelled' });
     await store.save(created.transaction);
     await expect(
-      consumeOidcCallback({
+      consume({
         callbackUrl: `${configuration.redirectUri}?error=temporarily_unavailable&error_description=private-marker&error_uri=https%3A%2F%2Flogin.synthetic.invalid%2Ferror&timestamp=2026-08-28T14%3A00%3A00Z&trace_id=trace-001&correlation_id=correlation-001&session_state=session-001&state=${created.transaction.state}`,
         store,
       }),
@@ -209,8 +216,8 @@ describe('mobile OIDC and PKCE boundary', () => {
     await store.save(created.transaction);
     const callbackUrl = `${configuration.redirectUri}?code=synthetic-code-001&state=${created.transaction.state}`;
     const outcomes = await Promise.allSettled([
-      consumeOidcCallback({ callbackUrl, store }),
-      consumeOidcCallback({ callbackUrl, store }),
+      consume({ callbackUrl, store }),
+      consume({ callbackUrl, store }),
     ]);
     expect(outcomes.filter((outcome) => outcome.status === 'fulfilled')).toHaveLength(1);
     expect(outcomes.filter((outcome) => outcome.status === 'rejected')).toHaveLength(1);
