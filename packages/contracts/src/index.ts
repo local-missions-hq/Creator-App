@@ -726,6 +726,37 @@ export const authenticatedContextSchema = z.object({
   userPublicId: z.string().min(1).max(120),
 });
 
+export const accountOverviewSchema = z.object({
+  identities: z.array(
+    z.object({
+      provider: identityProviderSchema,
+      status: z.literal('active'),
+      verifiedAt: z.iso.datetime({ offset: true }),
+    }),
+  ),
+  requests: z.array(
+    z.object({
+      publicId: z.string().min(1).max(120),
+      requestedAt: z.iso.datetime({ offset: true }),
+      status: z.enum(['requested', 'processing', 'completed', 'canceled', 'denied']),
+      type: z.enum(['export', 'deletion']),
+    }),
+  ),
+  role: authenticatedRoleSchema,
+  sensitiveHoldActive: z.boolean(),
+  sessions: z.array(
+    z.object({
+      authenticatedAt: z.iso.datetime({ offset: true }),
+      expiresAt: z.iso.datetime({ offset: true }),
+      provider: identityProviderSchema,
+      publicId: z.string().min(1).max(120),
+      status: z.literal('active'),
+    }),
+  ),
+  status: z.literal('active'),
+  userPublicId: z.string().min(1).max(120),
+});
+
 export const reachQualificationSummarySchema = z.object({
   expiresAt: z.iso.datetime({ offset: true }),
   isGrace: z.boolean(),
@@ -854,6 +885,7 @@ export type LocalDevTokenRequest = z.infer<typeof localDevTokenRequestSchema>;
 export type LocalDevTokenResponse = z.infer<typeof localDevTokenResponseSchema>;
 export type AuthenticatedContext = z.infer<typeof authenticatedContextSchema>;
 export type AuthenticatedRole = z.infer<typeof authenticatedRoleSchema>;
+export type AccountOverview = z.infer<typeof accountOverviewSchema>;
 export type BusinessReachOptions = z.infer<typeof businessReachOptionsSchema>;
 export type BusinessCampaignDetail = z.infer<typeof businessCampaignDetailSchema>;
 export type BusinessCampaignPage = z.infer<typeof businessCampaignPageSchema>;

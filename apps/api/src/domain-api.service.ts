@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 
 import { Inject, Injectable } from '@nestjs/common';
 import type {
+  AccountOverview,
   AuthenticatedContext,
   AuthenticatedRole,
   BusinessCampaignDetail,
@@ -143,6 +144,80 @@ export class DomainApiService {
     if (!roles.includes(principal.context.role)) {
       throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
     }
+  }
+
+  async getAccountOverview(principal: AuthenticatedPrincipal): Promise<AccountOverview> {
+    const pool = this.database.requirePool();
+    const [identities, sessions, requests, hold] = await Promise.all([
+      pool.query<{
+        provider: AccountOverview['identities'][number]['provider'];
+        verified_at: Date;
+      }>(
+        `SELECT provider, verified_at
+           FROM external_identities
+          WHERE user_id = $1 AND status = 'active'
+          ORDER BY verified_at, provider`,
+        [principal.userId],
+      ),
+      pool.query<{
+        authenticated_at: Date;
+        expires_at: Date;
+        provider: AccountOverview['sessions'][number]['provider'];
+        public_id: string;
+      }>(
+        `SELECT session.public_id, identity.provider,
+                session.authenticated_at, session.expires_at
+           FROM account_sessions session
+           JOIN external_identities identity ON identity.id = session.external_identity_id
+          WHERE session.user_id = $1 AND session.status = 'active'
+            AND session.expires_at > now()
+          ORDER BY session.authenticated_at DESC`,
+        [principal.userId],
+      ),
+      pool.query<{
+        public_id: string;
+        requested_at: Date;
+        status: AccountOverview['requests'][number]['status'];
+        type: AccountOverview['requests'][number]['type'];
+      }>(
+        `SELECT public_id, type, status, requested_at
+           FROM account_requests
+          WHERE user_id = $1
+          ORDER BY requested_at DESC
+          LIMIT 20`,
+        [principal.userId],
+      ),
+      pool.query(
+        `SELECT 1 FROM account_sensitive_holds
+          WHERE user_id = $1 AND status = 'active' LIMIT 1`,
+        [principal.userId],
+      ),
+    ]);
+
+    return {
+      identities: identities.rows.map((identity) => ({
+        provider: identity.provider,
+        status: 'active',
+        verifiedAt: identity.verified_at.toISOString(),
+      })),
+      requests: requests.rows.map((request) => ({
+        publicId: request.public_id,
+        requestedAt: request.requested_at.toISOString(),
+        status: request.status,
+        type: request.type,
+      })),
+      role: principal.context.role,
+      sensitiveHoldActive: hold.rowCount === 1,
+      sessions: sessions.rows.map((session) => ({
+        authenticatedAt: session.authenticated_at.toISOString(),
+        expiresAt: session.expires_at.toISOString(),
+        provider: session.provider,
+        publicId: session.public_id,
+        status: 'active',
+      })),
+      status: 'active',
+      userPublicId: principal.context.userPublicId,
+    };
   }
 
   async getCreatorReach(principal: AuthenticatedPrincipal): Promise<CreatorReachOverview> {

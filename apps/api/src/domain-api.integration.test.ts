@@ -15,6 +15,8 @@ const campaignPublicId = 'cmp_orlando_synthetic_001';
 const secondCampaignPublicId = 'cmp_orlando_synthetic_002';
 const otherTenantPublicId = 'biz_other_synthetic_001';
 const otherCampaignPublicId = 'cmp_other_synthetic_001';
+const accountSessionPublicId = 'ses_api_synthetic_0001';
+const decoyUserPublicId = 'usr_account_decoy_synthetic_001';
 
 let productionApp: NestFastifyApplication;
 let localApp: NestFastifyApplication;
@@ -100,6 +102,19 @@ beforeAll(async () => {
      ON CONFLICT (public_id) DO NOTHING`,
     [otherCampaignPublicId, otherBusiness.rows[0]!.id],
   );
+  await pool.query(
+    `INSERT INTO users (public_id)
+     VALUES ($1) ON CONFLICT (public_id) DO NOTHING`,
+    [decoyUserPublicId],
+  );
+  await pool.query(
+    `INSERT INTO external_identities (user_id, provider, issuer, subject, verified_at)
+     SELECT id, 'microsoft', 'https://identity.local.test/decoy',
+            'synthetic-provider-subject-decoy-001', now()
+       FROM users WHERE public_id = $1
+     ON CONFLICT (issuer, subject) DO NOTHING`,
+    [decoyUserPublicId],
+  );
   await pool.query(`UPDATE campaigns SET status = 'published' WHERE public_id = $1`, [
     campaignPublicId,
   ]);
@@ -112,6 +127,22 @@ beforeAll(async () => {
 beforeEach(async () => {
   logs.length = 0;
   await cleanApplicationFixture();
+  await pool.query(`DELETE FROM account_sessions WHERE public_id = $1`, [accountSessionPublicId]);
+  await pool.query(
+    `UPDATE users SET status = 'active'
+      WHERE public_id = $1`,
+    [subjectPublicId],
+  );
+  await pool.query(
+    `INSERT INTO account_sessions (
+       public_id, user_id, external_identity_id, expires_at
+     ) SELECT $1, identity.user_id, identity.id, now() + interval '30 days'
+         FROM external_identities identity
+         JOIN users account_user ON account_user.id = identity.user_id
+        WHERE account_user.public_id = $2 AND identity.provider = 'apple'
+          AND identity.status = 'active'`,
+    [accountSessionPublicId, subjectPublicId],
+  );
   await pool.query(
     `UPDATE creator_profiles
         SET status = 'approved', locality_status = 'verified',
@@ -124,6 +155,8 @@ beforeEach(async () => {
 
 afterAll(async () => {
   await cleanApplicationFixture();
+  await pool.query(`DELETE FROM account_sessions WHERE public_id = $1`, [accountSessionPublicId]);
+  await pool.query(`UPDATE users SET status = 'active' WHERE public_id = $1`, [subjectPublicId]);
   await pool.query(`UPDATE campaigns SET status = 'draft' WHERE public_id = $1`, [
     campaignPublicId,
   ]);
@@ -185,6 +218,49 @@ describe('authenticated Creator and Business API slice', () => {
       role: 'business_owner',
     });
     expect(denied.statusCode).toBe(403);
+  });
+
+  it('returns only safe account-owned identity and active-session metadata', async () => {
+    const token = await issueToken('creator');
+    const response = await localApp.inject({
+      headers: { authorization: `Bearer ${token}` },
+      method: 'GET',
+      url: '/v1/account',
+    });
+    const body = response.json();
+    const serialized = response.body;
+
+    expect(response.statusCode).toBe(200);
+    expect(body).toMatchObject({
+      identities: [{ provider: 'apple', status: 'active' }],
+      role: 'creator',
+      sensitiveHoldActive: false,
+      sessions: [{ provider: 'apple', publicId: accountSessionPublicId, status: 'active' }],
+      status: 'active',
+      userPublicId: subjectPublicId,
+    });
+    expect(body.identities).toHaveLength(1);
+    expect(serialized).not.toContain('microsoft');
+    expect(serialized).not.toContain('issuer');
+    expect(serialized).not.toContain('subject');
+    expect(serialized).not.toContain('email');
+    expect(serialized).not.toContain('street');
+  });
+
+  it('rejects disabled and deletion-requested users at the bearer boundary', async () => {
+    const token = await issueToken('creator');
+    for (const status of ['disabled', 'deletion_requested'] as const) {
+      await pool.query(`UPDATE users SET status = $1 WHERE public_id = $2`, [
+        status,
+        subjectPublicId,
+      ]);
+      const response = await localApp.inject({
+        headers: { authorization: `Bearer ${token}` },
+        method: 'GET',
+        url: '/v1/account',
+      });
+      expect(response.statusCode).toBe(403);
+    }
   });
 
   it('enforces role separation and hides cross-tenant campaign reads', async () => {

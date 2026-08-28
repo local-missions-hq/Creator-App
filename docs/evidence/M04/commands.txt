@@ -46,3 +46,42 @@ pnpm --filter @local-missions/db exec vitest run src/account-lifecycle-store.int
 PASS — retained five tests with zero failures/errors; machine hostname replaced by local-development-host.
 
 No Entra, Azure, Stripe, social provider, notification provider, phone, payment, message, or external customer action occurred.
+
+M04-account-read-ui-local-002a — 2026-08-28
+
+pnpm --filter @local-missions/contracts test
+PASS — 18 contract tests passed, including the privacy-safe account overview contract.
+
+pnpm --filter @local-missions/contracts build
+pnpm --filter @local-missions/api typecheck
+pnpm openapi:generate
+PASS — production/local OpenAPI and the shared typed client regenerated from the authenticated account endpoint.
+
+pnpm --filter @local-missions/mobile test
+pnpm --filter @local-missions/mobile typecheck
+PASS — all 37 mobile tests passed, including explicit local/API account adapter tests, and strict TypeScript passed.
+
+pnpm --filter @local-missions/api test:integration
+PASS — 16 API integration tests passed against real loopback PostgreSQL.
+
+pnpm --filter @local-missions/db test:integration
+pnpm db:check
+PASS — all 97 database integration tests passed and the deterministic 96-table schema/seed check passed.
+
+pnpm verify
+PASS — formatting, prerequisites, lint, strict type checks, unit tests, OpenAPI/migration contract checks, production marker scan, and all nine builds passed with 37 mobile tests.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 401 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 13.84 MB.
+
+pnpm --filter @local-missions/api exec vitest run src/domain-api.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/account-read-api-junit.xml
+PASS — retained nine focused tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+VISUAL — the visible in-app browser refreshed `http://localhost:8081/creator/account` and confirmed Apple/Google connected-method rows, one active session, local-preview labeling, a disabled provider action, and the existing Creator settings/navigation styling at the iPhone breakpoint.
+
+ENVIRONMENT NOTE — the repository pins Node 24.19.x. The shell exposed Node 25.9.0 and emitted an engine warning; pnpm 11.24.0 was selected explicitly and every gate passed. Rerun under pinned Node before the final M4 gate.
+
+No Entra, Azure, Stripe, social provider, notification provider, phone, payment, message, external account, or real customer action occurred.

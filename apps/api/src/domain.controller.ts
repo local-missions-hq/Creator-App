@@ -28,6 +28,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import {
+  accountOverviewSchema,
   apiErrorEnvelopeSchema,
   apiPaginationQuerySchema,
   authenticatedContextSchema,
@@ -64,6 +65,14 @@ export class DomainController {
   @Get('me')
   async getMe(@Req() request: ContextualRequest) {
     return (await this.domain.authenticate(request)).context;
+  }
+
+  @ApiOperation({ summary: 'Read safe identity, session, and account-request state' })
+  @ApiOkResponse({ schema: openApiSchema(accountOverviewSchema) })
+  @Get('account')
+  async getAccountOverview(@Req() request: ContextualRequest) {
+    const principal = await this.domain.authenticate(request);
+    return this.domain.getAccountOverview(principal);
   }
 
   @ApiOperation({ summary: 'Read optional per-platform Reach status for the current Creator' })

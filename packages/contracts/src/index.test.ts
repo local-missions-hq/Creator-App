@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  accountOverviewSchema,
   apiErrorEnvelopeSchema,
   apiPaginationQuerySchema,
   apiRequestIdSchema,
@@ -97,6 +98,38 @@ describe('versioned API foundation contracts', () => {
         subjectPublicId: 'usr_real_person_001',
       }),
     ).toThrow();
+  });
+});
+
+describe('account overview contract', () => {
+  it('exposes safe provider and session metadata without provider subjects or private contact data', () => {
+    const overview = accountOverviewSchema.parse({
+      identities: [
+        {
+          provider: 'apple',
+          status: 'active',
+          verifiedAt: '2026-08-27T12:00:00.000Z',
+        },
+      ],
+      requests: [],
+      role: 'creator',
+      sensitiveHoldActive: false,
+      sessions: [
+        {
+          authenticatedAt: '2026-08-27T12:00:00.000Z',
+          expiresAt: '2026-09-26T12:00:00.000Z',
+          provider: 'apple',
+          publicId: 'ses_synthetic_creator_001',
+          status: 'active',
+        },
+      ],
+      status: 'active',
+      userPublicId: 'usr_synthetic_creator_001',
+    });
+
+    expect(overview.identities[0]).not.toHaveProperty('subject');
+    expect(overview).not.toHaveProperty('email');
+    expect(overview).not.toHaveProperty('streetAddress');
   });
 });
 

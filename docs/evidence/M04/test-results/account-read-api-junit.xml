@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="9" failures="0" errors="0" time="0.277029083">
+    <testsuite name="src/domain-api.integration.test.ts" timestamp="2026-08-28T12:54:16.928Z" hostname="local-development-host" tests="9" failures="0" errors="0" skipped="0" time="0.277029083">
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; keeps deployed verification fail-closed and synthetic verification local-only" time="0.04176275">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; resolves a current Business workspace and denies invented tenant membership" time="0.019575458">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; returns only safe account-owned identity and active-session metadata" time="0.02301075">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; rejects disabled and deletion-requested users at the bearer boundary" time="0.009345792">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; enforces role separation and hides cross-tenant campaign reads" time="0.016006083">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; returns Creator feed/detail and stable Business cursor pages" time="0.018124167">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; requires current locality and replays the same application retry exactly once" time="0.032368541">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; returns Creator-owned Reach state and records then revokes per-platform consent" time="0.037823542">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; gives Business members only fixed Reach packages and capability availability" time="0.00787475">
+        </testcase>
+    </testsuite>
+</testsuites>

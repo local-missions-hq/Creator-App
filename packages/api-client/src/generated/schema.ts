@@ -109,6 +109,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/v1/account': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Read safe identity, session, and account-request state */
+    get: operations['DomainController_getAccountOverview'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/v1/business/campaigns': {
     parameters: {
       query?: never;
@@ -634,6 +651,131 @@ export interface operations {
             resources: ('me' | 'creator-missions' | 'business-campaigns' | 'mission-templates')[];
             /** @constant */
             version: 'v1';
+          };
+        };
+      };
+    };
+  };
+  DomainController_getAccountOverview: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Optional caller correlation ID. Invalid values are replaced. */
+        'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Optional caller request ID. Invalid values are replaced. */
+        'x-request-id'?: components['parameters']['RequestId'];
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            identities: {
+              /** @enum {string} */
+              provider: 'apple' | 'google' | 'microsoft' | 'passwordless_email';
+              /** @constant */
+              status: 'active';
+              /** Format: date-time */
+              verifiedAt: string;
+            }[];
+            requests: {
+              publicId: string;
+              /** Format: date-time */
+              requestedAt: string;
+              /** @enum {string} */
+              status: 'requested' | 'processing' | 'completed' | 'canceled' | 'denied';
+              /** @enum {string} */
+              type: 'export' | 'deletion';
+            }[];
+            /** @enum {string} */
+            role: 'creator' | 'business_owner' | 'business_manager';
+            sensitiveHoldActive: boolean;
+            sessions: {
+              /** Format: date-time */
+              authenticatedAt: string;
+              /** Format: date-time */
+              expiresAt: string;
+              /** @enum {string} */
+              provider: 'apple' | 'google' | 'microsoft' | 'passwordless_email';
+              publicId: string;
+              /** @constant */
+              status: 'active';
+            }[];
+            /** @constant */
+            status: 'active';
+            userPublicId: string;
+          };
+        };
+      };
+      401: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      403: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
           };
         };
       };

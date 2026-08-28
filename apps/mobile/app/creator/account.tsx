@@ -4,6 +4,14 @@ import { StyleSheet, Text, View } from 'react-native';
 import { AccessiblePressable as Pressable } from '../../components/AccessiblePressable';
 
 import { AppShell, appColors } from '../../components/AppShell';
+import { useAccountOverview } from '../../lib/use-account-data';
+
+const providerPresentation = {
+  apple: { icon: 'logo-apple', label: 'Apple' },
+  google: { icon: 'logo-google', label: 'Google' },
+  microsoft: { icon: 'logo-windows', label: 'Microsoft' },
+  passwordless_email: { icon: 'mail-outline', label: 'Passwordless email' },
+} as const;
 
 const accountItems: Array<{
   detail: string;
@@ -64,6 +72,8 @@ const accountItems: Array<{
 ];
 
 export default function CreatorAccountScreen() {
+  const { data, source } = useAccountOverview();
+
   return (
     <AppShell mode="creator" showTabs title="Account & safety">
       <View style={styles.profileCard}>
@@ -80,7 +90,7 @@ export default function CreatorAccountScreen() {
           <Text style={styles.profileMeta}>Creator profile · Orlando-area verified</Text>
         </View>
         <View style={styles.demoBadge}>
-          <Text style={styles.demoText}>DEMO</Text>
+          <Text style={styles.demoText}>{source === 'api' ? 'LIVE' : 'DEMO'}</Text>
         </View>
       </View>
 
@@ -95,7 +105,76 @@ export default function CreatorAccountScreen() {
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Creator settings</Text>
+      <View style={styles.sectionHeadingRow}>
+        <Text style={styles.sectionTitle}>Sign-in & sessions</Text>
+        <Text style={styles.sourceText}>
+          {source === 'api' ? 'AUTHENTICATED' : 'LOCAL PREVIEW'}
+        </Text>
+      </View>
+      <View style={styles.identityCard}>
+        {data.identities.map((identity) => {
+          const provider = providerPresentation[identity.provider];
+          return (
+            <View key={identity.provider} style={styles.identityRow}>
+              <View style={styles.providerIcon}>
+                <Ionicons color={appColors.teal} name={provider.icon} size={22} />
+              </View>
+              <View style={styles.identityCopy}>
+                <Text style={styles.identityTitle}>{provider.label}</Text>
+                <Text style={styles.identityDetail}>Verified sign-in method</Text>
+              </View>
+              <View style={styles.connectedBadge}>
+                <Ionicons color="#159464" name="checkmark-circle" size={14} />
+                <Text style={styles.connectedText}>CONNECTED</Text>
+              </View>
+            </View>
+          );
+        })}
+        <View style={styles.sessionRow}>
+          <View style={styles.sessionIcon}>
+            <Ionicons color={appColors.orange} name="phone-portrait-outline" size={22} />
+          </View>
+          <View style={styles.identityCopy}>
+            <Text style={styles.identityTitle}>
+              {data.sessions.length} active {data.sessions.length === 1 ? 'session' : 'sessions'}
+            </Text>
+            <Text style={styles.identityDetail}>
+              {data.sessions[0]
+                ? `Signed in with ${providerPresentation[data.sessions[0].provider].label}`
+                : 'No active device sessions'}
+            </Text>
+          </View>
+          <Text style={styles.secureText}>SECURE</Text>
+        </View>
+      </View>
+      <Pressable
+        accessibilityLabel="Add another sign-in method"
+        accessibilityRole="button"
+        disabled={source === 'local-preview'}
+        style={[styles.addMethodButton, source === 'local-preview' && styles.previewButton]}
+        testID="creator-add-sign-in-method"
+      >
+        <Ionicons color={appColors.teal} name="add-circle-outline" size={20} />
+        <View style={styles.addMethodCopy}>
+          <Text style={styles.addMethodTitle}>Add another sign-in method</Text>
+          <Text style={styles.addMethodDetail}>
+            {source === 'local-preview'
+              ? 'Preview only · provider setup stays disconnected'
+              : 'Requires recent authentication'}
+          </Text>
+        </View>
+      </Pressable>
+
+      {data.sensitiveHoldActive ? (
+        <View style={styles.holdCard}>
+          <Ionicons color={appColors.orange} name="lock-closed-outline" size={24} />
+          <Text style={styles.holdText}>
+            Sensitive money and identity changes are temporarily paused for account recovery.
+          </Text>
+        </View>
+      ) : null}
+
+      <Text style={[styles.sectionTitle, styles.settingsTitle]}>Creator settings</Text>
       <View style={styles.listCard}>
         {accountItems.map((item) => (
           <Link key={item.title} asChild href={item.href}>
@@ -173,7 +252,78 @@ const styles = StyleSheet.create({
   roleCopy: { flex: 1 },
   roleTitle: { color: appColors.ink, fontSize: 14, fontWeight: '900' },
   roleText: { color: appColors.muted, fontSize: 10, lineHeight: 15, marginTop: 3 },
-  sectionTitle: { color: appColors.ink, fontSize: 20, fontWeight: '900', marginTop: 20 },
+  sectionHeadingRow: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  sectionTitle: { color: appColors.ink, fontSize: 20, fontWeight: '900' },
+  sourceText: { color: appColors.teal, fontSize: 7, fontWeight: '900', letterSpacing: 0.5 },
+  identityCard: {
+    backgroundColor: appColors.card,
+    borderColor: appColors.line,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginTop: 10,
+    overflow: 'hidden',
+  },
+  identityRow: {
+    alignItems: 'center',
+    borderBottomColor: appColors.line,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    minHeight: 66,
+    padding: 12,
+  },
+  providerIcon: {
+    alignItems: 'center',
+    backgroundColor: appColors.tealSoft,
+    borderRadius: 19,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  identityCopy: { flex: 1 },
+  identityTitle: { color: appColors.ink, fontSize: 13, fontWeight: '900' },
+  identityDetail: { color: appColors.muted, fontSize: 9, marginTop: 3 },
+  connectedBadge: { alignItems: 'center', flexDirection: 'row', gap: 3 },
+  connectedText: { color: '#159464', fontSize: 7, fontWeight: '900', letterSpacing: 0.3 },
+  sessionRow: { alignItems: 'center', flexDirection: 'row', gap: 10, minHeight: 66, padding: 12 },
+  sessionIcon: {
+    alignItems: 'center',
+    backgroundColor: appColors.orangeSoft,
+    borderRadius: 19,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  secureText: { color: appColors.orange, fontSize: 7, fontWeight: '900', letterSpacing: 0.4 },
+  addMethodButton: {
+    alignItems: 'center',
+    backgroundColor: appColors.tealSoft,
+    borderRadius: 16,
+    flexDirection: 'row',
+    gap: 9,
+    marginTop: 10,
+    padding: 12,
+  },
+  previewButton: { opacity: 0.82 },
+  addMethodCopy: { flex: 1 },
+  addMethodTitle: { color: appColors.ink, fontSize: 12, fontWeight: '900' },
+  addMethodDetail: { color: appColors.muted, fontSize: 8, marginTop: 2 },
+  holdCard: {
+    alignItems: 'center',
+    backgroundColor: appColors.orangeSoft,
+    borderRadius: 16,
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+    padding: 12,
+  },
+  holdText: { color: '#805238', flex: 1, fontSize: 9, lineHeight: 14 },
+  settingsTitle: { marginTop: 20 },
   listCard: {
     backgroundColor: appColors.card,
     borderColor: appColors.line,

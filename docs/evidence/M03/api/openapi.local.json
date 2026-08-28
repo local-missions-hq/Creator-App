@@ -708,6 +708,318 @@
         "tags": ["v1"]
       }
     },
+    "/v1/account": {
+      "get": {
+        "operationId": "DomainController_getAccountOverview",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "identities": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "provider": {
+                            "enum": ["apple", "google", "microsoft", "passwordless_email"],
+                            "type": "string"
+                          },
+                          "status": {
+                            "const": "active",
+                            "type": "string"
+                          },
+                          "verifiedAt": {
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                            "type": "string"
+                          }
+                        },
+                        "required": ["provider", "status", "verifiedAt"],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "requests": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "publicId": {
+                            "maxLength": 120,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "requestedAt": {
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                            "type": "string"
+                          },
+                          "status": {
+                            "enum": ["requested", "processing", "completed", "canceled", "denied"],
+                            "type": "string"
+                          },
+                          "type": {
+                            "enum": ["export", "deletion"],
+                            "type": "string"
+                          }
+                        },
+                        "required": ["publicId", "requestedAt", "status", "type"],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "role": {
+                      "enum": ["creator", "business_owner", "business_manager"],
+                      "type": "string"
+                    },
+                    "sensitiveHoldActive": {
+                      "type": "boolean"
+                    },
+                    "sessions": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "authenticatedAt": {
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                            "type": "string"
+                          },
+                          "expiresAt": {
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                            "type": "string"
+                          },
+                          "provider": {
+                            "enum": ["apple", "google", "microsoft", "passwordless_email"],
+                            "type": "string"
+                          },
+                          "publicId": {
+                            "maxLength": 120,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "status": {
+                            "const": "active",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "authenticatedAt",
+                          "expiresAt",
+                          "provider",
+                          "publicId",
+                          "status"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "status": {
+                      "const": "active",
+                      "type": "string"
+                    },
+                    "userPublicId": {
+                      "maxLength": 120,
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "identities",
+                    "requests",
+                    "role",
+                    "sensitiveHoldActive",
+                    "sessions",
+                    "status",
+                    "userPublicId"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "entra-bearer": []
+          }
+        ],
+        "summary": "Read safe identity, session, and account-request state",
+        "tags": ["authenticated-v1"]
+      }
+    },
     "/v1/business/campaigns": {
       "get": {
         "operationId": "DomainController_listBusinessCampaigns",
