@@ -666,3 +666,39 @@ PASS — no leaks found in approximately 12.52 MB.
 
 pnpm --filter @local-missions/api exec vitest run src/domain-api.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/authenticated-reach-api-junit.xml
 PASS — retained seven authenticated domain API tests with no failures or errors; machine hostname replaced by local-development-host.
+
+M03-completion-audit-019 — 2026-08-27
+
+pnpm --filter @local-missions/db test:integration
+PASS — all 92 database integration tests passed across fourteen suites against real loopback PostgreSQL.
+
+pnpm --filter @local-missions/api test:integration
+PASS — all 14 API integration tests passed against real loopback PostgreSQL.
+
+pnpm db:migrate
+pnpm db:seed
+pnpm db:check
+PASS — all eighteen migrations applied, the deterministic synthetic seed completed, and all 89 schema tables plus the mission contract were verified.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+pnpm --filter @local-missions/db contracts:check
+PASS — the eighteen-entry Drizzle journal/snapshots are consistent and every ordered SQL/snapshot hash matches the manifest.
+
+pnpm verify
+INITIAL FAIL — the explicit schema unit list still expected 87 tables after adding venue_contacts and venue_contact_status_history.
+RESOLUTION — added both intentional tables to the schema contract and restarted the complete verification sequence.
+
+pnpm verify
+PASS — formatting, prerequisites, lint, strict type checks, unit tests, OpenAPI/migration contract drift checks, production marker scan, and all nine builds passed with 35 mobile tests.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 390 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 13.13 MB.
+
+pnpm --filter @local-missions/db test:integration --reporter=junit --outputFile=../../docs/evidence/M03/test-results/m3-complete-db-junit.xml
+pnpm --filter @local-missions/api test:integration --reporter=junit --outputFile=../../docs/evidence/M03/test-results/m3-complete-api-junit.xml
+PASS — retained consolidated 92-test database and 14-test API reports with zero failures/errors; machine hostnames replaced by local-development-host.
+
+No Azure, Entra, Stripe, social-provider, notification-provider, phone, payment, message, or external customer action occurred.

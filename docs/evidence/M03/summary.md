@@ -1,6 +1,6 @@
 # M03 database and state-machine evidence
 
-Status: Campaign lifecycle, shared identity/tenant, mission contract/capacity, accepted-mission/check-in, submission/review, dispute/resolution, immutable-ledger, Local Pass core and claim edges, content-rights, notification/outbox, API/OpenAPI/client-foundation, migration recovery, locality-proof retention, and authenticated-domain-HTTP slices passed; M3 overall remains in progress
+Status: M3 passed locally; all database, API-contract, migration, state-machine, and retained-evidence gates are green
 Date: 2026-08-27  
 Checkpoint: `M03-campaign-lifecycle-001`, implementation commit `87ba940`
 Shared identity checkpoint: `M03-shared-identity-tenant-002`, implementation commit `8ef7b08`
@@ -19,6 +19,10 @@ Authenticated domain API checkpoint: `M03-authenticated-domain-api-014`
 Authenticated domain API implementation commit: `1080db0`
 Local Pass claim-edge checkpoint: `M03-local-pass-claim-edge-015`
 Local Pass claim-edge implementation commit: `d672439`
+Content-rights renewal checkpoint: `M03-content-rights-renewal-016`
+Reach qualification checkpoint: `M03-reach-qualification-017`
+Authenticated Reach API checkpoint: `M03-authenticated-reach-api-018`
+Completion audit checkpoint: `M03-completion-audit-019`
 Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 
 ## Implemented in this checkpoint
@@ -123,6 +127,7 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Local Pass claim-edge migration: [`../../../packages/db/drizzle/0014_serious_terror.sql`](../../../packages/db/drizzle/0014_serious_terror.sql).
 - Content-rights renewal migration: [`../../../packages/db/drizzle/0015_slim_joshua_kane.sql`](../../../packages/db/drizzle/0015_slim_joshua_kane.sql).
 - Reach qualification migration: [`../../../packages/db/drizzle/0016_normal_meltdown.sql`](../../../packages/db/drizzle/0016_normal_meltdown.sql).
+- M3 completion migration: [`../../../packages/db/drizzle/0017_charming_marrow.sql`](../../../packages/db/drizzle/0017_charming_marrow.sql).
 
 ## Privacy and safety
 
@@ -139,8 +144,10 @@ Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
 - Real PostgreSQL integration passed 88 database tests plus 14 API tests. `pnpm verify` passed with 35 mobile tests and all nine builds; the security scan passed 384 text files and Gitleaks found no leak in approximately 12.52 MB. In-app-browser proof at `402 × 874` validated both visible Reach views and the `$690` mixed budget.
 - Evidence: [`authenticated-reach-api.md`](./authenticated-reach-api.md).
 
-## Known limitations and M3 gate
+## M3 completion gate and later boundaries
 
-These are eighteen complete local foundation slices, not the full M3 milestone. Reach provider activation, live provider authorization/API access, provider evidence submission, and Business reservation-qualification HTTP remain later work; all three provider capabilities stay disabled by default. External notification providers/device registration/scheduling and remaining audit records are not implemented yet. The no-install Local Pass web/API and actual SMS-provider integration remain M13 work. Production identity verification remains deliberately fail-closed until the later Entra integration gate. Stripe execution, webhook processing, transfers, refunds, payouts, chargebacks, reserve controls, and provider reconciliation remain M12 work; the ledger checkpoint records internal obligations only. Cloud Blob deletion/version/derivative and backup-aging execution remains a later infrastructure gate; this checkpoint proves the raw locality-proof database lifecycle and synthetic local adapter. Cloud upload intents and media workers remain later M10 work. Complete state-transition tables remain open. Physical camera/location and push-delivery execution remain later device gates rather than part of this local state-machine checkpoint.
+The final checklist audit added privacy-safe venue contacts, explicit Local Pass attribution-confidence classifications, and an audit subject timeline index. All 18 append-only migrations apply to an empty database and recover forward from an injected N-1 failure. The deterministic seed and `db:check` verify 89 tables. Consolidated retained reports pass 92 database tests and 14 API tests with no failures or errors; `pnpm verify` passes with 35 mobile tests and all nine builds. The security scan passes 390 text files and Gitleaks finds no leak in approximately 13.13 MB.
 
-The M3 milestone gate has not passed. The API foundation, reviewed OpenAPI/shared-client, latest-schema roll-forward recovery, locality-proof retention, and authenticated Creator/Business HTTP checklist items are complete; `plans.md` keeps the remaining M3 work open.
+The M3 milestone gate has passed. The detailed acceptance and transition map is [`m3-completion-audit.md`](./m3-completion-audit.md), with consolidated reports in [`test-results/m3-complete-db-junit.xml`](./test-results/m3-complete-db-junit.xml) and [`test-results/m3-complete-api-junit.xml`](./test-results/m3-complete-api-junit.xml).
+
+This does not activate external providers. Real Entra authentication remains M4; Azure deployment/networking, cloud media processing, Stripe execution/reconciliation, the customer-facing Local Pass delivery surface, provider notifications, and physical-iPhone execution remain in their named later milestones. All social-provider capabilities stay disabled by default until approved.

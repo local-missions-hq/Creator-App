@@ -836,6 +836,7 @@ export const identityTenantConflictCodeSchema = z.enum([
   'USER_IDENTITY_PROVIDER_ALREADY_LINKED',
   'USER_NOT_FOUND',
   'USER_PUBLIC_ID_EXISTS',
+  'VENUE_CONTACT_CONFLICT',
 ]);
 
 export type AppEnvironment = z.infer<typeof appEnvironmentSchema>;

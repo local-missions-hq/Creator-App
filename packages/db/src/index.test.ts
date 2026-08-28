@@ -12,6 +12,8 @@ describe('initial schema', () => {
       'business_memberships',
       'platform_staff_memberships',
       'business_locations',
+      'venue_contacts',
+      'venue_contact_status_history',
       'reach_platform_capabilities',
       'reach_analytics_consents',
       'reach_analytics_consent_history',

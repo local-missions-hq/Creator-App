@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="14" failures="0" errors="0" time="0.316504875">
+    <testsuite name="src/api.integration.test.ts" timestamp="2026-08-28T00:54:52.930Z" hostname="local-development-host" tests="7" failures="0" errors="0" skipped="0" time="0.071650584">
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; keeps liveness independent, readiness database-backed, and build info non-secret" time="0.018588708">
+        </testcase>
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; returns a stable cursor page without duplicate mission-template versions" time="0.007591542">
+        </testcase>
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; returns bounded validation details and propagates valid request context IDs" time="0.000785166">
+        </testcase>
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; replaces untrusted request headers and writes only allowlisted structured log fields" time="0.00155225">
+        </testcase>
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; serves the matching contract and excludes local auth from production routes" time="0.002257792">
+        </testcase>
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; fails closed if local token code is instantiated for a deployed environment" time="0.00023275">
+        </testcase>
+        <testcase classname="src/api.integration.test.ts" name="API operational boundary &gt; keeps liveness up and readiness safely unavailable when PostgreSQL is unreachable" time="0.005432708">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/domain-api.integration.test.ts" timestamp="2026-08-28T00:54:52.932Z" hostname="local-development-host" tests="7" failures="0" errors="0" skipped="0" time="0.244854291">
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; keeps deployed verification fail-closed and synthetic verification local-only" time="0.031372333">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; resolves a current Business workspace and denies invented tenant membership" time="0.013391084">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; enforces role separation and hides cross-tenant campaign reads" time="0.019428666">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; returns Creator feed/detail and stable Business cursor pages" time="0.024048375">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; requires current locality and replays the same application retry exactly once" time="0.03900425">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; returns Creator-owned Reach state and records then revokes per-platform consent" time="0.043045291">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; gives Business members only fixed Reach packages and capability availability" time="0.006143125">
+        </testcase>
+    </testsuite>
+</testsuites>

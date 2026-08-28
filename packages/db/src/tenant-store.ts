@@ -42,6 +42,18 @@ export type BusinessLocationRecord = {
   version: number;
 };
 
+export type VenueContactRecord = {
+  businessId: string;
+  businessLocationId: string;
+  businessMembershipId: string;
+  id: string;
+  isPrimary: boolean;
+  publicId: string;
+  revokedAt: Date | null;
+  status: 'active' | 'revoked';
+  version: number;
+};
+
 export class IdentityTenantError extends Error {
   constructor(
     readonly code: IdentityTenantConflictCode,
@@ -84,6 +96,18 @@ type BusinessLocationRow = QueryResultRow & {
   public_id: string;
   region: string;
   timezone: string;
+  version: number;
+};
+
+type VenueContactRow = QueryResultRow & {
+  business_id: string;
+  business_location_id: string;
+  business_membership_id: string;
+  id: string;
+  is_primary: boolean;
+  public_id: string;
+  revoked_at: Date | null;
+  status: VenueContactRecord['status'];
   version: number;
 };
 
@@ -132,6 +156,20 @@ function toBusinessLocationRecord(row: BusinessLocationRow): BusinessLocationRec
     publicId: row.public_id,
     region: row.region,
     timezone: row.timezone,
+    version: row.version,
+  };
+}
+
+function toVenueContactRecord(row: VenueContactRow): VenueContactRecord {
+  return {
+    businessId: row.business_id,
+    businessLocationId: row.business_location_id,
+    businessMembershipId: row.business_membership_id,
+    id: row.id,
+    isPrimary: row.is_primary,
+    publicId: row.public_id,
+    revokedAt: row.revoked_at,
+    status: row.status,
     version: row.version,
   };
 }
@@ -437,6 +475,143 @@ export class IdentityTenantStore {
         [input.businessId],
       );
       return result.rows.map(toBusinessLocationRecord);
+    });
+  }
+
+  async createVenueContact(input: {
+    actorUserId: string;
+    businessId: string;
+    businessLocationId: string;
+    businessMembershipId: string;
+    correlationId: string;
+    isPrimary: boolean;
+    publicId: string;
+  }): Promise<VenueContactRecord> {
+    try {
+      return await this.withTransaction(async (client) => {
+        await this.assertCanManageBusiness(client, input.businessId, input.actorUserId);
+        const scope = await client.query(
+          `SELECT 1
+             FROM business_locations location
+             JOIN business_memberships membership
+               ON membership.id = $3
+              AND membership.business_id = location.business_id
+              AND membership.status = 'active'
+            WHERE location.id = $2 AND location.business_id = $1 AND location.is_active = true`,
+          [input.businessId, input.businessLocationId, input.businessMembershipId],
+        );
+        if (scope.rowCount !== 1) {
+          throw new IdentityTenantError(
+            'BUSINESS_ACCESS_DENIED',
+            403,
+            'Venue contact scope is unavailable in this business workspace.',
+          );
+        }
+        const result = await client.query<VenueContactRow>(
+          `INSERT INTO venue_contacts (
+             public_id, business_id, business_location_id, business_membership_id, is_primary
+           ) VALUES ($1,$2,$3,$4,$5)
+           RETURNING id, public_id, business_id, business_location_id,
+                     business_membership_id, status, is_primary, revoked_at, version`,
+          [
+            input.publicId,
+            input.businessId,
+            input.businessLocationId,
+            input.businessMembershipId,
+            input.isPrimary,
+          ],
+        );
+        const row = result.rows[0];
+        if (!row) throw new Error('Venue contact insert returned no row.');
+        await client.query(
+          `INSERT INTO venue_contact_status_history (
+             venue_contact_id, to_status, contact_version, actor_user_id, reason
+           ) VALUES ($1,'active',$2,$3,'Venue contact assigned')`,
+          [row.id, row.version, input.actorUserId],
+        );
+        await this.appendAudit(client, {
+          action: 'venue-contact.created',
+          actorId: input.actorUserId,
+          correlationId: input.correlationId,
+          details: {
+            businessLocationId: input.businessLocationId,
+            isPrimary: input.isPrimary,
+          },
+          subjectId: row.id,
+          subjectType: 'venue-contact',
+        });
+        return toVenueContactRecord(row);
+      });
+    } catch (error) {
+      const constraint = postgresConstraint(error);
+      if (
+        constraint === 'venue_contacts_active_primary_location_uq' ||
+        constraint === 'venue_contacts_active_location_member_uq' ||
+        constraint === 'venue_contacts_public_id_uq'
+      ) {
+        throw new IdentityTenantError(
+          'VENUE_CONTACT_CONFLICT',
+          409,
+          'The venue contact conflicts with current state.',
+        );
+      }
+      throw error;
+    }
+  }
+
+  async revokeVenueContact(input: {
+    actorUserId: string;
+    correlationId: string;
+    expectedVersion: number;
+    venueContactId: string;
+  }): Promise<VenueContactRecord> {
+    return this.withTransaction(async (client) => {
+      const current = await client.query<VenueContactRow>(
+        `SELECT id, public_id, business_id, business_location_id, business_membership_id,
+                status, is_primary, revoked_at, version
+           FROM venue_contacts WHERE id = $1 FOR UPDATE`,
+        [input.venueContactId],
+      );
+      const contact = current.rows[0];
+      if (!contact) {
+        throw new IdentityTenantError(
+          'VENUE_CONTACT_CONFLICT',
+          409,
+          'The venue contact conflicts with current state.',
+        );
+      }
+      await this.assertCanManageBusiness(client, contact.business_id, input.actorUserId);
+      const result = await client.query<VenueContactRow>(
+        `UPDATE venue_contacts
+            SET status = 'revoked', revoked_at = now(), version = version + 1, updated_at = now()
+          WHERE id = $1 AND status = 'active' AND version = $2
+          RETURNING id, public_id, business_id, business_location_id,
+                    business_membership_id, status, is_primary, revoked_at, version`,
+        [input.venueContactId, input.expectedVersion],
+      );
+      const row = result.rows[0];
+      if (!row) {
+        throw new IdentityTenantError(
+          'VENUE_CONTACT_CONFLICT',
+          409,
+          'The venue contact conflicts with current state.',
+        );
+      }
+      await client.query(
+        `INSERT INTO venue_contact_status_history (
+           venue_contact_id, from_status, to_status, contact_version, actor_user_id, reason
+         ) VALUES ($1,'active','revoked',$2,$3,'Venue contact revoked')`,
+        [row.id, row.version, input.actorUserId],
+      );
+      await this.appendAudit(client, {
+        action: 'venue-contact.revoked',
+        actorId: input.actorUserId,
+        correlationId: input.correlationId,
+        details: { businessLocationId: row.business_location_id },
+        subjectId: row.id,
+        subjectType: 'venue-contact',
+      });
+      return toVenueContactRecord(row);
     });
   }
 

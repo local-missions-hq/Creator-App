@@ -24,6 +24,9 @@ const migrations = [
   '0012_notification_preference_history_backfill.sql',
   '0013_brave_maddog.sql',
   '0014_serious_terror.sql',
+  '0015_slim_joshua_kane.sql',
+  '0016_normal_meltdown.sql',
+  '0017_charming_marrow.sql',
 ].map((name) => fileURLToPath(new URL(`../drizzle/${name}`, import.meta.url)));
 const databaseName = `local_missions_m3_local_pass_${randomUUID().replaceAll('-', '')}`;
 const baseUrl = new URL(getLocalDatabaseUrl());
@@ -500,14 +503,23 @@ describe.sequential('LocalPassStore', () => {
     ).toMatchObject({
       code: 'LOCAL_PASS_TOKEN_REPLAYED',
     });
-    const evidence = await pool.query<{ kind: string }>(
-      `SELECT kind FROM local_pass_attribution_events WHERE local_pass_claim_id = $1 ORDER BY occurred_at`,
+    const evidence = await pool.query<{ confidence: string; kind: string }>(
+      `SELECT kind, confidence FROM local_pass_attribution_events
+       WHERE local_pass_claim_id = $1 ORDER BY occurred_at`,
       [activeClaim.id],
     );
-    expect(evidence.rows.map((row) => row.kind)).toEqual([
-      'pass_claimed',
-      'verified_pass_redemption',
+    expect(evidence.rows).toEqual([
+      { confidence: 'verified_claim', kind: 'pass_claimed' },
+      { confidence: 'verified_redemption', kind: 'verified_pass_redemption' },
     ]);
+    await expect(
+      pool.query(
+        `UPDATE local_pass_attribution_events
+            SET confidence = 'observed_link_open'
+          WHERE local_pass_claim_id = $1 AND kind = 'pass_claimed'`,
+        [activeClaim.id],
+      ),
+    ).rejects.toThrow(/evidence and history are immutable/);
     const missionProof = await pool.query<{ status: string }>(
       `SELECT status FROM mission_assignments WHERE id = ANY($1::uuid[]) ORDER BY id`,
       [fixture.assignmentIds],

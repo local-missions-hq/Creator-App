@@ -61,6 +61,7 @@ export const businessMembershipStatus = pgEnum('business_membership_status', [
   'active',
   'disabled',
 ]);
+export const venueContactStatus = pgEnum('venue_contact_status', ['active', 'revoked']);
 export const missionTemplateCode = pgEnum('mission_template_code', [
   'visit_create',
   'visit_share',
@@ -312,6 +313,11 @@ export const localPassEvidenceKind = pgEnum('local_pass_evidence_kind', [
   'link_open',
   'pass_claimed',
   'verified_pass_redemption',
+]);
+export const localPassAttributionConfidence = pgEnum('local_pass_attribution_confidence', [
+  'observed_link_open',
+  'verified_claim',
+  'verified_redemption',
 ]);
 export const localPassFulfillmentKind = pgEnum('local_pass_fulfillment_kind', [
   'original_offer',
@@ -638,6 +644,72 @@ export const businessLocations = pgTable(
     check('business_locations_region_ck', sql`${table.region} ~ '^[A-Z]{2}$'`),
     check('business_locations_postal_code_ck', sql`${table.postalCode} ~ '^[0-9]{5}$'`),
     check('business_locations_version_positive_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const venueContacts = pgTable(
+  'venue_contacts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id, { onDelete: 'restrict' }),
+    businessLocationId: uuid('business_location_id')
+      .notNull()
+      .references(() => businessLocations.id, { onDelete: 'restrict' }),
+    businessMembershipId: uuid('business_membership_id')
+      .notNull()
+      .references(() => businessMemberships.id, { onDelete: 'restrict' }),
+    status: venueContactStatus('status').default('active').notNull(),
+    isPrimary: boolean('is_primary').default(false).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    version: integer('version').default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex('venue_contacts_public_id_uq').on(table.publicId),
+    uniqueIndex('venue_contacts_active_location_member_uq')
+      .on(table.businessLocationId, table.businessMembershipId)
+      .where(sql`${table.status} = 'active'`),
+    uniqueIndex('venue_contacts_active_primary_location_uq')
+      .on(table.businessLocationId)
+      .where(sql`${table.status} = 'active' AND ${table.isPrimary} = true`),
+    index('venue_contacts_business_status_idx').on(table.businessId, table.status),
+    check(
+      'venue_contacts_status_shape_ck',
+      sql`(${table.status} = 'active' AND ${table.revokedAt} IS NULL) OR
+          (${table.status} = 'revoked' AND ${table.revokedAt} IS NOT NULL)`,
+    ),
+    check('venue_contacts_version_positive_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const venueContactStatusHistory = pgTable(
+  'venue_contact_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    venueContactId: uuid('venue_contact_id')
+      .notNull()
+      .references(() => venueContacts.id, { onDelete: 'restrict' }),
+    fromStatus: venueContactStatus('from_status'),
+    toStatus: venueContactStatus('to_status').notNull(),
+    contactVersion: integer('contact_version').notNull(),
+    actorUserId: uuid('actor_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    reason: text('reason').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('venue_contact_status_history_version_uq').on(
+      table.venueContactId,
+      table.contactVersion,
+    ),
+    index('venue_contact_status_history_timeline_idx').on(table.venueContactId, table.occurredAt),
+    check('venue_contact_status_history_version_ck', sql`${table.contactVersion} > 0`),
+    check('venue_contact_status_history_reason_ck', sql`length(btrim(${table.reason})) > 0`),
   ],
 );
 
@@ -2577,6 +2649,7 @@ export const localPassAttributionEvents = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     publicId: text('public_id').notNull(),
     kind: localPassEvidenceKind('kind').notNull(),
+    confidence: localPassAttributionConfidence('confidence').notNull(),
     campaignId: uuid('campaign_id')
       .notNull()
       .references(() => campaigns.id, { onDelete: 'restrict' }),
@@ -2613,10 +2686,13 @@ export const localPassAttributionEvents = pgTable(
     check(
       'local_pass_attribution_events_shape_ck',
       sql`(${table.kind} = 'link_open'
+           AND ${table.confidence} = 'observed_link_open'
            AND ${table.localPassClaimId} IS NULL AND ${table.localPassRedemptionId} IS NULL) OR
           (${table.kind} = 'pass_claimed'
+           AND ${table.confidence} = 'verified_claim'
            AND ${table.localPassClaimId} IS NOT NULL AND ${table.localPassRedemptionId} IS NULL) OR
           (${table.kind} = 'verified_pass_redemption'
+           AND ${table.confidence} = 'verified_redemption'
            AND ${table.localPassClaimId} IS NOT NULL AND ${table.localPassRedemptionId} IS NOT NULL)`,
     ),
   ],
@@ -3896,7 +3972,14 @@ export const auditEvents = pgTable(
     details: jsonb('details').$type<Record<string, unknown>>().default({}).notNull(),
     occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index('audit_events_subject_idx').on(table.subjectType, table.subjectId)],
+  (table) => [
+    index('audit_events_subject_idx').on(table.subjectType, table.subjectId),
+    index('audit_events_subject_timeline_idx').on(
+      table.subjectType,
+      table.subjectId,
+      table.occurredAt,
+    ),
+  ],
 );
 
 export const idempotencyRecords = pgTable(
@@ -3928,6 +4011,8 @@ export const initialSchemaTables = [
   'business_memberships',
   'platform_staff_memberships',
   'business_locations',
+  'venue_contacts',
+  'venue_contact_status_history',
   'reach_platform_capabilities',
   'reach_analytics_consents',
   'reach_analytics_consent_history',

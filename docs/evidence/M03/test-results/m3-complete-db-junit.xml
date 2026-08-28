@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="92" failures="0" errors="0" time="95.556671291">
+    <testsuite name="src/campaign-store.integration.test.ts" timestamp="2026-08-28T00:54:51.876Z" hostname="local-development-host" tests="4" failures="0" errors="0" skipped="0" time="7.093601667">
+        <testcase classname="src/campaign-store.integration.test.ts" name="CampaignStore against real PostgreSQL &gt; applies the empty-database migration with money and capacity constraints" time="0.399813375">
+        </testcase>
+        <testcase classname="src/campaign-store.integration.test.ts" name="CampaignStore against real PostgreSQL &gt; returns the original result for a repeated idempotency key and rejects changed input" time="0.473735042">
+        </testcase>
+        <testcase classname="src/campaign-store.integration.test.ts" name="CampaignStore against real PostgreSQL &gt; commits the legal publish path and rolls illegal transitions back completely" time="0.55375575">
+        </testcase>
+        <testcase classname="src/campaign-store.integration.test.ts" name="CampaignStore against real PostgreSQL &gt; allows only one writer to win an optimistic-concurrency race" time="0.626522959">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/check-in-store.integration.test.ts" timestamp="2026-08-28T00:54:51.877Z" hostname="local-development-host" tests="8" failures="0" errors="0" skipped="0" time="7.603790167">
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; preserves prior data and adds no raw coordinate or plaintext-token field" time="0.374956458">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; schedules only an accepted application at a venue in the correct business" time="0.722337417">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; restricts challenge issuance to assigned Venue Staff at the exact venue and window" time="0.608358583">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; rotates an active QR challenge and rejects the replaced token" time="0.821183041">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; atomically records a privacy-minimized QR check-in and assignment history" time="0.452988375">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; rejects cross-creator, wrong-venue, and server-expired attempts without an event" time="0.367295875">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; allows exactly one winner when the same one-time challenge is replayed concurrently" time="0.387858875">
+        </testcase>
+        <testcase classname="src/check-in-store.integration.test.ts" name="accepted mission scheduling and check-in against real PostgreSQL &gt; uses database time and refuses challenge issuance outside the mission window" time="0.325461709">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/dispute-store.integration.test.ts" timestamp="2026-08-28T00:54:51.877Z" hostname="local-development-host" tests="8" failures="0" errors="0" skipped="0" time="7.721455875">
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; preserves an existing complete submission and adds no subjective or manual-money field" time="0.381007084">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; rejects another business, subjective reasons, and incomplete evidence atomically" time="0.758247542">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; lets the creator dispute one timely correction and pauses that submission path" time="0.86770125">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; uses database deadlines and rejects late business and creator disputes without partial rows" time="0.7442445">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; rejects cross-mission evidence and permits exactly one concurrent dispute" time="0.675647833">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; resolves approval versus dispute exactly once in one transaction" time="0.347908041">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; requires an independent reviewer and overturns a correction to the full creator reward" time="0.274758333">
+        </testcase>
+        <testcase classname="src/dispute-store.integration.test.ts" name="submission disputes and resolutions against real PostgreSQL &gt; upholds a correction as no-payout with one refund intent under a resolution race" time="0.207424708">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/ledger-store.integration.test.ts" timestamp="2026-08-28T00:54:51.878Z" hostname="local-development-host" tests="9" failures="0" errors="0" skipped="0" time="7.611228791">
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; preserves the prior intent and installs immutable provider, allocation, and ledger tables" time="0.411252792">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; records one authoritative campaign funding snapshot and prevents business self-funding" time="0.649195333">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; allocates the disclosed 15 percent fee deterministically in integer minor units" time="0.5592195">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; makes funding replay idempotent while different provider events have one race winner" time="0.681204708">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; posts a completed slot once as full creator payable plus earned platform fee" time="0.342143709">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; posts a no-payout slot once as the full reward-and-fee business refund payable" time="0.391985458">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; includes the full Reach bonus and its fee allocation in a no-payout refund" time="0.430431666">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; rejects unfunded and state-mismatched intents without partial financial rows" time="0.402096708">
+        </testcase>
+        <testcase classname="src/ledger-store.integration.test.ts" name="LedgerStore against real PostgreSQL &gt; separates finance authority and rejects rewrites or unbalanced direct journals" time="0.25452075">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/local-pass-store.integration.test.ts" timestamp="2026-08-28T00:54:51.878Z" hostname="local-development-host" tests="9" failures="0" errors="0" skipped="0" time="7.084975958">
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; migrates forward, stores only hashes, and keeps offer terms and evidence immutable" time="0.163374958">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; locks first-valid attribution under concurrent duplicate-customer claims" time="0.146902875">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; prevents final-inventory oversubscription and preserves active claims when future claims pause" time="0.203439666">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; rotates screenshot tokens and enforces exact venue and staff authorization" time="0.159329333">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; bounds OTP attempts and resends, rejects verification replay, and stores no raw destination" time="0.199176459">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; requires fresh destination control for recovery and consumes the proof once" time="0.096821916">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; preserves a refused pass through review and exposes aggregate-only tenant-scoped reporting" time="0.271391167">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; requires verified customer acceptance for a non-preapproved substitute" time="0.115958083">
+        </testcase>
+        <testcase classname="src/local-pass-store.integration.test.ts" name="LocalPassStore &gt; releases inventory when a seven-day claim expires unredeemed" time="0.05662025">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/locality-proof-store.integration.test.ts" timestamp="2026-08-28T00:54:51.879Z" hostname="local-development-host" tests="7" failures="0" errors="0" skipped="0" time="7.543646042">
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; preserves prior derived credentials without inventing a raw proof" time="3.812815208">
+        </testcase>
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; keeps evidence private and requires an authorized objective review" time="0.374207292">
+        </testcase>
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; supports one objective correction and an independent timely appeal" time="0.386124708">
+        </testcase>
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; sets annual expiry and immediately blocks Community applications after address change" time="0.251125208">
+        </testcase>
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; expires credentials by database time exactly once" time="0.1701235">
+        </testcase>
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; honors a bounded hold, auto-releases on expiry, and permits one deletion worker" time="0.12335375">
+        </testcase>
+        <testcase classname="src/locality-proof-store.integration.test.ts" name="raw locality-proof lifecycle &gt; uses bounded retries and creates one immutable failure alert without clearing evidence" time="0.111031541">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/migration-recovery.integration.test.ts" timestamp="2026-08-28T00:54:51.879Z" hostname="local-development-host" tests="2" failures="0" errors="0" skipped="0" time="7.206709791">
+        <testcase classname="src/migration-recovery.integration.test.ts" name="latest schema and roll-forward recovery &gt; applies every manifested migration atomically to a truly empty PostgreSQL database" time="4.567770708">
+        </testcase>
+        <testcase classname="src/migration-recovery.integration.test.ts" name="latest schema and roll-forward recovery &gt; rolls an injected N-1 migration failure back, then recovers forward without data loss" time="2.635875958">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/mission-application-store.integration.test.ts" timestamp="2026-08-28T00:54:51.879Z" hostname="local-development-host" tests="6" failures="0" errors="0" skipped="0" time="7.407535083">
+        <testcase classname="src/mission-application-store.integration.test.ts" name="mission contracts and capacity against real PostgreSQL &gt; preserves prior data, creates the complete slice, and contains no follower field" time="0.338425208">
+        </testcase>
+        <testcase classname="src/mission-application-store.integration.test.ts" name="mission contracts and capacity against real PostgreSQL &gt; rolls back slot contracts that violate the 80 percent Community floor" time="0.382549583">
+        </testcase>
+        <testcase classname="src/mission-application-store.integration.test.ts" name="mission contracts and capacity against real PostgreSQL &gt; allows only one application and reservation when the same creator races twice" time="0.540090042">
+        </testcase>
+        <testcase classname="src/mission-application-store.integration.test.ts" name="mission contracts and capacity against real PostgreSQL &gt; never overbooks Community capacity under parallel qualified applications" time="0.64003525">
+        </testcase>
+        <testcase classname="src/mission-application-store.integration.test.ts" name="mission contracts and capacity against real PostgreSQL &gt; releases a withdrawn slot for a replacement but never lets one creator apply twice" time="0.408626084">
+        </testcase>
+        <testcase classname="src/mission-application-store.integration.test.ts" name="mission contracts and capacity against real PostgreSQL &gt; keeps application acceptance inside the correct business tenant" time="0.513734625">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/notification-store.integration.test.ts" timestamp="2026-08-28T00:54:51.879Z" hostname="local-development-host" tests="7" failures="0" errors="0" skipped="0" time="7.140433583">
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; upgrades prior data into a minimized immutable notification schema" time="0.365765583">
+        </testcase>
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; commits mission acceptance, event, outbox, in-app notice, history, and audit atomically" time="0.3690265">
+        </testcase>
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; deduplicates events and enforces recipient, role, tenant, and in-app isolation" time="0.503883791">
+        </testcase>
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; honors opt-out, allows one worker claim, and records only local no-send outcomes" time="0.555673">
+        </testcase>
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; schedules exponential retry without raw errors and rejects stale claim completion" time="0.508902459">
+        </testcase>
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; dead-letters non-retryable work and permits only audited admin replay" time="0.305952166">
+        </testcase>
+        <testcase classname="src/notification-store.integration.test.ts" name="NotificationStore &gt; keeps durable in-app state recipient-scoped and acknowledgment-only" time="0.274396292">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/reach-qualification-store.integration.test.ts" timestamp="2026-08-28T00:54:51.880Z" hostname="local-development-host" tests="6" failures="0" errors="0" skipped="0" time="6.964873833">
+        <testcase classname="src/reach-qualification-store.integration.test.ts" name="optional per-platform Reach qualification &gt; migrates disabled-by-default capabilities and keeps Community independent of follower data" time="0.374248459">
+        </testcase>
+        <testcase classname="src/reach-qualification-store.integration.test.ts" name="optional per-platform Reach qualification &gt; requires every activation review, creator consent, and the exact approved read-only source" time="0.242377291">
+        </testcase>
+        <testcase classname="src/reach-qualification-store.integration.test.ts" name="optional per-platform Reach qualification &gt; derives 90-day levels independently per platform without combining audiences" time="0.464173375">
+        </testcase>
+        <testcase classname="src/reach-qualification-store.integration.test.ts" name="optional per-platform Reach qualification &gt; snapshots an exact-platform tier, hides raw analytics, and protects Community plus accepted reward after revocation" time="0.798012042">
+        </testcase>
+        <testcase classname="src/reach-qualification-store.integration.test.ts" name="optional per-platform Reach qualification &gt; grants one outage-specific 14-day grace only to tiers valid when the outage begins" time="0.621662542">
+        </testcase>
+        <testcase classname="src/reach-qualification-store.integration.test.ts" name="optional per-platform Reach qualification &gt; supports independent appeal and deletes raw, cached, and derived evidence while retaining only the tier" time="0.585080875">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/rights-store.integration.test.ts" timestamp="2026-08-28T00:54:51.880Z" hostname="local-development-host" tests="10" failures="0" errors="0" skipped="0" time="7.070426584">
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; migrates forward and publishes immutable hash-only legal document versions under admin control" time="0.035846667">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; locks exact rights economics and creator consent without cross-role substitution" time="0.101079458">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; grants no rights to incomplete, unpaid, canceled, or final no-payout work" time="0.224308">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; activates one immutable fixed license set under concurrency without changing payment state" time="0.111034458">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; rejects approval without verified accepted content instead of licensing business access" time="0.096360917">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; expires a fixed term with matching audit history and never renews automatically" time="0.096706333">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; prices creator-visible renewals from the original base and enforces the 30-day window" time="0.475627792">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; keeps accepted renewals unfunded and preserves old expiry after provider failure" time="0.136778417">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; activates a future non-backdated term and full payable only from authoritative funding" time="0.122759375">
+        </testcase>
+        <testcase classname="src/rights-store.integration.test.ts" name="RightsStore &gt; allows exactly one authoritative funding winner under concurrency" time="0.204238375">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/submission-store.integration.test.ts" timestamp="2026-08-28T00:54:51.881Z" hostname="local-development-host" tests="7" failures="0" errors="0" skipped="0" time="7.39561775">
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; preserves an existing checked-in assignment and adds privacy-safe submission tables" time="0.392482">
+        </testcase>
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; requires locked objective deliverables before campaign submission" time="0.410619542">
+        </testcase>
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; rejects all upload and completion activity before verified check-in atomically" time="0.585739291">
+        </testcase>
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; rejects missing, quarantined, and objectively invalid media without a partial submission" time="0.659988667">
+        </testcase>
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; starts exactly one 48-hour review when duplicate completion requests race" time="0.65520125">
+        </testcase>
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; allows one objective correction, rejects a second correction, and completes all mission state" time="0.534662583">
+        </testcase>
+        <testcase classname="src/submission-store.integration.test.ts" name="deliverable submission and review against real PostgreSQL &gt; uses database time for auto-approval and permits exactly one service winner" time="0.533027708">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tenant-store.integration.test.ts" timestamp="2026-08-28T00:54:51.881Z" hostname="local-development-host" tests="5" failures="0" errors="0" skipped="0" time="3.134485667">
+        <testcase classname="src/tenant-store.integration.test.ts" name="shared identity and tenant boundaries against real PostgreSQL &gt; preserves the existing campaign through the forward migration" time="0.075757334">
+        </testcase>
+        <testcase classname="src/tenant-store.integration.test.ts" name="shared identity and tenant boundaries against real PostgreSQL &gt; allows only one root user to bind a provider issuer and subject" time="0.08227575">
+        </testcase>
+        <testcase classname="src/tenant-store.integration.test.ts" name="shared identity and tenant boundaries against real PostgreSQL &gt; requires a different provider when linking another identity to one user" time="0.060305916">
+        </testcase>
+        <testcase classname="src/tenant-store.integration.test.ts" name="shared identity and tenant boundaries against real PostgreSQL &gt; stores a private annual locality credential without identity email or street data" time="0.049541125">
+        </testcase>
+        <testcase classname="src/tenant-store.integration.test.ts" name="shared identity and tenant boundaries against real PostgreSQL &gt; prevents one business owner from reading or creating inside another workspace" time="0.125352916">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/venue-contact-store.integration.test.ts" timestamp="2026-08-28T00:54:51.881Z" hostname="local-development-host" tests="4" failures="0" errors="0" skipped="0" time="4.5778905">
+        <testcase classname="src/venue-contact-store.integration.test.ts" name="venue contacts against real PostgreSQL &gt; creates a privacy-safe same-business contact with history, audit, and timeline indexes" time="0.103796875">
+        </testcase>
+        <testcase classname="src/venue-contact-store.integration.test.ts" name="venue contacts against real PostgreSQL &gt; rejects cross-tenant actors and mismatched venue membership scope" time="0.080453875">
+        </testcase>
+        <testcase classname="src/venue-contact-store.integration.test.ts" name="venue contacts against real PostgreSQL &gt; allows exactly one winner when two members race for primary contact" time="0.084292666">
+        </testcase>
+        <testcase classname="src/venue-contact-store.integration.test.ts" name="venue contacts against real PostgreSQL &gt; uses optimistic concurrency for revocation and keeps contacts and history immutable" time="0.082067292">
+        </testcase>
+    </testsuite>
+</testsuites>

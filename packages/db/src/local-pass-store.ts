@@ -477,8 +477,8 @@ export class LocalPassStore {
       }
       await client.query(
         `INSERT INTO local_pass_attribution_events
-           (public_id, kind, campaign_id, local_pass_link_id, creator_user_id)
-         VALUES ($1, 'link_open', $2, $3, $4)`,
+           (public_id, kind, confidence, campaign_id, local_pass_link_id, creator_user_id)
+         VALUES ($1, 'link_open', 'observed_link_open', $2, $3, $4)`,
         [input.eventPublicId, link.campaign_id, link.id, link.creator_user_id],
       );
     });
@@ -817,8 +817,9 @@ export class LocalPassStore {
         );
         await client.query(
           `INSERT INTO local_pass_attribution_events
-             (public_id, kind, campaign_id, local_pass_link_id, local_pass_claim_id, creator_user_id)
-           VALUES ($1, 'pass_claimed', $2, $3, $4, $5)`,
+             (public_id, kind, confidence, campaign_id, local_pass_link_id,
+              local_pass_claim_id, creator_user_id)
+           VALUES ($1, 'pass_claimed', 'verified_claim', $2, $3, $4, $5)`,
           [input.eventPublicId, claim.campaign_id, link.id, claim.id, claim.creator_user_id],
         );
         await client.query(
@@ -1094,9 +1095,9 @@ export class LocalPassStore {
       );
       await client.query(
         `INSERT INTO local_pass_attribution_events (
-           public_id, kind, campaign_id, local_pass_link_id, local_pass_claim_id,
+           public_id, kind, confidence, campaign_id, local_pass_link_id, local_pass_claim_id,
            local_pass_redemption_id, creator_user_id, occurred_at
-         ) VALUES ($1,'verified_pass_redemption',$2,$3,$4,$5,$6,$7)`,
+         ) VALUES ($1,'verified_pass_redemption','verified_redemption',$2,$3,$4,$5,$6,$7)`,
         [
           input.eventPublicId,
           claim.campaign_id,
