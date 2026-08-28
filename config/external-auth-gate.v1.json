@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "M04-external-auth-configuration-gate-local-010",
+  "activationState": "planned_not_activated",
+  "environmentSeparation": ["development", "staging", "production"],
+  "registrations": [
+    {
+      "key": "mobile_public_client",
+      "accountAudience": "customer",
+      "clientType": "public_native",
+      "clientSecretAllowed": false,
+      "redirectUris": ["localmissions://auth/callback"],
+      "grant": "authorization_code_pkce_s256",
+      "requiredInputs": [
+        "environment",
+        "customer_tenant_id",
+        "mobile_application_client_id",
+        "exact_native_redirect_uri",
+        "hosted_sign_in_user_flow",
+        "api_delegated_permission_access_as_user"
+      ]
+    },
+    {
+      "key": "customer_api_resource",
+      "accountAudience": "customer",
+      "clientType": "resource_api",
+      "clientSecretAllowed": false,
+      "redirectUris": [],
+      "delegatedScope": "access_as_user",
+      "requiredInputs": [
+        "environment",
+        "customer_tenant_id",
+        "api_application_client_id",
+        "application_id_uri",
+        "delegated_scope_access_as_user",
+        "mobile_client_permission_grant"
+      ]
+    },
+    {
+      "key": "participant_web_client",
+      "accountAudience": "customer",
+      "clientType": "confidential_web",
+      "clientSecretAllowed": true,
+      "activation": "deferred_until_protected_web_auth_is_built",
+      "redirectUris": ["https://<approved-dashboard-host>/auth/callback"],
+      "requiredInputs": [
+        "environment",
+        "customer_tenant_id",
+        "web_application_client_id",
+        "exact_https_redirect_uri",
+        "server_secret_store_reference"
+      ]
+    }
+  ],
+  "providers": [
+    {
+      "key": "apple",
+      "label": "Apple",
+      "hostedUserFlowMapping": "apple",
+      "mobileRouting": "same_hosted_user_flow",
+      "enabledBeforeRoleSelection": true
+    },
+    {
+      "key": "google",
+      "label": "Google",
+      "hostedUserFlowMapping": "google",
+      "mobileRouting": "same_hosted_user_flow",
+      "enabledBeforeRoleSelection": true
+    },
+    {
+      "key": "microsoft",
+      "label": "Microsoft",
+      "hostedUserFlowMapping": "microsoft",
+      "mobileRouting": "same_hosted_user_flow",
+      "enabledBeforeRoleSelection": true
+    },
+    {
+      "key": "passwordless_email",
+      "label": "Email one-time code",
+      "hostedUserFlowMapping": "email_one_time_code",
+      "mobileRouting": "same_hosted_user_flow",
+      "enabledBeforeRoleSelection": true
+    }
+  ],
+  "forbiddenProviders": ["facebook", "meta"],
+  "environmentContracts": {
+    "mobilePublic": [
+      "EXPO_PUBLIC_ENTRA_AUTHORIZATION_ENDPOINT",
+      "EXPO_PUBLIC_ENTRA_TOKEN_ENDPOINT",
+      "EXPO_PUBLIC_ENTRA_ISSUER",
+      "EXPO_PUBLIC_ENTRA_JWKS_URI",
+      "EXPO_PUBLIC_ENTRA_CLIENT_ID",
+      "EXPO_PUBLIC_ENTRA_REDIRECT_URI",
+      "EXPO_PUBLIC_ENTRA_SCOPE"
+    ],
+    "apiIdentifiers": [
+      "ENTRA_TENANT_ID",
+      "ENTRA_API_AUDIENCE",
+      "ENTRA_ISSUER",
+      "ENTRA_JWKS_URI",
+      "ENTRA_REQUIRED_SCOPE"
+    ],
+    "forbiddenMobileNames": [
+      "ENTRA_CLIENT_SECRET",
+      "EXPO_PUBLIC_ENTRA_CLIENT_SECRET",
+      "APPLE_CLIENT_SECRET",
+      "GOOGLE_CLIENT_SECRET",
+      "MICROSOFT_CLIENT_SECRET"
+    ]
+  },
+  "transportBoundaries": [
+    {
+      "key": "authorization",
+      "method": "GET",
+      "channel": "system_browser_only",
+      "httpsRequired": true,
+      "redirectPolicy": "exact_registered_callback_only",
+      "implementationState": "local_contract_proven_external_pending"
+    },
+    {
+      "key": "mobile_token",
+      "method": "POST",
+      "contentType": "application/x-www-form-urlencoded",
+      "httpsRequired": true,
+      "redirectPolicy": "reject",
+      "clientSecretAllowed": false,
+      "implementationState": "unavailable_until_reviewed_transport_is_implemented"
+    },
+    {
+      "key": "mobile_id_token_jwks",
+      "method": "GET",
+      "httpsRequired": true,
+      "redirectPolicy": "reject",
+      "implementationState": "local_key_verification_proven_external_network_pending"
+    },
+    {
+      "key": "api_access_token_jwks",
+      "method": "GET",
+      "httpsRequired": true,
+      "redirectPolicy": "reject",
+      "timeoutMilliseconds": 3000,
+      "cacheMaxAgeMilliseconds": 600000,
+      "cooldownMilliseconds": 30000,
+      "implementationState": "local_transport_boundary_proven_external_network_pending"
+    }
+  ],
+  "testMatrix": [
+    {
+      "key": "apple_consent_success_cancel_denied",
+      "localStatus": "callback_bounds_proven",
+      "externalStatus": "pending"
+    },
+    {
+      "key": "google_consent_success_cancel_denied",
+      "localStatus": "callback_bounds_proven",
+      "externalStatus": "pending"
+    },
+    {
+      "key": "microsoft_consent_success_cancel_denied",
+      "localStatus": "callback_bounds_proven",
+      "externalStatus": "pending"
+    },
+    {
+      "key": "email_code_success_expired_single_use",
+      "localStatus": "not_simulated_as_provider_proof",
+      "externalStatus": "pending"
+    },
+    {
+      "key": "email_code_resend_throttle",
+      "localStatus": "not_simulated_as_provider_proof",
+      "externalStatus": "pending"
+    },
+    {
+      "key": "disabled_provider",
+      "localStatus": "fail_closed_runtime_proven",
+      "externalStatus": "pending"
+    },
+    {
+      "key": "failed_or_malformed_native_return",
+      "localStatus": "proven",
+      "externalStatus": "pending"
+    },
+    {
+      "key": "matching_changed_or_private_relay_email",
+      "localStatus": "no_auto_merge_proven",
+      "externalStatus": "pending"
+    },
+    {
+      "key": "real_iphone_system_browser_deep_link",
+      "localStatus": "not_claimed",
+      "externalStatus": "deferred_by_user"
+    }
+  ],
+  "approvalGates": [
+    {
+      "key": "tenant_and_environment_ownership",
+      "owners": ["founder", "identity_owner", "technical_owner"],
+      "status": "pending_external"
+    },
+    {
+      "key": "app_registration_mutation",
+      "owners": ["identity_owner", "technical_owner"],
+      "status": "pending_explicit_approval"
+    },
+    {
+      "key": "provider_credentials_and_terms",
+      "owners": ["identity_owner", "legal_privacy_owner"],
+      "status": "pending_external"
+    },
+    {
+      "key": "test_environment_activation",
+      "owners": ["security_owner", "technical_owner"],
+      "status": "pending_explicit_approval"
+    },
+    {
+      "key": "real_identity_test_execution",
+      "owners": ["privacy_owner", "test_owner"],
+      "status": "pending_explicit_approval"
+    },
+    {
+      "key": "physical_iphone_round_trip",
+      "owners": ["test_owner"],
+      "status": "deferred_by_user"
+    },
+    {
+      "key": "production_activation",
+      "owners": ["founder", "identity_owner", "security_owner", "privacy_owner"],
+      "status": "pending_external"
+    }
+  ],
+  "unclaimedEvidence": [
+    "entra_tenant_created",
+    "app_registrations_created",
+    "provider_credentials_entered",
+    "provider_or_jwks_network_contact",
+    "real_identity_used",
+    "physical_iphone_round_trip",
+    "production_authentication_enabled"
+  ]
+}

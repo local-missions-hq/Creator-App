@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="24" failures="0" errors="0" time="0.034251042">
+    <testsuite name="lib/auth-orchestration.test.ts" timestamp="2026-08-28T15:33:29.422Z" hostname="local-development-host" tests="6" failures="0" errors="0" skipped="0" time="0.004661709">
+        <testcase classname="lib/auth-orchestration.test.ts" name="mobile authentication orchestration &gt; connects browser return, code exchange, server bootstrap, and workspace choice" time="0.002739042">
+        </testcase>
+        <testcase classname="lib/auth-orchestration.test.ts" name="mobile authentication orchestration &gt; ignores a duplicate tap while one system-browser attempt is active" time="0.000492667">
+        </testcase>
+        <testcase classname="lib/auth-orchestration.test.ts" name="mobile authentication orchestration &gt; fails closed before crypto or browser work when configuration is unavailable" time="0.000191625">
+        </testcase>
+        <testcase classname="lib/auth-orchestration.test.ts" name="mobile authentication orchestration &gt; maps a &apos;cancelled&apos; system-browser result into an explicit retryable state" time="0.000197875">
+        </testcase>
+        <testcase classname="lib/auth-orchestration.test.ts" name="mobile authentication orchestration &gt; maps a &apos;failed&apos; system-browser result into an explicit retryable state" time="0.000175125">
+        </testcase>
+        <testcase classname="lib/auth-orchestration.test.ts" name="mobile authentication orchestration &gt; refreshes protected cold-start state or clears it on refresh failure" time="0.000324625">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/oidc-client.test.ts" timestamp="2026-08-28T15:33:29.423Z" hostname="local-development-host" tests="8" failures="0" errors="0" skipped="0" time="0.004864208">
+        <testcase classname="lib/oidc-client.test.ts" name="mobile OIDC and PKCE boundary &gt; fails closed when configuration is absent, partial, insecure, or has the wrong redirect" time="0.001131583">
+        </testcase>
+        <testcase classname="lib/oidc-client.test.ts" name="mobile OIDC and PKCE boundary &gt; accepts only complete authorization-code configuration with required unique scopes" time="0.000190542">
+        </testcase>
+        <testcase classname="lib/oidc-client.test.ts" name="mobile OIDC and PKCE boundary &gt; creates 256-bit state, nonce, verifier, S256 challenge, and an exact ten-minute request" time="0.00135625">
+        </testcase>
+        <testcase classname="lib/oidc-client.test.ts" name="mobile OIDC and PKCE boundary &gt; accepts one exact callback and rejects replay without exposing transaction secrets" time="0.000573791">
+        </testcase>
+        <testcase classname="lib/oidc-client.test.ts" name="mobile OIDC and PKCE boundary &gt; does not consume the real transaction for a wrong state, redirect, or client-asserted provider" time="0.000256458">
+        </testcase>
+        <testcase classname="lib/oidc-client.test.ts" name="mobile OIDC and PKCE boundary &gt; consumes an expired transaction and rejects malformed or duplicate callback fields" time="0.000168125">
+        </testcase>
+        <testcase classname="lib/oidc-client.test.ts" name="mobile OIDC and PKCE boundary &gt; maps user cancellation and provider failure without trusting error descriptions" time="0.000161958">
+        </testcase>
+        <testcase classname="lib/oidc-client.test.ts" name="mobile OIDC and PKCE boundary &gt; allows exactly one winner when duplicate callbacks race" time="0.00038725">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/oidc-session-exchange.test.ts" timestamp="2026-08-28T15:33:29.424Z" hostname="local-development-host" tests="10" failures="0" errors="0" skipped="0" time="0.024725125">
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; generates an opaque 256-bit Local Missions session id without user input" time="0.00109475">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; verifies a signed nonce-bound ID token but takes roles and workspace only from the server" time="0.003618917">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; maps cancellation and provider errors without calling exchange, verification, or storage" time="0.000284125">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; allows one code exchange and rejects replay with one generic response" time="0.001112">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; rejects wrong code without exposing code, verifier, or provider details" time="0.000712041">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; rejects wrong verifier without exposing code, verifier, or provider details" time="0.000527">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; rejects the wrong nonce and an expired signed ID token before server bootstrap" time="0.001204083">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; rejects injected server roles and expired Local Missions session projections" time="0.000725833">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; rotates the refresh credential atomically and retains the selected mode" time="0.00022825">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; refuses a refresh response for another Local Missions session without overwriting storage" time="0.000134375">
+        </testcase>
+    </testsuite>
+</testsuites>

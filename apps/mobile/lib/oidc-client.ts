@@ -4,8 +4,11 @@ export type OidcPurpose = 'identity_link' | 'recent_auth' | 'sign_in';
 export type OidcConfiguration = {
   authorizationEndpoint: string;
   clientId: string;
+  issuer: string;
+  jwksUri: string;
   redirectUri: string;
   scopes: string[];
+  tokenEndpoint: string;
 };
 
 export type OidcTransaction = {
@@ -56,6 +59,8 @@ export class OidcBoundaryError extends Error {
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const opaquePattern = /^[A-Za-z0-9_-]{43,128}$/;
+const apiScopePattern =
+  /^api:\/\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/access_as_user$/i;
 
 function base64Url(bytes: Uint8Array): string {
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
@@ -89,49 +94,83 @@ function canonicalRedirect(value: string): string {
   return 'localmissions://auth/callback';
 }
 
+function trustedEndpoint(value: string, pathSuffix: string): URL {
+  const url = new URL(value);
+  if (
+    url.protocol !== 'https:' ||
+    url.username ||
+    url.password ||
+    url.search ||
+    url.hash ||
+    url.port ||
+    !url.hostname ||
+    !url.pathname.endsWith(pathSuffix)
+  ) {
+    throw new OidcBoundaryError('OIDC_CONFIG_INVALID');
+  }
+  return url;
+}
+
 export function readOidcConfiguration(
   environment: Record<string, string | undefined>,
 ): { available: false } | { available: true; configuration: OidcConfiguration } {
   const values = {
     authorizationEndpoint: environment.EXPO_PUBLIC_ENTRA_AUTHORIZATION_ENDPOINT?.trim(),
     clientId: environment.EXPO_PUBLIC_ENTRA_CLIENT_ID?.trim(),
+    issuer: environment.EXPO_PUBLIC_ENTRA_ISSUER?.trim(),
+    jwksUri: environment.EXPO_PUBLIC_ENTRA_JWKS_URI?.trim(),
     redirectUri: environment.EXPO_PUBLIC_ENTRA_REDIRECT_URI?.trim(),
     scope: environment.EXPO_PUBLIC_ENTRA_SCOPE?.trim(),
+    tokenEndpoint: environment.EXPO_PUBLIC_ENTRA_TOKEN_ENDPOINT?.trim(),
   };
   if (Object.values(values).every((value) => !value)) return { available: false };
   if (Object.values(values).some((value) => !value)) {
     throw new OidcBoundaryError('OIDC_CONFIG_INVALID');
   }
 
-  const endpoint = new URL(values.authorizationEndpoint!);
+  const authorizationEndpoint = trustedEndpoint(
+    values.authorizationEndpoint!,
+    '/oauth2/v2.0/authorize',
+  );
+  const issuer = trustedEndpoint(values.issuer!, '/v2.0');
+  const jwksUri = trustedEndpoint(values.jwksUri!, '/discovery/v2.0/keys');
+  const tokenEndpoint = trustedEndpoint(values.tokenEndpoint!, '/oauth2/v2.0/token');
+  const tenantPrefixes = [
+    authorizationEndpoint.pathname.slice(0, -'/oauth2/v2.0/authorize'.length),
+    issuer.pathname.slice(0, -'/v2.0'.length),
+    jwksUri.pathname.slice(0, -'/discovery/v2.0/keys'.length),
+    tokenEndpoint.pathname.slice(0, -'/oauth2/v2.0/token'.length),
+  ];
   if (
-    endpoint.protocol !== 'https:' ||
-    endpoint.username ||
-    endpoint.password ||
-    endpoint.search ||
-    endpoint.hash ||
-    !endpoint.pathname.endsWith('/oauth2/v2.0/authorize')
+    authorizationEndpoint.origin !== issuer.origin ||
+    authorizationEndpoint.origin !== jwksUri.origin ||
+    authorizationEndpoint.origin !== tokenEndpoint.origin ||
+    tenantPrefixes.some((prefix) => !prefix || prefix !== tenantPrefixes[0])
   ) {
     throw new OidcBoundaryError('OIDC_CONFIG_INVALID');
   }
   if (!uuidPattern.test(values.clientId!)) throw new OidcBoundaryError('OIDC_CONFIG_INVALID');
   const scopes = values.scope!.split(/\s+/u).filter(Boolean);
   if (
+    scopes.length !== 4 ||
     new Set(scopes).size !== scopes.length ||
     !scopes.includes('openid') ||
     !scopes.includes('profile') ||
     !scopes.includes('offline_access') ||
-    !scopes.some((scope) => scope.startsWith('api://') && scope.endsWith('/access_as_user'))
+    scopes.filter((scope) => apiScopePattern.test(scope)).length !== 1
   ) {
     throw new OidcBoundaryError('OIDC_CONFIG_INVALID');
   }
   return {
     available: true,
     configuration: {
-      authorizationEndpoint: endpoint.toString(),
+      authorizationEndpoint: authorizationEndpoint.toString(),
       clientId: values.clientId!,
+      issuer: issuer.toString(),
+      jwksUri: jwksUri.toString(),
       redirectUri: canonicalRedirect(values.redirectUri!),
       scopes,
+      tokenEndpoint: tokenEndpoint.toString(),
     },
   };
 }

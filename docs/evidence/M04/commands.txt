@@ -385,3 +385,27 @@ pnpm test:gitleaks
 PASS — Gitleaks found no leaks in approximately 14.44 MB.
 
 No Entra/provider endpoint, external JWKS, authorization code, real token, refresh credential, real identity, Azure, Stripe, physical phone, payment, message, external account, customer action, or customer data was used.
+
+M04-external-auth-configuration-gate-local-010 — 2026-08-28
+
+Node 24.19.0 and pnpm 11.24.0 were selected from the pinned local runtime for every verification command below.
+
+pnpm external-auth:check
+PASS — validated three registration records, four V1 providers with Facebook/Meta excluded, twelve public/identifier environment fields, four HTTPS transport boundaries, nine provider/device cases, and seven separately owned approval gates; activation remains blocked.
+
+pnpm --filter @local-missions/mobile exec vitest run lib/oidc-client.test.ts lib/auth-orchestration.test.ts lib/oidc-session-exchange.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/external-auth-config-mobile-junit.xml
+PASS — retained 24 fail-closed configuration, PKCE/callback, orchestration, exchange, nonce, refresh, and server-projection tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+pnpm --filter @local-missions/api exec vitest run src/entra-token-verifier.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/external-auth-config-api-junit.xml
+PASS — retained 14 issuer/audience/tenant/scope/time/signature/JWKS-cache/rotation/error-boundary tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+pnpm verify
+PASS — formatting, prerequisite and external-auth validation, lint, strict type checks, all repository unit tests including 84 mobile tests, reviewed API/migration contracts, production local-marker exclusion, and all nine builds passed.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 444 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks found no leaks in approximately 14.49 MB.
+
+No Entra tenant/app/API registration, provider credential, provider/JWKS network request, authorization code, token, refresh credential, real identity, Azure, Stripe, physical phone, payment, message, external account, customer action, or customer data was used. The mobile token transport and runtime activation remain unavailable, and no external or physical-device M4 gate is claimed.

@@ -1,10 +1,10 @@
 # M04 authentication and account lifecycle evidence
 
-Status: M4 in progress; phone-free account lifecycle, authenticated read/UI, mutation, mobile session, OIDC client, and Entra verifier-boundary checkpoints passed
+Status: M4 in progress; local checkpoints through the external-auth configuration gate passed
 
 Date: 2026-08-28
 
-Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`, `M04-mobile-auth-session-local-003`, `M04-oidc-client-boundary-local-004`, `M04-entra-verifier-local-005`
+Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`, `M04-mobile-auth-session-local-003`, `M04-oidc-client-boundary-local-004`, `M04-entra-verifier-local-005`, `M04-external-principal-mapping-local-006`, `M04-mobile-code-exchange-local-007`, `M04-server-session-bootstrap-local-008`, `M04-mobile-auth-orchestration-local-009`, `M04-external-auth-configuration-gate-local-010`
 
 Environment baseline: Node 24.19.0 and pnpm 11.24.0. The mutation continuation used pnpm 11.24.0 with shell Node 25.9.0 and an engine warning. PostgreSQL 17 Alpine ran on loopback Docker.
 
@@ -170,3 +170,18 @@ Thirty-three retained orchestration/session/storage/exchange/adapter tests and a
 JUnit evidence: [`test-results/mobile-auth-orchestration-junit.xml`](./test-results/mobile-auth-orchestration-junit.xml)
 
 No Entra/provider endpoint, external JWKS, authorization code, real token, refresh credential, real identity, Azure resource, Stripe action, physical phone, payment, message, external account, or customer data was used. Real tenant/app/API registration, reviewed HTTPS token transport, network JWKS proof, provider consent/cancellation/email-code round trips, native system-browser/deep-link execution, and the physical-device M4 gate remain open.
+
+## External authentication configuration gate
+
+- Added a versioned machine-readable contract for the mobile public client, customer API resource, and deferred participant web client. It fixes the native callback, PKCE grant, API delegated scope, separate environment requirement, V1 provider set, and explicit approval ownership without recording a tenant/client ID or credential.
+- Added a stepwise operational runbook covering registration inputs, Apple/Google/Microsoft/passwordless-email hosted-flow mappings before role selection, secret entry boundaries, HTTPS authorization/token/JWKS transport review, provider and email-code cases, redaction, rollback, and seven approval stops.
+- Reconciled both `.env.example` files with the actual mobile/API parsers. The mobile OIDC parser now requires complete same-origin HTTPS authorization/token/issuer/JWKS endpoints on one tenant path, a UUID public client, the exact `localmissions://auth/callback`, and exactly `openid profile offline_access api://<API_CLIENT_ID>/access_as_user`. Partial, wrong-origin, cross-tenant-path, wrong-callback, malformed-client, or malformed-scope configuration fails closed.
+- Added `pnpm external-auth:check` to `pnpm verify`. The validator keeps the manifest, runbook, checked-in examples, and source parsers synchronized; forbids mobile/provider secret fields; requires every external test and approval to remain unpassed; and requires the physical-iPhone row to stay deferred.
+
+Pinned Node 24.19.0 and pnpm 11.24.0 passed 24 focused mobile tests and 14 focused API tests, all 84 mobile tests, formatting, prerequisite/external-auth checks, lint, strict type checks, all repository unit tests, contract checks, production local-marker exclusion, and all nine builds. The security scan passes 444 text files, and Gitleaks finds no leak in approximately 14.49 MB.
+
+JUnit evidence: [`test-results/external-auth-config-mobile-junit.xml`](./test-results/external-auth-config-mobile-junit.xml), [`test-results/external-auth-config-api-junit.xml`](./test-results/external-auth-config-api-junit.xml)
+
+Contract evidence: [`../../../config/external-auth-gate.v1.json`](../../../config/external-auth-gate.v1.json), [`../../operations/external-auth-configuration-gate.md`](../../operations/external-auth-configuration-gate.md)
+
+No Entra tenant/app/API registration, provider credential, provider/JWKS network request, authorization code, token, refresh credential, real identity, Azure resource, Stripe action, physical phone, payment, message, external account, or customer data was used. The installed token transport remains unavailable. External registration/activation, network-key proof, provider consent/cancellation/email-code round trips, native system-browser/deep-link execution, final authorization matrix, and the physical-device M4 gate remain open.

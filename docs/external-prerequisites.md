@@ -16,6 +16,12 @@ This register identifies everything Local Missions must obtain outside the repos
 | `STRIPE_TEST_ACCOUNT_STATUS`       | Isolated Stripe test-mode platform account; no live keys                                               | Finance owner + Technical owner | Payment integration development | Not connected; require merchant-of-record/legal approval, test-platform ownership, restricted keys, and webhook ownership            |
 | `ENTRA_EXTERNAL_ID_TENANT_PLAN`    | Separate customer tenant with iOS, dashboard, and API registrations; authorization-code flow with PKCE | Identity owner                  | Federated sign-in integration   | Planned only; require tenant ownership, provider approvals, redirect-URI review, recovery/support policy, and environment separation |
 
+The field-level, secret-free M4 handoff is maintained in
+[`operations/external-auth-configuration-gate.md`](./operations/external-auth-configuration-gate.md)
+and [`../config/external-auth-gate.v1.json`](../config/external-auth-gate.v1.json). Passing its local
+validator prepares registration review only; it does not provision or activate an external identity
+service.
+
 ## Azure ownership and cost prerequisites
 
 | Key                             | Planned value or safe placeholder                                                                    | Accountable role                 | Required before               | Current status and proof gate                                                                                          |

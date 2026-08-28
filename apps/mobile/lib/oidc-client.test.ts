@@ -22,6 +22,8 @@ const configuration: OidcConfiguration = {
   authorizationEndpoint:
     'https://login.example.test/00000000-0000-4000-8000-000000000000/oauth2/v2.0/authorize',
   clientId: '00000000-0000-4000-8000-000000000001',
+  issuer: 'https://login.example.test/00000000-0000-4000-8000-000000000000/v2.0',
+  jwksUri: 'https://login.example.test/00000000-0000-4000-8000-000000000000/discovery/v2.0/keys',
   redirectUri: 'localmissions://auth/callback',
   scopes: [
     'openid',
@@ -29,7 +31,22 @@ const configuration: OidcConfiguration = {
     'offline_access',
     'api://00000000-0000-4000-8000-000000000002/access_as_user',
   ],
+  tokenEndpoint:
+    'https://login.example.test/00000000-0000-4000-8000-000000000000/oauth2/v2.0/token',
 };
+
+function environment(overrides: Record<string, string> = {}) {
+  return {
+    EXPO_PUBLIC_ENTRA_AUTHORIZATION_ENDPOINT: configuration.authorizationEndpoint,
+    EXPO_PUBLIC_ENTRA_CLIENT_ID: configuration.clientId,
+    EXPO_PUBLIC_ENTRA_ISSUER: configuration.issuer,
+    EXPO_PUBLIC_ENTRA_JWKS_URI: configuration.jwksUri,
+    EXPO_PUBLIC_ENTRA_REDIRECT_URI: configuration.redirectUri,
+    EXPO_PUBLIC_ENTRA_SCOPE: configuration.scopes.join(' '),
+    EXPO_PUBLIC_ENTRA_TOKEN_ENDPOINT: configuration.tokenEndpoint,
+    ...overrides,
+  };
+}
 
 function deterministicCrypto(): OidcCryptoBoundary {
   let seed = 1;
@@ -69,42 +86,55 @@ describe('mobile OIDC and PKCE boundary', () => {
       readOidcConfiguration({ EXPO_PUBLIC_ENTRA_CLIENT_ID: configuration.clientId }),
     ).toThrowError(OidcBoundaryError);
     expect(() =>
-      readOidcConfiguration({
-        EXPO_PUBLIC_ENTRA_AUTHORIZATION_ENDPOINT: configuration.authorizationEndpoint.replace(
-          'https:',
-          'http:',
-        ),
-        EXPO_PUBLIC_ENTRA_CLIENT_ID: configuration.clientId,
-        EXPO_PUBLIC_ENTRA_REDIRECT_URI: configuration.redirectUri,
-        EXPO_PUBLIC_ENTRA_SCOPE: configuration.scopes.join(' '),
-      }),
+      readOidcConfiguration(
+        environment({
+          EXPO_PUBLIC_ENTRA_AUTHORIZATION_ENDPOINT: configuration.authorizationEndpoint.replace(
+            'https:',
+            'http:',
+          ),
+        }),
+      ),
     ).toThrowError(OidcBoundaryError);
     expect(() =>
-      readOidcConfiguration({
-        EXPO_PUBLIC_ENTRA_AUTHORIZATION_ENDPOINT: configuration.authorizationEndpoint,
-        EXPO_PUBLIC_ENTRA_CLIENT_ID: configuration.clientId,
-        EXPO_PUBLIC_ENTRA_REDIRECT_URI: 'localmissions://wrong/callback',
-        EXPO_PUBLIC_ENTRA_SCOPE: configuration.scopes.join(' '),
-      }),
+      readOidcConfiguration(
+        environment({
+          EXPO_PUBLIC_ENTRA_JWKS_URI: configuration.jwksUri.replace(
+            '00000000-0000-4000-8000-000000000000',
+            '00000000-0000-4000-8000-000000000099',
+          ),
+        }),
+      ),
+    ).toThrowError(OidcBoundaryError);
+    expect(() =>
+      readOidcConfiguration(
+        environment({ EXPO_PUBLIC_ENTRA_REDIRECT_URI: 'localmissions://wrong/callback' }),
+      ),
+    ).toThrowError(OidcBoundaryError);
+    expect(() =>
+      readOidcConfiguration(
+        environment({
+          EXPO_PUBLIC_ENTRA_TOKEN_ENDPOINT: configuration.tokenEndpoint.replace(
+            'login.example.test',
+            'other.example.test',
+          ),
+        }),
+      ),
     ).toThrowError(OidcBoundaryError);
   });
 
   it('accepts only complete authorization-code configuration with required unique scopes', () => {
-    expect(
-      readOidcConfiguration({
-        EXPO_PUBLIC_ENTRA_AUTHORIZATION_ENDPOINT: configuration.authorizationEndpoint,
-        EXPO_PUBLIC_ENTRA_CLIENT_ID: configuration.clientId,
-        EXPO_PUBLIC_ENTRA_REDIRECT_URI: configuration.redirectUri,
-        EXPO_PUBLIC_ENTRA_SCOPE: configuration.scopes.join(' '),
-      }),
-    ).toEqual({ available: true, configuration });
+    expect(readOidcConfiguration(environment())).toEqual({ available: true, configuration });
     expect(() =>
-      readOidcConfiguration({
-        EXPO_PUBLIC_ENTRA_AUTHORIZATION_ENDPOINT: configuration.authorizationEndpoint,
-        EXPO_PUBLIC_ENTRA_CLIENT_ID: configuration.clientId,
-        EXPO_PUBLIC_ENTRA_REDIRECT_URI: configuration.redirectUri,
-        EXPO_PUBLIC_ENTRA_SCOPE: 'openid profile profile offline_access',
-      }),
+      readOidcConfiguration(
+        environment({ EXPO_PUBLIC_ENTRA_SCOPE: 'openid profile profile offline_access' }),
+      ),
+    ).toThrowError(OidcBoundaryError);
+    expect(() =>
+      readOidcConfiguration(
+        environment({
+          EXPO_PUBLIC_ENTRA_SCOPE: 'openid profile offline_access api://not-a-uuid/access_as_user',
+        }),
+      ),
     ).toThrowError(OidcBoundaryError);
   });
 
