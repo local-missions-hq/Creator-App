@@ -76,4 +76,22 @@ describe('mobile session storage boundaries', () => {
     await expect(storage.load()).resolves.toBeNull();
     expect(boundary.deleteItemAsync).toHaveBeenCalledOnce();
   });
+
+  it('deletes injected roles, contradictory workspace roles, and malformed refresh material', async () => {
+    for (const injected of [
+      { ...session, roles: ['creator', 'platform_administrator'] },
+      { ...session, roles: ['creator'], workspaceRole: 'business_owner' },
+      { ...session, refreshCredential: 'contains spaces and private data' },
+    ]) {
+      const boundary = {
+        deleteItemAsync: vi.fn(async () => undefined),
+        getItemAsync: vi.fn(async () => JSON.stringify(injected)),
+        isAvailableAsync: vi.fn(async () => true),
+        setItemAsync: vi.fn(async () => undefined),
+      };
+      const storage = createNativeSecureSessionStorage(boundary);
+      await expect(storage.load()).resolves.toBeNull();
+      expect(boundary.deleteItemAsync).toHaveBeenCalledOnce();
+    }
+  });
 });

@@ -25,6 +25,7 @@ export type PersistedMobileSession = {
 
 export type AuthenticatedMobileSession = PersistedMobileSession & {
   accessToken?: string;
+  accessTokenExpiresAt?: string;
   source: 'api' | 'local-preview';
 };
 

@@ -127,3 +127,18 @@ JUnit evidence: [`test-results/external-principal-mapping-junit.xml`](./test-res
 No Entra metadata/provider endpoint, real token, Azure resource, Stripe action, physical phone, payment, message, external account, or customer data was used. Real authorization-code exchange, ID-token nonce validation, refresh/revocation behavior, provider round trips, network JWKS proof, system-browser/deep-link execution, and the physical-device gate remain open.
 
 The disposable Creator App PostgreSQL container, volume, and Compose network were destroyed after verification. The unrelated Post Proof database container was left running and unchanged.
+
+## Mobile authorization-code exchange and refresh boundary
+
+- Added a fail-closed mobile token-endpoint interface. Its default implementation cannot exchange or refresh anything; real provider configuration and transport remain a later external gate.
+- Added pinned `jose` RS256 ID-token verification with exact issuer, mobile client audience, trusted key resolver, type, key ID, issued-at, expiry, subject, maximum age, and expected nonce. Header-supplied key locations/material are rejected. Locally signed fixtures prove the cryptographic path without contacting Entra or another provider.
+- Bound the consumed callback's one-use authorization code, PKCE verifier, and expected nonce to the exchange. Cancellation and bounded provider errors return before token exchange; replay, wrong code/verifier, wrong nonce, and expired signed tokens fail generically without exposing token/provider details.
+- Added an explicit server-session bootstrap boundary. ID-token email, profile, and an injected platform-administrator role are discarded; Creator/Business roles, workspace, provider, user, and Local Missions session metadata come only from the server projection.
+- Access tokens remain runtime memory only. Rotated refresh credentials and non-secret session metadata are written atomically through the existing native SecureStore boundary; browser preview remains memoryless. Restored protected state now rejects unknown/duplicate roles, contradictory workspace roles, malformed public IDs, and malformed refresh material.
+- Existing logout coordination confirms server session revocation when available and clears protected local state even when remote revocation cannot be confirmed.
+
+Nine focused exchange/refresh tests and fifteen retained exchange/storage/logout tests pass. All 74 mobile tests, mobile lint, strict TypeScript, Expo web export with `jose` 6.2.10, and the complete nine-workspace `pnpm verify` gate pass. The security scan passes 429 text files, and Gitleaks finds no leak in approximately 14.25 MB.
+
+JUnit evidence: [`test-results/mobile-code-exchange-junit.xml`](./test-results/mobile-code-exchange-junit.xml)
+
+No authorization code, token, refresh credential, Entra/provider endpoint, external JWKS, real identity, Azure resource, Stripe action, physical phone, payment, message, external account, or customer data was used. A real HTTPS token transport, server bootstrap/refresh endpoint, session-bound bearer enforcement, network-key proof, system-browser return, and provider round trips remain open.
