@@ -640,3 +640,29 @@ PASS — no leaks found in approximately 12.32 MB.
 
 pnpm --filter @local-missions/db exec vitest run src/reach-qualification-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/reach-qualification-junit.xml
 PASS — retained six Reach qualification tests with no failures or errors; machine hostname replaced by local-development-host.
+
+M03-authenticated-reach-api-018 — 2026-08-27
+
+pnpm openapi:generate
+PASS — regenerated intentionally reviewed production/local OpenAPI artifacts and the shared typed client with authenticated Reach paths.
+
+pnpm --filter @local-missions/mobile test
+PASS — all 35 mobile tests passed, including provider-free local Reach adapters, authenticated API mode, fixed package calculations, and no local consent persistence.
+
+pnpm --filter @local-missions/api test:integration
+PASS — all 14 authenticated/API integration tests passed against loopback PostgreSQL, including Creator consent grant/revoke, role isolation, disabled capabilities, and Business redaction.
+
+pnpm test:integration
+PASS — all 88 database integration tests and 14 API integration tests passed against loopback PostgreSQL.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, deterministic OpenAPI/client contract checks, clean production marker scan, and all nine workspace builds passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 384 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 12.52 MB.
+
+pnpm --filter @local-missions/api exec vitest run src/domain-api.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/authenticated-reach-api-junit.xml
+PASS — retained seven authenticated domain API tests with no failures or errors; machine hostname replaced by local-development-host.

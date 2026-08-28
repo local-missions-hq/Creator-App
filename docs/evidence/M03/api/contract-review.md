@@ -2,7 +2,7 @@
 
 Date: 2026-08-27
 
-Checkpoints: `M03-api-foundation-011` and `M03-authenticated-domain-api-014`
+Checkpoints: `M03-api-foundation-011`, `M03-authenticated-domain-api-014`, and `M03-authenticated-reach-api-018`
 
 ## Reviewed production paths
 
@@ -17,8 +17,11 @@ Checkpoints: `M03-api-foundation-011` and `M03-authenticated-domain-api-014`
 - `GET /v1/creator/missions` and `GET /v1/creator/missions/{campaignPublicId}` — published Community capacity and objective mission contract details with no follower field.
 - `POST /v1/creator/missions/{campaignPublicId}/applications` — current-locality-gated, idempotent Community Slot application.
 - `GET /v1/business/campaigns` and `GET /v1/business/campaigns/{campaignPublicId}` — active-workspace-only campaign summaries and details.
+- `GET /v1/creator/reach` — current Creator's independent per-platform capability, optional consent, and derived tier state.
+- `POST` and `DELETE /v1/creator/reach/{platform}/consent` — Creator-only versioned grant/revoke actions that never activate or contact a provider.
+- `GET /v1/business/reach-options` — fixed Reach reward packages, 80% Community floor, and derived booking availability without raw audience or provider evidence.
 
-The production contract intentionally does not claim that later check-in, submission, payment, Local Pass, notification, or provider HTTP resources are already implemented.
+The production contract intentionally does not claim that later check-in, submission, payment, Local Pass, notification, Business reservation-qualification, provider evidence, or capability-activation HTTP resources are already implemented.
 
 ## Local-only path
 
