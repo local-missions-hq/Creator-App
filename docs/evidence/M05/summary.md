@@ -1,10 +1,10 @@
 # M05 Azure foundation evidence
 
-Status: M5 Phase A in progress; local container image contract passed with all registry and Azure execution blocked
+Status: M5 Phase A local preflight passed; all registry and Azure execution remains blocked
 
 Date: 2026-08-28
 
-Checkpoint: `M05-container-image-contract-local-009`
+Checkpoint: `M05-local-preflight-audit-010`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
@@ -18,6 +18,8 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - Required frozen pnpm 11.24.0 installs, restricted source copies, production-only offline deploy bundles, numeric `10001:10001` ownership, OCI provenance labels, exact runtime commands, API/dashboard health checks, and no secret build arguments. The dashboard now emits monorepo-aware Next.js standalone output.
 - Limited API, worker, and shared package publication surfaces to compiled `dist` output plus database migrations. The worker now stays alive as a Container App process until `SIGINT` or `SIGTERM`, then records and completes a clean shutdown.
 - Added a local validator that creates an isolated temporary offline workspace, assembles three production bundles, runs four API/dashboard/worker runtime checks, proves 35 mutation/refusal scenarios, removes every temporary bundle, and leaves the source workspace install unchanged. The active non-deploying CI runs this gate through `pnpm verify` without invoking Docker or a registry.
+- Added a consolidated M5 preflight manifest and validator that reconcile all six machine contracts, nine local preparation areas, fifteen required operations/evidence artifacts, active read-only CI, and sixteen separately approved external gates. It cross-checks the exact 31-resource inventory, eight-hour/11:00 PM New York expiration policy, OIDC producer/consumer environments, synthetic recovery status, and no-build/no-registry image status.
+- Added 45 exercised refusal scenarios covering false milestone/execution claims, contract/evidence drift, missing ownership or approval, active workflow OIDC/write/Azure/Terraform/Docker/registry activation, count/time/identity disagreement, and checked-in Terraform plan/state/cache artifacts. The preflight is now part of `pnpm verify` but performs no external action.
 - Added a 23-state, 29-transition run ledger from approved saved plan through apply, eleven required test gates, continue or application rollback, reviewed destroy, independent reconciliation, and the only two truthful terminal states: complete or escalated.
 - Added three canonical SHA-256-bound synthetic ledgers: a clean continuation, a critical-test failure with successful revision rollback and teardown, and a destroy timeout where an independent live query finds one orphan and the incident stays attached/escalated.
 - Bound every ledger to the checked synthetic apply/destroy artifact and review digests, full synthetic commit, disposable Terraform root/resource group, cleanup controller, lock, same-day expiry/warning, operation evidence, and separate Terraform-state/live-resource queries.
@@ -83,11 +85,23 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - seven external base-image/registry/scan/sign/plan/deploy gates retained as blocked; and
 - zero container builds, image pulls, registry contacts, published images, signatures, or cloud operations.
 
-Backend-disabled `terraform init`, validation, and mock-provider tests passed through the repository gate without Azure credentials or a provider configuration. TFLint 0.63.1 reported zero findings across both roots and all recursive modules. The complete pinned-runtime repository verification passed all nine workspaces, 111 mobile tests, prerequisite/auth/authorization/OIDC/saved-plan/run-ledger/recovery/Terraform/container gates, the 20-entry migration manifest, OpenAPI contracts, all builds, and all three local production-bundle smokes. The final security scan passed 569 text files, and Gitleaks found no leaks in approximately 15.66 MB.
+`pnpm m5:preflight` passed:
+
+- six existing M5 machine contracts;
+- nine local preparation areas and fifteen required artifacts;
+- sixteen external gates retained as deferred and separately approval-bound;
+- forty-five exercised mutation/refusal scenarios; and
+- zero Azure, registry, provider-backed planning, remote-backend, Terraform-mutation, customer-data, or cloud-cost claims.
+
+Backend-disabled `terraform init`, validation, and mock-provider tests passed through the repository gate without Azure credentials or a provider configuration. TFLint 0.63.1 reported zero findings across both roots and all recursive modules. The complete pinned-runtime repository verification passed all nine workspaces, 111 mobile tests, prerequisite/auth/authorization/OIDC/saved-plan/run-ledger/recovery/Terraform/preflight/container gates, the 20-entry migration manifest, OpenAPI contracts, all builds, and all three local production-bundle smokes. The final security scan passed 572 text files, and Gitleaks found no leaks in approximately 15.69 MB.
 
 Container image machine contract: [`../../../config/container-image-contract.v1.json`](../../../config/container-image-contract.v1.json)
 
 Container image operations gate: [`../../operations/container-image-gate.md`](../../operations/container-image-gate.md)
+
+M5 local preflight machine contract: [`../../../config/m5-local-preflight.v1.json`](../../../config/m5-local-preflight.v1.json)
+
+M5 local preflight operations gate: [`../../operations/m5-local-preflight-gate.md`](../../operations/m5-local-preflight-gate.md)
 
 Recovery-drill machine contract: [`../../../config/recovery-drill.v1.json`](../../../config/recovery-drill.v1.json)
 
@@ -113,4 +127,4 @@ Command evidence: [`commands.txt`](./commands.txt)
 
 ## Boundary
 
-The container, dashboard, and recovery work is static policy, local compilation, temporary offline production bundling, localhost process smoke, mock-provider planning, synthetic fixtures, local file inspection, and local hashing only. No container build, base-image pull, package/container registry request, image scan, image signature, image publication, GitHub environment, Azure/Entra identity, federated credential, Azure login, account identifier, credential, subscription, remote backend, live price request, provider-backed refresh/plan, Terraform plan binary, resource, networking activation, import, apply, restore, rollback, destroy, live query, customer data, or cost-incurring action was created or used. Current CI remains non-deploying. Resource counts, cost examples, identities, endpoints, tags, and recovery reports are synthetic contract examples rather than image or cloud evidence, approved prices, or measured Azure RTO/RPO. M5 is not complete, every live image/Azure recovery and execution gate is explicitly deferred, and final M4 Entra/provider/native-device proof remains open.
+The preflight, container, dashboard, and recovery work is static policy, local compilation, temporary offline production bundling, localhost process smoke, mock-provider planning, synthetic fixtures, local file inspection, and local hashing only. No container build, base-image pull, package/container registry request, image scan, image signature, image publication, GitHub environment, Azure/Entra identity, federated credential, Azure login, account identifier, credential, subscription, remote backend, live price request, provider-backed refresh/plan, Terraform plan binary, resource, networking activation, import, apply, restore, rollback, destroy, live query, customer data, or cost-incurring action was created or used. Current CI remains non-deploying. Resource counts, cost examples, identities, endpoints, tags, and recovery reports are synthetic contract examples rather than image or cloud evidence, approved prices, or measured Azure RTO/RPO. M5 is not complete, all sixteen external gates remain deferred, and final M4 Entra/provider/native-device proof remains open.

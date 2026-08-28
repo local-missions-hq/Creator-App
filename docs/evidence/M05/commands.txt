@@ -265,3 +265,33 @@ git diff --check
 PASS — repository formatting and patch whitespace passed after temporary bundle cleanup.
 
 No Docker build, image pull, package/container registry request, image scan/sign/push, GitHub/Azure/Entra creation or activation, credential, account, subscription, backend, live price request, provider-backed plan, apply, restore, rollback, destroy, live query, networking, customer data, or cost was used. The Node base reference, commit, time, version, image tags, repositories, and provenance fixture are synthetic and do not claim an image exists. Current CI remains non-deploying. M5 and final M4 external/native gates remain open.
+
+M05-local-preflight-audit-010 — 2026-08-28
+
+Node 24.19.0 and pnpm 11.24.0 were used locally.
+
+pnpm exec eslint scripts/validate-m5-local-preflight.mjs
+PASS — the consolidated manifest, repository coherence, active-CI, cross-contract, artifact, and refusal validator passed ESLint.
+
+pnpm m5:preflight
+PASS — reconciled six machine contracts, nine local preparation areas, fifteen required artifacts, sixteen deferred external gates, and forty-five exercised refusal scenarios with zero Azure/registry/Terraform mutation claims.
+
+The first focused preflight passed, but review found that six cross-contract/artifact cases were counted by category rather than actively exercised. The validator was tightened to mutate resource count, expiration, and identity environment contracts and classify synthetic plan/state/cache paths; the repeated focused gate passed all forty-five exercised refusals.
+
+pnpm verify
+PASS — formatting, prerequisites, external auth, authorization, OIDC, saved-plan, run-ledger, recovery, Terraform, M5 preflight, lint, strict type checks, all repository tests including 111 mobile tests, the 20-entry migration manifest, OpenAPI contracts, all nine builds, and the three-bundle container gate passed under the pinned runtime.
+
+pnpm exec prettier --write config/m5-local-preflight.v1.json scripts/validate-m5-local-preflight.mjs docs/operations/m5-local-preflight-gate.md docs/evidence/M05/summary.md docs/evidence/M05/commands.txt infra/terraform/ci/README.md package.json plans.md
+PARTIAL/EXPECTED TOOL LIMITATION — all supported JSON, JavaScript, and Markdown inputs were already formatted; Prettier reported that plain `docs/evidence/M05/commands.txt` has no inferred parser. The authoritative repository `pnpm format:check` then passed every configured formatted file.
+
+pnpm format:check
+git diff --check
+PASS — configured repository formatting and patch whitespace passed.
+
+pnpm test:security
+PASS — the local high-confidence secret scan passed 572 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks found no leaks in approximately 15.69 MB.
+
+No Docker build, image pull, registry request, image scan/sign/push, GitHub/Azure/Entra creation or activation, credential, account, subscription, backend, live price request, provider-backed plan, Terraform plan/state/cache artifact, apply, restore, rollback, destroy, live query, networking, customer data, or cloud cost was used. M5 and final M4 external/native gates remain open.

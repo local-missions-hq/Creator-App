@@ -10,4 +10,6 @@ The later apply/test/rollback/destroy/reconcile lifecycle and truthful clean-ver
 
 The API, dashboard, and worker image-packaging boundary lives in `config/container-image-contract.v1.json` and is checked by `pnpm container:check`. That local gate builds production bundles and smokes them directly with the pinned Node runtime, but deliberately does not run Docker, pull a base image, contact a registry, scan/sign/push an image, or activate deployment CI. The future workflow must supply a reviewed digest-pinned Node 24.19.0 base and bind resulting image digests to the reviewed saved plan.
 
+The consolidated local readiness boundary lives in `config/m5-local-preflight.v1.json` and is checked by `pnpm m5:preflight`. It cross-checks all six machine contracts, verifies that active CI is still read-only and non-deploying, and keeps every external image/Azure gate deferred. Passing it is not the M5 cloud gate.
+
 Do not activate the template until the external subject-preview, identity, scope, environment-protection, action-pin, plan/cost, and explicit approval gates in `docs/operations/github-azure-oidc-plan-gate.md` all have evidence.

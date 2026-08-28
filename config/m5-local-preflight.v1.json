@@ -1,0 +1,285 @@
+{
+  "activationStatus": "local_preflight_only",
+  "checkpoint": "M05-local-preflight-audit-010",
+  "currentExecution": {
+    "azureAuthenticated": false,
+    "azureResourcesCreated": false,
+    "cloudCostIncurred": false,
+    "containerBuildExecuted": false,
+    "customerDataAllowed": false,
+    "externalRegistryContacted": false,
+    "livePriceRequested": false,
+    "liveRecoveryExecuted": false,
+    "providerBackedPlanExecuted": false,
+    "remoteBackendInitialized": false,
+    "terraformMutationExecuted": false
+  },
+  "localCoverage": [
+    {
+      "evidence": "config/terraform-foundation.v1.json",
+      "id": "terraform-roots-modules-and-mock-plans",
+      "proofClass": "local_contract_and_mock_provider"
+    },
+    {
+      "evidence": "config/azure-oidc-plan-gate.v1.json",
+      "id": "secretless-identity-and-command-policy",
+      "proofClass": "static_contract"
+    },
+    {
+      "evidence": "config/saved-plan-evidence.v1.json",
+      "id": "saved-plan-producer-consumer-evidence",
+      "proofClass": "synthetic_contract"
+    },
+    {
+      "evidence": "config/ephemeral-run-ledger.v1.json",
+      "id": "apply-test-destroy-reconcile-lifecycle",
+      "proofClass": "synthetic_state_machine"
+    },
+    {
+      "evidence": "config/recovery-drill.v1.json",
+      "id": "recovery-and-rollback-evidence",
+      "proofClass": "synthetic_recovery_contract"
+    },
+    {
+      "evidence": "config/container-image-contract.v1.json",
+      "id": "production-bundle-and-image-policy",
+      "proofClass": "local_bundle_and_runtime_smoke"
+    },
+    {
+      "evidence": ".github/workflows/verify.yml",
+      "id": "active-ci-remains-non-deploying",
+      "proofClass": "static_workflow_inspection"
+    },
+    {
+      "evidence": "docs/evidence/M05/summary.md",
+      "id": "sanitized-evidence-and-boundary",
+      "proofClass": "local_evidence"
+    },
+    {
+      "evidence": "docs/operations/ephemeral-azure-development.md",
+      "id": "operator-boundary-and-same-day-teardown",
+      "proofClass": "operations_contract"
+    }
+  ],
+  "machineContracts": [
+    {
+      "activationStatus": "local_contract_only",
+      "checkpoint": "M05-dashboard-workload-module-local-008",
+      "command": "pnpm terraform:check",
+      "path": "config/terraform-foundation.v1.json"
+    },
+    {
+      "activationStatus": "static_contract_only",
+      "checkpoint": "M05-secretless-oidc-plan-contract-local-004",
+      "command": "pnpm azure-oidc:check",
+      "path": "config/azure-oidc-plan-gate.v1.json"
+    },
+    {
+      "activationStatus": "synthetic_contract_only",
+      "checkpoint": "M05-saved-plan-evidence-contract-local-005",
+      "command": "pnpm saved-plan:check",
+      "path": "config/saved-plan-evidence.v1.json"
+    },
+    {
+      "activationStatus": "synthetic_contract_only",
+      "checkpoint": "M05-ephemeral-run-ledger-contract-local-006",
+      "command": "pnpm run-ledger:check",
+      "path": "config/ephemeral-run-ledger.v1.json"
+    },
+    {
+      "activationStatus": "synthetic_contract_only",
+      "checkpoint": "M05-recovery-drill-contract-local-007",
+      "command": "pnpm recovery-drill:check",
+      "path": "config/recovery-drill.v1.json"
+    },
+    {
+      "activationStatus": "local_contract_only",
+      "checkpoint": "M05-container-image-contract-local-009",
+      "command": "pnpm container:check",
+      "path": "config/container-image-contract.v1.json"
+    }
+  ],
+  "milestoneComplete": false,
+  "nextBoundary": "external_review_and_explicit_approval_required",
+  "requiredArtifacts": [
+    ".github/workflows/verify.yml",
+    "infra/terraform/control-plane/main.tf",
+    "infra/terraform/environments/dev/main.tf",
+    "infra/terraform/ci/azure-workload-identity.workflow.yml.example",
+    "apps/api/Dockerfile",
+    "apps/dashboard/Dockerfile",
+    "apps/worker/Dockerfile",
+    "docs/operations/ephemeral-azure-development.md",
+    "docs/operations/github-azure-oidc-plan-gate.md",
+    "docs/operations/saved-plan-evidence-gate.md",
+    "docs/operations/ephemeral-run-ledger-gate.md",
+    "docs/operations/recovery-drill-gate.md",
+    "docs/operations/container-image-gate.md",
+    "docs/evidence/M05/summary.md",
+    "docs/evidence/M05/commands.txt"
+  ],
+  "externalGates": [
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "approved subscription and least-privilege scope record",
+      "id": "azure-subscription-and-scope-review",
+      "ownerRole": "platform_owner",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "current service SKU policy price and region review",
+      "id": "azure-service-sku-price-region-review",
+      "ownerRole": "cost_owner",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "named cost owner budget thresholds and monitored destination test",
+      "id": "budget-alert-owner-and-delivery",
+      "ownerRole": "cost_owner",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "reviewed Node base digest provenance",
+      "id": "base-image-provenance-review",
+      "ownerRole": "security_reviewer",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "approved registry repositories and authentication boundary",
+      "id": "registry-target-and-authentication",
+      "ownerRole": "platform_owner",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "immutable image digest scan signature and provenance report",
+      "id": "image-build-scan-sign-and-push",
+      "ownerRole": "security_reviewer",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "reviewed immutable GitHub subject identities and protected environments",
+      "id": "oidc-identities-and-environment-protection",
+      "ownerRole": "identity_owner",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "retained backend state locking scope and access review",
+      "id": "remote-state-backend-and-locking",
+      "ownerRole": "platform_owner",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "subscription-backed sanitized saved plan and current cost review",
+      "id": "provider-backed-saved-plan-review",
+      "ownerRole": "plan_reviewer",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "independent approval bound to the exact plan digest and expiry",
+      "id": "explicit-apply-approval",
+      "ownerRole": "independent_approver",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "ephemeral apply migration seed and build provenance report",
+      "id": "ephemeral-apply-migrate-and-seed",
+      "ownerRole": "platform_operator",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "cloud smoke integration authorization queue upload dashboard and isolation results",
+      "id": "cloud-test-suite",
+      "ownerRole": "test_operator",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "measured prior-revision rollback and PostgreSQL Blob recovery drill",
+      "id": "live-rollback-and-recovery",
+      "ownerRole": "recovery_operator",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "reviewed exact disposable destroy plan and execution result",
+      "id": "scoped-destroy",
+      "ownerRole": "destroy_operator",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "independent Terraform state and live Azure empty workload inventories",
+      "id": "independent-teardown-reconciliation",
+      "ownerRole": "reconciliation_reviewer",
+      "status": "deferred"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "complete M5 evidence review with every live requirement proven",
+      "id": "m5-milestone-gate-review",
+      "ownerRole": "release_owner",
+      "status": "deferred"
+    }
+  ],
+  "refusalScenarios": [
+    "activation-status-drift",
+    "checkpoint-drift",
+    "milestone-complete-claimed",
+    "next-boundary-drift",
+    "azure-authentication-claimed",
+    "azure-resource-creation-claimed",
+    "cloud-cost-claimed",
+    "container-build-claimed",
+    "customer-data-allowed",
+    "registry-contact-claimed",
+    "live-price-request-claimed",
+    "live-recovery-claimed",
+    "provider-plan-claimed",
+    "remote-backend-claimed",
+    "terraform-mutation-claimed",
+    "missing-machine-contract",
+    "duplicate-machine-contract",
+    "machine-contract-command-drift",
+    "machine-contract-checkpoint-drift",
+    "machine-contract-activation-drift",
+    "missing-required-artifact",
+    "duplicate-required-artifact",
+    "missing-local-coverage",
+    "duplicate-local-coverage",
+    "local-coverage-live-proof-claim",
+    "missing-external-gate",
+    "duplicate-external-gate",
+    "external-gate-complete-claim",
+    "external-gate-without-approval",
+    "external-gate-without-owner",
+    "external-gate-without-evidence",
+    "active-ci-oidc-permission",
+    "active-ci-write-permission",
+    "active-ci-azure-login",
+    "active-ci-azure-cli",
+    "active-ci-terraform-mutation",
+    "active-ci-docker-build",
+    "active-ci-registry-login",
+    "active-ci-registry-push",
+    "cross-contract-resource-count-drift",
+    "cross-contract-expiry-drift",
+    "cross-contract-identity-drift",
+    "forbidden-terraform-plan-artifact",
+    "forbidden-terraform-state-artifact",
+    "forbidden-terraform-cache-artifact"
+  ],
+  "schemaVersion": 1,
+  "syntheticDataOnly": true,
+  "verificationCommand": "pnpm m5:preflight"
+}
