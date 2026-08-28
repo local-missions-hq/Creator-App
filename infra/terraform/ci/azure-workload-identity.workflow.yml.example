@@ -1,0 +1,41 @@
+# STATIC EXAMPLE ONLY. This file is outside .github/workflows and cannot run.
+# Do not move or copy it into the active workflow directory until every external
+# gate in config/azure-oidc-plan-gate.v1.json has independent evidence.
+name: Azure workload identity contract (inactive)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  plan-contract:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    environment: azure-development-plan
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - run: exit 1
+
+  apply-contract:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    environment: azure-development-apply
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - run: exit 1
+
+  destroy-contract:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    environment: azure-development-destroy
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - run: exit 1

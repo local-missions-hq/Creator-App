@@ -2,7 +2,7 @@
 
 This root owns only the rebuild and cleanup control plane described by ADR-048: remote state/locking, scoped GitHub-Azure OIDC identities, identity registrations, stable verification DNS, and subscription cost/policy controls. It has a dedicated backend key and must never own a disposable application workload.
 
-The current checkpoint is contract-only. It contains no provider block and no Azure resource block, and `azure_resource_creation_enabled` is required to remain `false`. The committed fixture is synthetic and non-routable.
+The current checkpoint is contract-only. It contains no provider block and no Azure resource block, and `azure_resource_creation_enabled` is required to remain `false`. The committed fixture is synthetic and non-routable. The future plan, apply, and destroy identities are described only by the static contract in [`../../../config/azure-oidc-plan-gate.v1.json`](../../../config/azure-oidc-plan-gate.v1.json); no identity or federated credential is owned by this checkpoint.
 
 Local verification uses backend-disabled Terraform commands and makes no Azure request:
 

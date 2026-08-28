@@ -101,3 +101,28 @@ pnpm test:gitleaks
 PASS — Gitleaks found no leaks in approximately 15.35 MB.
 
 No Azure CLI command, Azure login, account identifier, provider configuration, credential, subscription, remote backend, provider-backed refresh/plan, resource, networking activation, import, apply, destroy, or cost-incurring action was used. The checked identities, digests, hostnames, and CIDRs were synthetic. Candidate region/SKU/price values remain unapproved. M5 and final M4 external/native gates remain open.
+
+M05-secretless-oidc-plan-contract-local-004 — 2026-08-28
+
+Node 24.19.0 and pnpm 11.24.0 were used locally.
+
+pnpm azure-oidc:check
+PASS — validated three distinct future identities, four exact accepted command invocations, twenty expected refusal scenarios, one inactive workflow template, and one active non-deploying workflow; Azure execution remained disabled.
+
+pnpm exec eslint scripts/validate-azure-oidc-plan-gate.mjs
+PASS — the static manifest/workflow validator passed ESLint.
+
+pnpm format:check
+git diff --check
+PASS — repository formatting and patch whitespace checks passed.
+
+pnpm verify
+PASS — formatting, prerequisite/external-auth/authorization/OIDC/Terraform validation, lint, strict type checks, all repository tests including 111 mobile tests, reviewed API/migration contracts, production local-marker exclusion, and all nine builds passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 539 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks found no leaks in approximately 15.38 MB.
+
+No GitHub environment, Azure/Entra identity, federated credential, Azure CLI command, Azure login/action, live provider configuration, credential, account/subscription/backend, provider-backed refresh/plan, resource, networking activation, import, apply, destroy, or cost-incurring action was created or used. The future workflow remains an inactive example outside `.github/workflows`, while current CI remains non-deploying. M5 and final M4 external/native gates remain open.

@@ -10,6 +10,7 @@
     "pnpm": ">=11.24.0 <12"
   },
   "scripts": {
+    "azure-oidc:check": "node scripts/validate-azure-oidc-plan-gate.mjs",
     "build": "turbo run build",
     "authorization:check": "node scripts/validate-authorization-matrix.mjs",
     "contracts:check": "turbo run contracts:check",
@@ -32,7 +33,7 @@
     "test:gitleaks": "gitleaks dir . --redact --no-banner",
     "test:security": "node scripts/security-check.mjs",
     "terraform:check": "node scripts/validate-terraform-foundation.mjs",
-    "verify": "pnpm format:check && pnpm prerequisites:check && pnpm external-auth:check && pnpm authorization:check && pnpm terraform:check && pnpm lint && pnpm typecheck && pnpm test && pnpm contracts:check && pnpm build",
+    "verify": "pnpm format:check && pnpm prerequisites:check && pnpm external-auth:check && pnpm authorization:check && pnpm azure-oidc:check && pnpm terraform:check && pnpm lint && pnpm typecheck && pnpm test && pnpm contracts:check && pnpm build",
     "local:up": "docker compose up -d",
     "local:down": "docker compose down",
     "local:destroy": "docker compose down --volumes --remove-orphans",

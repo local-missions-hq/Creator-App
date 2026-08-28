@@ -25,6 +25,8 @@ The gate runs Terraform 1.15.7 formatting, backend-disabled initialization/valid
 
 The gate strips Azure, ARM, and `TF_VAR_*` values from Terraform subprocesses. It does not execute `az`, contact Azure, configure a provider or backend, create remote state, perform a provider-backed refresh/plan, or call `terraform apply`.
 
+`pnpm azure-oidc:check` validates the separate static [GitHub-to-Azure OIDC plan gate](./github-azure-oidc-plan-gate.md). It proves three distinct future identities, protected immutable environment subjects, job-scoped permissions, reviewed plan/destroy-plan consumption, and fail-closed command rules while `.github/workflows/verify.yml` remains read-only and non-deploying.
+
 The pinned AzureRM package and checksums support deterministic schema validation. They do not approve Azure access or any candidate service/SKU. Mock-provider behavior follows [HashiCorp's Terraform test guidance](https://developer.hashicorp.com/terraform/language/tests/mocking). Storage contracts keep anonymous Blob access, Shared Key, and unused static website hosting disabled. PostgreSQL uses Entra-only authentication and seven-day point-in-time recovery. Container Apps use separate managed identities, scoped RBAC, and digest-pinned image references without registry passwords. Key Vault is RBAC-only and Terraform creates no secret values.
 
 ## Required future apply metadata

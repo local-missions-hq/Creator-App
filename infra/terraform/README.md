@@ -15,4 +15,6 @@ The intended progression is:
 
 `pnpm terraform:check` proves formatting, backend-disabled initialization and validation, three plan-only tests, eleven refusal tests, zero default resource changes, and exactly 28 create-only changes across the 17-type mock workload. It also proves distinct state/scope ownership, eleven disposable tags, scale/network/backup/access/secret safeguards, conservative planning ceilings, and expiration-policy fixtures. It removes Azure/ARM/TF_VAR values from the subprocess environment and never invokes `az`, configures an Azure provider, or calls `terraform apply`.
 
+`pnpm azure-oidc:check` separately proves the future GitHub-to-Azure plan/apply/destroy identity and command contract while every active workflow remains non-deploying. The only workflow-shaped example is hard-disabled under [`ci/`](./ci/) and is not inside `.github/workflows`.
+
 Do not add credentials, subscription identifiers, broad targets, persistent dev resources, or resource mutations merely to make the foundation look complete. Current region/SKU prices, named owners, alert delivery, OIDC identities, budgets, saved plans, and every apply/destroy action remain separate external gates.

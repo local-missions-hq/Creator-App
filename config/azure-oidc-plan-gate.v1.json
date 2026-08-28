@@ -1,0 +1,164 @@
+{
+  "activationStatus": "static_contract_only",
+  "activeWorkflowPresent": false,
+  "actionPolicy": {
+    "azureLoginAction": "azure/login",
+    "azureLoginActionPresent": false,
+    "pinRequirement": "reviewed_full_commit_sha",
+    "unpinnedActionsAllowed": false
+  },
+  "azureExecutionEnabled": false,
+  "checkpoint": "M05-secretless-oidc-plan-contract-local-004",
+  "credentialContract": {
+    "externalIdentifierVariables": ["AZURE_CLIENT_ID", "AZURE_SUBSCRIPTION_ID", "AZURE_TENANT_ID"],
+    "forbiddenInputs": [
+      "ARM_CLIENT_SECRET",
+      "AZURE_CLIENT_SECRET",
+      "AZURE_CREDENTIALS",
+      "client-secret",
+      "creds"
+    ],
+    "longLivedSecretsAllowed": false,
+    "repositoryValuesArePlaceholdersOnly": true
+  },
+  "githubContract": {
+    "activeWorkflowDirectory": ".github/workflows",
+    "allowedEvents": ["workflow_dispatch"],
+    "audience": "api://AzureADTokenExchange",
+    "defaultBranch": "main",
+    "githubHostedRunnerRequired": true,
+    "immutableSubjectRequired": true,
+    "inactiveTemplate": "infra/terraform/ci/azure-workload-identity.workflow.yml.example",
+    "issuer": "https://token.actions.githubusercontent.com",
+    "oidcPermissionScope": "job_only",
+    "repository": "stratiosai/Creator-App",
+    "repositoryNumericIdsSource": "external_subject_preview_only",
+    "subjectPreviewRequired": true,
+    "workflowPath": ".github/workflows/azure-ephemeral.yml"
+  },
+  "identities": [
+    {
+      "allowedCapabilities": [
+        "read-exact-dev-workload-resources",
+        "read-exact-retained-backend-metadata",
+        "read-write-exact-dev-workload-state-object-and-lock",
+        "write-sanitized-plan-evidence"
+      ],
+      "allowedEvents": ["workflow_dispatch"],
+      "allowedTerraformOperations": ["fmt", "init", "validate", "plan", "show"],
+      "environment": "azure-development-plan",
+      "forbiddenCapabilities": [
+        "apply-resource-mutations",
+        "assign-azure-roles",
+        "delete-resources",
+        "manage-control-plane",
+        "manage-federated-credentials",
+        "subscription-owner"
+      ],
+      "identityReferenceVariable": "AZURE_PLAN_CLIENT_ID",
+      "kind": "plan",
+      "subjectTemplate": "repo:stratiosai@{repository_owner_id}/Creator-App@{repository_id}:environment:azure-development-plan"
+    },
+    {
+      "allowedCapabilities": [
+        "create-update-exact-dev-workload-resources",
+        "assign-workload-identity-roles-inside-exact-dev-workload-scope",
+        "read-write-exact-dev-workload-state-object-and-lock",
+        "read-exact-retained-backend-metadata"
+      ],
+      "allowedEvents": ["workflow_dispatch"],
+      "allowedTerraformOperations": ["apply-reviewed-plan-file"],
+      "environment": "azure-development-apply",
+      "forbiddenCapabilities": [
+        "delete-retained-resources",
+        "manage-control-plane",
+        "manage-federated-credentials",
+        "subscription-owner",
+        "unreviewed-direct-apply"
+      ],
+      "identityReferenceVariable": "AZURE_APPLY_CLIENT_ID",
+      "kind": "apply",
+      "subjectTemplate": "repo:stratiosai@{repository_owner_id}/Creator-App@{repository_id}:environment:azure-development-apply"
+    },
+    {
+      "allowedCapabilities": [
+        "read-delete-exact-dev-workload-resources",
+        "remove-workload-role-assignments-inside-exact-dev-workload-scope",
+        "read-write-exact-dev-workload-state-object-and-lock",
+        "write-sanitized-teardown-evidence"
+      ],
+      "allowedEvents": ["workflow_dispatch", "schedule"],
+      "allowedTerraformOperations": [
+        "plan-reviewed-destroy-file",
+        "apply-reviewed-destroy-plan-file"
+      ],
+      "environment": "azure-development-destroy",
+      "forbiddenCapabilities": [
+        "delete-retained-resources",
+        "manage-control-plane",
+        "manage-federated-credentials",
+        "subscription-owner",
+        "unscoped-direct-destroy"
+      ],
+      "identityReferenceVariable": "AZURE_DESTROY_CLIENT_ID",
+      "kind": "destroy",
+      "subjectTemplate": "repo:stratiosai@{repository_owner_id}/Creator-App@{repository_id}:environment:azure-development-destroy"
+    }
+  ],
+  "invocationContract": {
+    "allowedRef": "refs/heads/main",
+    "allowedRunner": "github-hosted",
+    "applyCommand": "terraform apply -input=false dev-workload.tfplan",
+    "destroyApplyCommand": "terraform apply -input=false dev-workload-destroy.tfplan",
+    "destroyPlanCommand": "terraform plan -destroy -input=false -lock-timeout=5m -out=dev-workload-destroy.tfplan",
+    "exactResourceGroup": "rg-local-missions-dev-{approved_suffix}",
+    "exactTerraformRoot": "infra/terraform/environments/dev",
+    "planCommand": "terraform plan -input=false -lock-timeout=5m -out=dev-workload.tfplan",
+    "requiredJobPermissions": {
+      "contents": "read",
+      "id-token": "write"
+    },
+    "requiredPlanEvidence": [
+      "source_commit_sha",
+      "terraform_plan_sha256",
+      "sanitized_text_plan",
+      "sanitized_json_summary",
+      "approved_cost_summary",
+      "expires_at",
+      "exact_target_root",
+      "exact_target_resource_group"
+    ]
+  },
+  "protectionContract": {
+    "adminBypassAllowed": false,
+    "allowedBranches": ["main"],
+    "allowedTags": [],
+    "environmentRequired": true,
+    "independentApprovalRequired": true,
+    "preventSelfReview": true,
+    "pullRequestRunsAllowed": false,
+    "repositoryOrEnvironmentSecretsAllowed": false
+  },
+  "refusalScenarios": [
+    "pull-request-event",
+    "wrong-branch",
+    "wrong-environment",
+    "wrong-identity",
+    "self-hosted-runner",
+    "missing-id-token-permission",
+    "writable-contents-permission",
+    "missing-independent-approval",
+    "self-approval",
+    "commit-mismatch",
+    "plan-digest-mismatch",
+    "expired-or-overnight-window",
+    "wrong-terraform-root",
+    "broad-resource-group",
+    "direct-unreviewed-apply",
+    "direct-terraform-destroy",
+    "auto-approve",
+    "state-mutation-subcommand",
+    "long-lived-client-secret",
+    "shared-plan-and-mutation-identity"
+  ]
+}
