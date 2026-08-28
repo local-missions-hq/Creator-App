@@ -9,10 +9,10 @@ export default function BusinessSignInScreen() {
       headline="Create visits that matter"
       onboardingHref="/business/setup"
       providers={[
-        { icon: 'logo-microsoft', label: 'Microsoft', primary: true },
-        { icon: 'logo-google', label: 'Google' },
-        { icon: 'logo-apple', label: 'Apple' },
-        { icon: 'mail-outline', label: 'email' },
+        { icon: 'logo-microsoft', label: 'Microsoft', primary: true, provider: 'microsoft' },
+        { icon: 'logo-google', label: 'Google', provider: 'google' },
+        { icon: 'logo-apple', label: 'Apple', provider: 'apple' },
+        { icon: 'mail-outline', label: 'email', provider: 'passwordless_email' },
       ]}
       role="business"
     />

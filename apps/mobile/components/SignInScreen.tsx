@@ -1,15 +1,19 @@
 import { Ionicons } from './DecorativeIcon';
 import { type Href, useRouter } from 'expo-router';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AccessiblePressable as Pressable } from './AccessiblePressable';
 
 import { useMobileAuthSession } from '../lib/auth-session-context';
+import type { OidcProviderIntent } from '../lib/oidc-client';
+import { createLocalOidcPreview } from '../lib/oidc-preview';
 import { appColors } from './theme';
 
 type Provider = {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   primary?: boolean;
+  provider: OidcProviderIntent;
 };
 
 type SignInScreenProps = {
@@ -35,12 +39,23 @@ export function SignInScreen({
 }: SignInScreenProps) {
   const router = useRouter();
   const auth = useMobileAuthSession();
+  const [preparedProvider, setPreparedProvider] = useState<string>();
+  const [preparationFailed, setPreparationFailed] = useState(false);
 
-  const showLocalBoundary = (provider: string) => {
-    Alert.alert(
-      'Local preview only',
-      `${provider} sign-in will open in a secure system browser after the Entra External ID configuration gate. No account was contacted.`,
-    );
+  const prepareLocalBoundary = async (provider: Provider) => {
+    if (auth.dataMode !== 'local-preview') {
+      setPreparationFailed(true);
+      setPreparedProvider(undefined);
+      return;
+    }
+    try {
+      await createLocalOidcPreview(provider.provider);
+      setPreparedProvider(provider.label);
+      setPreparationFailed(false);
+    } catch {
+      setPreparedProvider(undefined);
+      setPreparationFailed(true);
+    }
   };
 
   return (
@@ -82,11 +97,11 @@ export function SignInScreen({
         <View style={styles.providerList}>
           {providers.map((provider) => (
             <Pressable
-              accessibilityHint={`Secure ${provider.label} sign-in is not connected in the local scaffold`}
+              accessibilityHint={`Prepares a protected ${provider.label} browser request without opening a provider in local preview`}
               accessibilityLabel={`Continue with ${provider.label}`}
               accessibilityRole="button"
               key={provider.label}
-              onPress={() => showLocalBoundary(provider.label)}
+              onPress={() => void prepareLocalBoundary(provider)}
               style={({ pressed }) => [
                 styles.providerButton,
                 provider.primary && styles.primaryProvider,
@@ -105,6 +120,37 @@ export function SignInScreen({
             </Pressable>
           ))}
         </View>
+
+        {preparedProvider || preparationFailed ? (
+          <View
+            accessibilityLabel={
+              preparedProvider
+                ? `${preparedProvider} secure browser request ready. No provider was opened.`
+                : 'Secure browser request unavailable. No provider was opened.'
+            }
+            style={[styles.oidcState, preparationFailed && styles.oidcStateError]}
+            testID={`${role}-oidc-boundary-state`}
+          >
+            <Ionicons
+              color={preparationFailed ? colors.orange : colors.success}
+              name={preparationFailed ? 'alert-circle-outline' : 'shield-checkmark-outline'}
+              size={23}
+            />
+            <View style={styles.oidcStateCopy}>
+              <Text style={styles.oidcStateTitle}>
+                {preparationFailed
+                  ? 'Secure request unavailable'
+                  : `${preparedProvider} request ready`}
+              </Text>
+              <Text style={styles.oidcStateDetail}>
+                {preparationFailed
+                  ? 'Configuration failed closed · no browser opened'
+                  : 'PKCE + state + nonce prepared · no browser or provider opened'}
+              </Text>
+            </View>
+            <Text style={styles.oidcStateBadge}>{preparationFailed ? 'BLOCKED' : 'READY'}</Text>
+          </View>
+        ) : null}
 
         {auth.dataMode === 'local-preview' ? (
           <Pressable
@@ -230,6 +276,20 @@ const styles = StyleSheet.create({
   providerText: { color: colors.ink, fontSize: 16, fontWeight: '700' },
   primaryProviderText: { color: colors.card },
   pressed: { opacity: 0.75, transform: [{ scale: 0.99 }] },
+  oidcState: {
+    alignItems: 'center',
+    backgroundColor: colors.successSoft,
+    borderRadius: 16,
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 13,
+    padding: 13,
+  },
+  oidcStateError: { backgroundColor: colors.orangeSoft },
+  oidcStateCopy: { flex: 1 },
+  oidcStateTitle: { color: colors.ink, fontSize: 12, fontWeight: '900' },
+  oidcStateDetail: { color: colors.muted, fontSize: 9, lineHeight: 13, marginTop: 2 },
+  oidcStateBadge: { color: colors.ink, fontSize: 8, fontWeight: '900' },
   previewSessionButton: {
     alignItems: 'center',
     backgroundColor: colors.tealSoft,

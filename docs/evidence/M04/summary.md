@@ -1,10 +1,10 @@
 # M04 authentication and account lifecycle evidence
 
-Status: M4 in progress; phone-free account lifecycle, authenticated read/UI, and mutation checkpoints passed
+Status: M4 in progress; phone-free account lifecycle, authenticated read/UI, mutation, mobile session, and OIDC client-boundary checkpoints passed
 
 Date: 2026-08-28
 
-Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`, `M04-mobile-auth-session-local-003`
+Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`, `M04-mobile-auth-session-local-003`, `M04-oidc-client-boundary-local-004`
 
 Environment baseline: Node 24.19.0 and pnpm 11.24.0. The mutation continuation used pnpm 11.24.0 with shell Node 25.9.0 and an engine warning. PostgreSQL 17 Alpine ran on loopback Docker.
 
@@ -82,3 +82,19 @@ JUnit evidence: [`test-results/mobile-auth-session-junit.xml`](./test-results/mo
 Visual evidence: [`screenshots/mobile-auth-creator-session.png`](./screenshots/mobile-auth-creator-session.png), [`screenshots/mobile-auth-business-mode.png`](./screenshots/mobile-auth-business-mode.png)
 
 No Entra, Azure, Stripe, identity/social provider, phone, payment, message, external account, or real customer data was used. Real PKCE/system-browser/deep-link/provider execution and the physical-device gate remain open.
+
+## Mobile OIDC and PKCE client boundary
+
+- Added a production-fail-closed OIDC configuration parser. It requires a complete HTTPS Entra authorization endpoint, UUID client ID, exact `localmissions://auth/callback` redirect, and unique OpenID/profile/offline/API scopes; absent or partial configuration cannot start authentication.
+- Added independent 256-bit verifier, state, and nonce generation, S256 PKCE, a ten-minute transaction, and exact authorization-code request construction. Provider choice is local UI intent and is never sent as a trusted authorization parameter.
+- Added serialized one-use callback consumption with exact scheme/host/path checks, an allowlisted query surface, replay/expiry/wrong-state/wrong-redirect/client-provider denial, bounded cancellation/provider-error results, and generic errors that do not expose transaction or provider details.
+- Added native SecureStore transaction protection with `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`. Browser/local preview uses a memory store and never persists a verifier, state, nonce, URL, token, identity, or session.
+- Updated Creator and Business sign-in views with a visible request-ready state. The retained 390 × 844 Creator screenshot shows the generated-image-aligned warm/navy/teal UI after Google preparation, explicitly stating that no browser or provider opened.
+
+Ten focused OIDC/storage tests and all 62 mobile tests pass. Mobile lint, strict TypeScript, resolved Expo config, web export, and the complete repository verification pass. The security scan passes 421 text files, and Gitleaks finds no leak in approximately 14.12 MB. The visible flow produced no request to a real or synthetic provider hostname and was visually inspected without critical clipping.
+
+JUnit evidence: [`test-results/oidc-client-boundary-junit.xml`](./test-results/oidc-client-boundary-junit.xml)
+
+Visual evidence: [`screenshots/oidc-pkce-request-ready.png`](./screenshots/oidc-pkce-request-ready.png)
+
+No Entra registration, provider launch, token exchange, JWT validation, Azure resource, Stripe action, phone, payment, message, external account, or real customer data was used. Real provider routing/round trips, system-browser/deep-link execution, server token verification, and the physical-device gate remain open.

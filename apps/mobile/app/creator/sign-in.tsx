@@ -9,10 +9,10 @@ export default function CreatorSignInScreen() {
       headline="Welcome back"
       onboardingHref="/creator/profile"
       providers={[
-        { icon: 'logo-apple', label: 'Apple', primary: true },
-        { icon: 'logo-google', label: 'Google' },
-        { icon: 'logo-microsoft', label: 'Microsoft' },
-        { icon: 'mail-outline', label: 'email' },
+        { icon: 'logo-apple', label: 'Apple', primary: true, provider: 'apple' },
+        { icon: 'logo-google', label: 'Google', provider: 'google' },
+        { icon: 'logo-microsoft', label: 'Microsoft', provider: 'microsoft' },
+        { icon: 'mail-outline', label: 'email', provider: 'passwordless_email' },
       ]}
       role="creator"
     />
