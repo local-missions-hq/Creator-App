@@ -305,6 +305,20 @@ afterAll(async () => {
 });
 
 describe('authenticated Creator and Business API slice', () => {
+  it.each([
+    '/v1/account',
+    '/v1/creator/missions',
+    '/v1/creator/reach',
+    '/v1/business/campaigns',
+    '/v1/business/reach-options',
+  ])('rejects anonymous private API access at %s', async (url) => {
+    const response = await localApp.inject({ method: 'GET', url });
+    expect(response.statusCode).toBe(401);
+    expect(response.json()).toMatchObject({
+      error: { code: 'AUTHENTICATION_REQUIRED', message: 'Authentication is required.' },
+    });
+  });
+
   it('bootstraps one safe session idempotently and reprojects current Creator and Business access', async () => {
     const request = externalRequest({ sessionPublicId: null, token: 'external.known.token' });
     const firstCorrelationId = randomUUID();

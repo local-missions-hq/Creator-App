@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="30" failures="0" errors="0" time="0.489856834">
+    <testsuite name="src/domain-api.integration.test.ts" timestamp="2026-08-28T16:08:32.004Z" hostname="local-development-host" tests="30" failures="0" errors="0" skipped="0" time="0.489856834">
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; rejects anonymous private API access at /v1/account" time="0.027776042">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; rejects anonymous private API access at /v1/creator/missions" time="0.01059825">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; rejects anonymous private API access at /v1/creator/reach" time="0.006775833">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; rejects anonymous private API access at /v1/business/campaigns" time="0.006270334">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; rejects anonymous private API access at /v1/business/reach-options" time="0.0066535">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; bootstraps one safe session idempotently and reprojects current Creator and Business access" time="0.032976666">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; rejects session collisions and requires the same active identity-bound session later" time="0.013689542">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; maps one external issuer/subject to current Creator and Business contexts without trusting a token role" time="0.007626584">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; denies untrusted external context: missing role" time="0.00509825">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; denies untrusted external context: invented role" time="0.004674666">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; denies untrusted external context: Creator with Business context" time="0.005001083">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; denies untrusted external context: Business without workspace" time="0.004716417">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; denies untrusted external context: cross-tenant workspace" time="0.00605">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; denies untrusted external context: invented membership role" time="0.005820042">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; conceals unknown and revoked external subjects behind the same authentication response" time="0.006578292">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; rechecks account and membership state for every request made with the same external token" time="0.014583791">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; invalidates the same provider token immediately after Local Missions logout" time="0.011213791">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; rejects an expired Local Missions session even while the provider token remains valid" time="0.007614166">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; stops accepting the same external token immediately after its identity binding is revoked" time="0.012173666">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; keeps deployed verification fail-closed and synthetic verification local-only" time="0.013807333">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; resolves a current Business workspace and denies invented tenant membership" time="0.009357542">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; returns only safe account-owned identity and active-session metadata" time="0.015753916">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; links and unlinks only through recent auth plus one-time local provider control" time="0.042399834">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; revokes only own sessions and accepts export/deletion requests with the right proof" time="0.03413">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; rejects disabled and deletion-requested users at the bearer boundary" time="0.007260584">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; enforces role separation and hides cross-tenant campaign reads" time="0.011351291">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; returns Creator feed/detail and stable Business cursor pages" time="0.015130416">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; requires current locality and replays the same application retry exactly once" time="0.029168584">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; returns Creator-owned Reach state and records then revokes per-platform consent" time="0.03021675">
+        </testcase>
+        <testcase classname="src/domain-api.integration.test.ts" name="authenticated Creator and Business API slice &gt; gives Business members only fixed Reach packages and capability availability" time="0.006696458">
+        </testcase>
+    </testsuite>
+</testsuites>

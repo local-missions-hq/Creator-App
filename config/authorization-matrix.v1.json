@@ -1,0 +1,128 @@
+{
+  "checkpoint": "M04-authorization-matrix-audit-local-012",
+  "externalCompletionClaimed": false,
+  "matrixVersion": 1,
+  "rows": [
+    {
+      "id": "anonymous-private-data",
+      "proofs": [
+        "apps/api/src/domain-api.integration.test.ts",
+        "packages/db/src/authorization-policy-store.integration.test.ts"
+      ],
+      "requirement": "Anonymous callers cannot read private account, mission, application, submission, or workspace data.",
+      "status": "local_proven"
+    },
+    {
+      "id": "creator-owned-applications-submissions",
+      "proofs": [
+        "packages/db/src/authorization-policy-store.ts",
+        "packages/db/src/authorization-policy-store.integration.test.ts"
+      ],
+      "requirement": "A Creator can read only their own applications and submissions.",
+      "status": "local_proven"
+    },
+    {
+      "id": "business-tenant-isolation",
+      "proofs": [
+        "apps/api/src/domain-api.integration.test.ts",
+        "packages/db/src/authorization-policy-store.integration.test.ts",
+        "packages/db/src/tenant-store.integration.test.ts"
+      ],
+      "requirement": "Business A cannot read or mutate Business B resources.",
+      "status": "local_proven"
+    },
+    {
+      "id": "venue-staff-assignment-scope",
+      "proofs": [
+        "packages/db/src/authorization-policy-store.ts",
+        "packages/db/src/authorization-policy-store.integration.test.ts",
+        "packages/db/src/check-in-store.integration.test.ts"
+      ],
+      "requirement": "Venue Staff receives only an assigned active location and date window without private address, reward, billing, or platform data.",
+      "status": "local_proven"
+    },
+    {
+      "id": "support-read-finance-separation",
+      "proofs": [
+        "packages/db/src/authorization-policy-store.ts",
+        "packages/db/src/authorization-policy-store.integration.test.ts",
+        "packages/db/src/ledger-store.integration.test.ts"
+      ],
+      "requirement": "Support can investigate through a bounded read projection but cannot mutate financial state without separate Finance authority.",
+      "status": "local_proven"
+    },
+    {
+      "id": "admin-reason-high-priority-audit",
+      "proofs": [
+        "packages/db/src/authorization-policy-store.ts",
+        "packages/db/src/authorization-policy-store.integration.test.ts"
+      ],
+      "requirement": "An Admin override requires a bounded reason and creates one high-priority immutable audit event.",
+      "status": "local_proven"
+    },
+    {
+      "id": "disabled-user-propagation",
+      "proofs": [
+        "apps/api/src/domain-api.integration.test.ts",
+        "packages/db/src/authorization-policy-store.integration.test.ts"
+      ],
+      "requirement": "A disabled user is rejected on the next Local Missions authorization check.",
+      "status": "local_proven"
+    },
+    {
+      "id": "untrusted-client-role",
+      "proofs": [
+        "apps/api/src/domain-api.service.ts",
+        "apps/api/src/domain-api.integration.test.ts",
+        "packages/db/src/authorization-policy-store.ts"
+      ],
+      "requirement": "Client role intent and token-carried role or email claims never create server authority.",
+      "status": "local_proven"
+    },
+    {
+      "id": "email-independent-identity-binding",
+      "proofs": [
+        "packages/db/src/schema.ts",
+        "packages/db/src/tenant-store.integration.test.ts",
+        "packages/contracts/src/index.ts"
+      ],
+      "requirement": "Matching, changed, or Apple private-relay email addresses cannot move or duplicate an issuer-subject identity binding.",
+      "status": "local_proven"
+    },
+    {
+      "id": "concurrent-provider-subject-collision",
+      "proofs": [
+        "packages/db/src/account-lifecycle-store.integration.test.ts",
+        "packages/db/src/tenant-store.integration.test.ts"
+      ],
+      "requirement": "Concurrent attempts to link one provider subject produce one binding, preserve both root accounts, and create no partial merge.",
+      "status": "local_proven"
+    },
+    {
+      "id": "dual-control-link-proof-and-audit",
+      "proofs": [
+        "apps/api/src/domain-api.integration.test.ts",
+        "packages/db/src/account-lifecycle-store.ts",
+        "packages/db/src/account-lifecycle-store.integration.test.ts"
+      ],
+      "requirement": "Provider linking requires current-account recent authentication plus new-provider control; success and collision failure are audited and notified without account enumeration.",
+      "status": "local_proven"
+    },
+    {
+      "id": "last-method-unlink-replay-recovery",
+      "proofs": [
+        "packages/db/src/account-lifecycle-store.ts",
+        "packages/db/src/account-lifecycle-store.integration.test.ts"
+      ],
+      "requirement": "Concurrent and replayed unlink attempts retain one verified method, successful unlink notifies the owner, and dual-controlled recovery holds revoke sessions and protect sensitive actions.",
+      "status": "local_proven"
+    }
+  ],
+  "stillOpen": [
+    "Entra tenant, mobile client, and API registrations",
+    "Runtime activation and real issuer, audience, and network-key proof",
+    "Apple, Google, Microsoft, and passwordless-email external round trips",
+    "Native system-browser and deep-link execution",
+    "Physical-iPhone M4 verification"
+  ]
+}

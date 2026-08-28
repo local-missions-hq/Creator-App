@@ -229,13 +229,77 @@ describe.sequential('account lifecycle against real PostgreSQL', () => {
     });
   });
 
+  it('allows one secure provider-subject binding across two populated accounts and audits the loser', async () => {
+    const first = await createAccount('collision_first');
+    const second = await createAccount('collision_second');
+    const subject = `shared_google_${randomUUID()}`;
+    const firstCorrelationId = randomUUID();
+    const secondCorrelationId = randomUUID();
+    const attempts = await Promise.allSettled([
+      accountStore.linkIdentity({
+        correlationId: firstCorrelationId,
+        grantId: await recentGrant(first, 'identity_link'),
+        issuer: 'https://identity.local.test/v1',
+        provider: 'google',
+        subject,
+        userId: first.user.id,
+      }),
+      accountStore.linkIdentity({
+        correlationId: secondCorrelationId,
+        grantId: await recentGrant(second, 'identity_link'),
+        issuer: 'https://identity.local.test/v1',
+        provider: 'google',
+        subject,
+        userId: second.user.id,
+      }),
+    ]);
+    expect(attempts.filter((attempt) => attempt.status === 'fulfilled')).toHaveLength(1);
+    expect(attempts.find((attempt) => attempt.status === 'rejected')).toMatchObject({
+      reason: expect.objectContaining({ code: 'IDENTITY_BINDING_CONFLICT', httpStatus: 409 }),
+      status: 'rejected',
+    });
+    const proof = await pool.query<{
+      binding_count: number;
+      failure_audit_count: number;
+      failure_notification_count: number;
+      root_user_count: number;
+    }>(
+      `SELECT
+         (SELECT count(*)::int FROM external_identities
+           WHERE issuer = 'https://identity.local.test/v1' AND subject = $1) AS binding_count,
+         (SELECT count(*)::int FROM users WHERE id IN ($2,$3)) AS root_user_count,
+         (SELECT count(*)::int FROM audit_events
+           WHERE correlation_id IN ($4,$5) AND action = 'identity.link-failed')
+           AS failure_audit_count,
+         (SELECT count(*)::int FROM notification_events
+           WHERE correlation_id IN ($4,$5) AND type = 'security_alert')
+           AS failure_notification_count`,
+      [subject, first.user.id, second.user.id, firstCorrelationId, secondCorrelationId],
+    );
+    expect(proof.rows[0]).toEqual({
+      binding_count: 1,
+      failure_audit_count: 1,
+      failure_notification_count: 2,
+      root_user_count: 2,
+    });
+  });
+
   it('rejects the last method and permits exactly one concurrent unlink winner', async () => {
     const single = await createAccount('last_method');
+    const replayGrant = await recentGrant(single, 'identity_unlink');
     await expect(
       accountStore.unlinkIdentity({
         correlationId: randomUUID(),
         externalIdentityId: single.identityId,
-        grantId: await recentGrant(single, 'identity_unlink'),
+        grantId: replayGrant,
+        userId: single.user.id,
+      }),
+    ).rejects.toMatchObject({ code: 'LAST_IDENTITY_METHOD' });
+    await expect(
+      accountStore.unlinkIdentity({
+        correlationId: randomUUID(),
+        externalIdentityId: single.identityId,
+        grantId: replayGrant,
         userId: single.user.id,
       }),
     ).rejects.toMatchObject({ code: 'LAST_IDENTITY_METHOD' });
@@ -256,15 +320,17 @@ describe.sequential('account lifecycle against real PostgreSQL', () => {
       sessionId: secondSession.id,
       userId: account.user.id,
     });
+    const firstCorrelationId = randomUUID();
+    const secondCorrelationId = randomUUID();
     const attempts = await Promise.allSettled([
       accountStore.unlinkIdentity({
-        correlationId: randomUUID(),
+        correlationId: firstCorrelationId,
         externalIdentityId: second.id,
         grantId: firstGrant,
         userId: account.user.id,
       }),
       accountStore.unlinkIdentity({
-        correlationId: randomUUID(),
+        correlationId: secondCorrelationId,
         externalIdentityId: account.identityId,
         grantId: secondGrant,
         userId: account.user.id,
@@ -275,12 +341,27 @@ describe.sequential('account lifecycle against real PostgreSQL', () => {
       (attempt): attempt is PromiseRejectedResult => attempt.status === 'rejected',
     );
     expect(['LAST_IDENTITY_METHOD', 'RECENT_AUTH_REQUIRED']).toContain(rejection?.reason.code);
-    const active = await pool.query<{ count: number }>(
-      `SELECT count(*)::int AS count FROM external_identities
-        WHERE user_id = $1 AND status = 'active'`,
-      [account.user.id],
+    const active = await pool.query<{
+      active_count: number;
+      unlink_audit_count: number;
+      unlink_notification_count: number;
+    }>(
+      `SELECT
+         (SELECT count(*)::int FROM external_identities
+           WHERE user_id = $1 AND status = 'active') AS active_count,
+         (SELECT count(*)::int FROM audit_events
+           WHERE correlation_id IN ($2,$3) AND action = 'identity.unlinked-securely')
+           AS unlink_audit_count,
+         (SELECT count(*)::int FROM notification_events
+           WHERE correlation_id IN ($2,$3) AND type = 'security_alert')
+           AS unlink_notification_count`,
+      [account.user.id, firstCorrelationId, secondCorrelationId],
     );
-    expect(active.rows[0]?.count).toBe(1);
+    expect(active.rows[0]).toEqual({
+      active_count: 1,
+      unlink_audit_count: 1,
+      unlink_notification_count: 1,
+    });
   });
 
   it('revokes only the account owner session and records the logout audit atomically', async () => {
@@ -330,15 +411,51 @@ describe.sequential('account lifecycle against real PostgreSQL', () => {
     const account = await createAccount('hold_target');
     const staffOne = await createStaff('hold_staff_one');
     const staffTwo = await createStaff('hold_staff_two');
+    const blockedGrantId = await recentGrant(account, 'identity_link');
     const holdId = await accountStore.placeRecoveryHold({
       correlationId: randomUUID(),
       placedByUserId: staffOne.user.id,
       publicId: `hold_${randomUUID()}`,
       userId: account.user.id,
     });
-    await expect(linkProvider(account, 'google')).rejects.toMatchObject({
-      code: 'ACCOUNT_HOLD_ACTIVE',
+    const holdProof = await pool.query<{
+      active_session_count: number;
+      action_count: number;
+      notification_count: number;
+    }>(
+      `SELECT
+         (SELECT count(*)::int FROM account_sessions
+           WHERE user_id = $1 AND status = 'active') AS active_session_count,
+         (SELECT count(*)::int FROM account_sensitive_hold_actions
+           WHERE account_sensitive_hold_id = $2) AS action_count,
+         (SELECT count(*)::int FROM notification_events
+           WHERE recipient_user_id = $1 AND type = 'security_alert'
+             AND deduplication_key LIKE 'account-recovery-hold-placed:%') AS notification_count`,
+      [account.user.id, holdId],
+    );
+    expect(holdProof.rows[0]).toEqual({
+      active_session_count: 0,
+      action_count: 4,
+      notification_count: 1,
     });
+    await expect(
+      accountStore.linkIdentity({
+        correlationId: randomUUID(),
+        grantId: blockedGrantId,
+        issuer: 'https://identity.local.test/v1',
+        provider: 'google',
+        subject: `google_blocked_${randomUUID()}`,
+        userId: account.user.id,
+      }),
+    ).rejects.toMatchObject({ code: 'RECENT_AUTH_REQUIRED' });
+    await expect(
+      accountStore.createSession({
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+        externalIdentityId: account.identityId,
+        publicId: `ses_${randomUUID()}`,
+        userId: account.user.id,
+      }),
+    ).rejects.toMatchObject({ code: 'ACCOUNT_HOLD_ACTIVE' });
     await expect(
       accountStore.releaseRecoveryHold({
         correlationId: randomUUID(),
@@ -355,7 +472,15 @@ describe.sequential('account lifecycle against real PostgreSQL', () => {
       reason: 'Synthetic recovery review complete',
       releasedByUserId: staffTwo.user.id,
     });
-    await expect(linkProvider(account, 'google')).resolves.toMatchObject({ provider: 'google' });
+    const recoveredSession = await accountStore.createSession({
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      externalIdentityId: account.identityId,
+      publicId: `ses_${randomUUID()}`,
+      userId: account.user.id,
+    });
+    await expect(
+      linkProvider({ ...account, sessionId: recoveredSession.id }, 'google'),
+    ).resolves.toMatchObject({ provider: 'google' });
   });
 
   it('records export/deletion requests and requires recent auth plus no recovery hold', async () => {

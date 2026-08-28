@@ -60,6 +60,7 @@ export class AccountLifecycleStore {
     userId: string;
   }): Promise<{ id: string; publicId: string; version: number }> {
     return this.withTransaction(async (client) => {
+      await this.assertSessionCreationAllowed(client, input.userId);
       const result = await client.query<SessionRow>(
         `INSERT INTO account_sessions (
            public_id, user_id, external_identity_id, expires_at
@@ -95,6 +96,7 @@ export class AccountLifecycleStore {
     version: number;
   }> {
     return this.withTransaction(async (client) => {
+      await this.assertSessionCreationAllowed(client, input.userId);
       const inserted = await client.query<SessionRow>(
         `INSERT INTO account_sessions (
            public_id, user_id, external_identity_id, expires_at
@@ -364,6 +366,17 @@ export class AccountLifecycleStore {
   }): Promise<string> {
     return this.withTransaction(async (client) => {
       await this.assertRecoveryStaff(client, input.placedByUserId);
+      const target = await client.query(
+        `SELECT id FROM users WHERE id = $1 AND status = 'active' FOR UPDATE`,
+        [input.userId],
+      );
+      if (target.rowCount !== 1) {
+        throw new AccountLifecycleError(
+          'ACCOUNT_ACCESS_DENIED',
+          403,
+          'The recovery target is unavailable.',
+        );
+      }
       const result = await client.query<{ id: string }>(
         `INSERT INTO account_sensitive_holds (
            public_id, user_id, reason_code, placed_by_user_id
@@ -379,6 +392,14 @@ export class AccountLifecycleStore {
          ) AS action`,
         [holdId],
       );
+      await client.query(
+        `UPDATE account_sessions
+            SET status = 'revoked', revoked_at = now(),
+                revocation_reason = 'TOTAL_LOCKOUT_RECOVERY',
+                version = version + 1, updated_at = now()
+          WHERE user_id = $1 AND status = 'active'`,
+        [input.userId],
+      );
       await this.appendAudit(client, {
         action: 'account.recovery-hold-placed',
         actorId: input.placedByUserId,
@@ -387,6 +408,12 @@ export class AccountLifecycleStore {
         subjectId: input.userId,
         subjectType: 'user',
       });
+      await this.enqueueSecurityEvent(
+        client,
+        input.userId,
+        input.correlationId,
+        'account-recovery-hold-placed',
+      );
       return holdId;
     });
   }
@@ -563,6 +590,21 @@ export class AccountLifecycleStore {
       );
     }
     return session;
+  }
+
+  private async assertSessionCreationAllowed(client: PoolClient, userId: string): Promise<void> {
+    const account = await client.query(
+      `SELECT id FROM users WHERE id = $1 AND status = 'active' FOR UPDATE`,
+      [userId],
+    );
+    if (account.rowCount !== 1) {
+      throw new AccountLifecycleError(
+        'SESSION_INVALID',
+        403,
+        'The account session is unavailable.',
+      );
+    }
+    await this.assertNoHold(client, userId, 'identity_provider_change');
   }
 
   private async assertNoHold(

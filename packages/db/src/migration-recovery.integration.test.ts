@@ -236,8 +236,19 @@ describe.sequential('latest schema and roll-forward recovery', () => {
 
       expect(await trackedMigrations(pool)).toHaveLength(migrations.length - 1);
       expect(
-        await pool.query(`SELECT to_regclass('public.account_sessions') AS relation`),
-      ).toMatchObject({ rows: [{ relation: null }] });
+        await pool.query(`
+          SELECT EXISTS (
+            SELECT 1 FROM pg_enum enum_value
+            JOIN pg_type enum_type ON enum_type.oid = enum_value.enumtypid
+            WHERE enum_type.typname = 'platform_staff_role'
+              AND enum_value.enumlabel = 'support_agent'
+          ) AS support_role,
+          EXISTS (
+            SELECT 1 FROM pg_trigger
+            WHERE tgname = 'audit_events_immutable' AND NOT tgisinternal
+          ) AS audit_trigger
+        `),
+      ).toMatchObject({ rows: [{ audit_trigger: false, support_role: false }] });
       await expectFixtureIntact(pool);
 
       await migrate(drizzle(pool), { migrationsFolder: migrationsDirectory });
@@ -270,6 +281,26 @@ describe.sequential('latest schema and roll-forward recovery', () => {
       expect(
         await pool.query(`SELECT to_regclass('public.account_sessions') AS relation`),
       ).toMatchObject({ rows: [{ relation: 'account_sessions' }] });
+      expect(
+        await pool.query(`
+          SELECT EXISTS (
+            SELECT 1 FROM pg_enum enum_value
+            JOIN pg_type enum_type ON enum_type.oid = enum_value.enumtypid
+            WHERE enum_type.typname = 'platform_staff_role'
+              AND enum_value.enumlabel = 'support_agent'
+          ) AS support_role,
+          EXISTS (
+            SELECT 1 FROM pg_trigger
+            WHERE tgname = 'audit_events_immutable' AND NOT tgisinternal
+          ) AS audit_trigger
+        `),
+      ).toMatchObject({ rows: [{ audit_trigger: true, support_role: true }] });
+      await expect(
+        pool.query(
+          `UPDATE audit_events SET details = '{}'::jsonb
+            WHERE correlation_id = '50000000-0000-4000-8000-000000000091'`,
+        ),
+      ).rejects.toMatchObject({ code: 'P0001' });
 
       await pool.query(`
         UPDATE notification_preferences

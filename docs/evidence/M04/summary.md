@@ -1,10 +1,10 @@
 # M04 authentication and account lifecycle evidence
 
-Status: M4 in progress; local checkpoints through the mobile auth transport passed
+Status: M4 in progress; local checkpoints through the consolidated authorization matrix passed
 
 Date: 2026-08-28
 
-Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`, `M04-mobile-auth-session-local-003`, `M04-oidc-client-boundary-local-004`, `M04-entra-verifier-local-005`, `M04-external-principal-mapping-local-006`, `M04-mobile-code-exchange-local-007`, `M04-server-session-bootstrap-local-008`, `M04-mobile-auth-orchestration-local-009`, `M04-external-auth-configuration-gate-local-010`, `M04-mobile-auth-transport-local-011`
+Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`, `M04-mobile-auth-session-local-003`, `M04-oidc-client-boundary-local-004`, `M04-entra-verifier-local-005`, `M04-external-principal-mapping-local-006`, `M04-mobile-code-exchange-local-007`, `M04-server-session-bootstrap-local-008`, `M04-mobile-auth-orchestration-local-009`, `M04-external-auth-configuration-gate-local-010`, `M04-mobile-auth-transport-local-011`, `M04-authorization-matrix-audit-local-012`
 
 Environment baseline: Node 24.19.0 and pnpm 11.24.0. The mutation continuation used pnpm 11.24.0 with shell Node 25.9.0 and an engine warning. PostgreSQL 17 Alpine ran on loopback Docker.
 
@@ -199,3 +199,18 @@ Twenty-seven focused transport tests and all 111 mobile tests pass. Pinned Node 
 JUnit evidence: [`test-results/mobile-auth-transport-junit.xml`](./test-results/mobile-auth-transport-junit.xml)
 
 No Entra tenant/app/API registration, provider credential, provider/JWKS network request, authorization code, real token, refresh credential, real identity, Azure resource, Stripe action, physical phone, payment, message, external account, or customer data was used. The production transport exists but the installed runtime remains unavailable. External registration/activation, real network-key proof, provider consent/cancellation/email-code round trips, native system-browser/deep-link execution, final authorization matrix, and the physical-device M4 gate remain open.
+
+## Consolidated local authorization matrix
+
+- Added a production PostgreSQL authorization policy that derives the current root-user state, platform role, Creator ownership, Business membership, Venue Staff assignment, and Finance authority from the database on every decision. Caller-shaped role data cannot grant authority, and cross-owner or cross-tenant reads are concealed with the same bounded not-found response.
+- Added a distinct `support_agent` platform role and a privacy-minimized dispute projection. Support can investigate status, reason, date, and public identifiers but cannot perform financial mutations. Finance authority remains a separate exact active role.
+- Added reason-bounded Admin overrides with one high-priority audit event. Migration `0019_ambiguous_kate_bishop.sql` makes `audit_events` append-only at the database boundary, and the N-1 failure/recovery test proves the new enum value and trigger roll forward atomically.
+- Tightened identity lifecycle concurrency. One provider subject racing across two populated accounts creates one binding without merging either root. Same-grant replay and concurrent unlink preserve one active method, and successful unlink emits audit and security-notification evidence.
+- Tightened total-lockout recovery. Placing a recovery hold revokes active sessions, blocks new sessions and sensitive funding, payout-destination, provider, and deletion actions, emits a security notification, and requires a different authorized staff user to release it.
+- Added a machine-validated 12-row matrix covering anonymous access, Creator ownership, Business isolation, Venue Staff scope, Support/Finance separation, Admin audit, disabled-state propagation, untrusted caller roles, email-independent identity binding, provider-subject collision, dual-control linking, and unlink/recovery behavior.
+
+Focused JUnit evidence retains 15 PostgreSQL tests and 30 API tests with zero failures or errors. The full database regression passes 107 tests across 16 files, and the full API regression passes 38 tests across two files. A fresh disposable PostgreSQL volume migrated and seeded successfully, `db:check` verified 96 tables, and the reviewed manifest verified 20 migration hashes. Pinned Node 24.19.0 and pnpm 11.24.0 passed `pnpm authorization:check` with all 12 local rows and all five external/native gates still open, plus the complete repository verification. The final security scan passed 456 text files, and Gitleaks found no leaks in approximately 15.18 MB.
+
+Matrix evidence: [`authorization-matrix.md`](./authorization-matrix.md), [`test-results/authorization-matrix-db-junit.xml`](./test-results/authorization-matrix-db-junit.xml), [`test-results/authorization-matrix-api-junit.xml`](./test-results/authorization-matrix-api-junit.xml)
+
+This is a local authorization checkpoint, not final M4 completion. Entra registrations and activation, real issuer/audience/network-key proof, Apple/Google/Microsoft/passwordless-email provider round trips, native system-browser/deep-link execution, and physical-iPhone verification remain open. No provider endpoint, real identity, Azure resource, Stripe action, or phone was used. The disposable Creator App PostgreSQL container, volume, and Compose network were destroyed after verification.

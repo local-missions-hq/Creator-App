@@ -438,3 +438,45 @@ pnpm test:gitleaks
 PASS — Gitleaks found no leaks in approximately 14.53 MB.
 
 No Entra tenant/app/API registration, provider credential, provider/JWKS network request, authorization code, token, refresh credential, real identity, Azure, Stripe, physical phone, payment, message, external account, customer action, or customer data was used. The production transport exists but runtime activation remains unavailable, and no external or physical-device M4 gate is claimed.
+
+M04-authorization-matrix-audit-local-012 — 2026-08-28
+
+Node 24.19.0 and pnpm 11.24.0 were selected from the pinned local runtime for every verification command below.
+
+pnpm --filter @local-missions/db exec vitest run src/authorization-policy-store.integration.test.ts src/account-lifecycle-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/authorization-matrix-db-junit.xml
+PASS — retained 15 PostgreSQL authorization-policy and account-lifecycle tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+pnpm --filter @local-missions/api exec vitest run src/domain-api.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/authorization-matrix-api-junit.xml
+PASS — retained 30 API authorization tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+pnpm --filter @local-missions/db test:integration
+PASS — all 107 database integration tests passed across 16 files, including migration rollback/forward recovery and immutable-audit enforcement.
+
+pnpm --filter @local-missions/api test:integration
+PASS — all 38 API integration tests passed across two files.
+
+pnpm authorization:check
+PASS — validated all 12 local authorization rows and retained all five external/provider/native-device gates as open.
+
+pnpm local:destroy
+pnpm local:up
+pnpm --filter @local-missions/db db:migrate
+pnpm --filter @local-missions/db db:seed
+pnpm --filter @local-missions/db db:check
+pnpm contracts:check
+PASS — a fresh disposable PostgreSQL volume migrated and seeded successfully; db:check verified 96 tables and contracts verified 20 migration hashes.
+
+pnpm local:destroy
+docker compose ps
+PASS — only the disposable Creator App PostgreSQL container, volume, and Compose network were destroyed; no Creator App Compose services remain.
+
+pnpm verify
+PASS — formatting, prerequisite/external-auth/authorization validation, lint, strict type checks, all repository unit tests, reviewed API/migration contracts, production local-marker exclusion, and all nine builds passed.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 456 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks found no leaks in approximately 15.18 MB.
+
+No Entra tenant/app/API registration, provider credential, provider/JWKS network request, authorization code, token, refresh credential, real identity, Azure, Stripe, physical phone, payment, message, external account, customer action, or customer data was used. The installed external-auth runtime remains unavailable, and no external or physical-device M4 gate is claimed.

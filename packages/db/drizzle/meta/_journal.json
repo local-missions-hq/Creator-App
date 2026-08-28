@@ -134,6 +134,13 @@
       "when": 1787878804125,
       "tag": "0018_tiresome_wallflower",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1787932835628,
+      "tag": "0019_ambiguous_kate_bishop",
+      "breakpoints": true
     }
   ]
 }

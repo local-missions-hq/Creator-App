@@ -238,6 +238,7 @@ export const correctionReasonCode = pgEnum('correction_reason_code', [
   'missing_disclosure',
 ]);
 export const platformStaffRole = pgEnum('platform_staff_role', [
+  'support_agent',
   'dispute_reviewer',
   'finance_operator',
   'verification_reviewer',

@@ -11,6 +11,7 @@
   },
   "scripts": {
     "build": "turbo run build",
+    "authorization:check": "node scripts/validate-authorization-matrix.mjs",
     "contracts:check": "turbo run contracts:check",
     "db:check": "pnpm --filter @local-missions/db db:check",
     "db:generate": "pnpm --filter @local-missions/db db:generate",
@@ -30,7 +31,7 @@
     "test:e2e:mobile": "turbo run test:e2e:mobile",
     "test:gitleaks": "gitleaks dir . --redact --no-banner",
     "test:security": "node scripts/security-check.mjs",
-    "verify": "pnpm format:check && pnpm prerequisites:check && pnpm external-auth:check && pnpm lint && pnpm typecheck && pnpm test && pnpm contracts:check && pnpm build",
+    "verify": "pnpm format:check && pnpm prerequisites:check && pnpm external-auth:check && pnpm authorization:check && pnpm lint && pnpm typecheck && pnpm test && pnpm contracts:check && pnpm build",
     "local:up": "docker compose up -d",
     "local:down": "docker compose down",
     "local:destroy": "docker compose down --volumes --remove-orphans",
