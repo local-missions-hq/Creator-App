@@ -28,20 +28,28 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import {
+  accountIdentityMutationResponseSchema,
+  accountIdentityProviderParameterSchema,
   accountOverviewSchema,
+  accountRequestMutationResponseSchema,
   apiErrorEnvelopeSchema,
   apiPaginationQuerySchema,
   authenticatedContextSchema,
   businessReachOptionsSchema,
   businessCampaignDetailSchema,
   businessCampaignPageSchema,
+  createAccountRequestSchema,
   createMissionApplicationRequestSchema,
   creatorMissionDetailSchema,
   creatorMissionPageSchema,
   creatorReachOverviewSchema,
   idempotencyKeySchema,
+  linkAccountIdentityRequestSchema,
   missionApplicationResponseSchema,
+  revokeAccountSessionRequestSchema,
+  revokeAccountSessionResponseSchema,
   socialPlatformSchema,
+  unlinkAccountIdentityRequestSchema,
 } from '@local-missions/contracts';
 import { z } from 'zod';
 
@@ -73,6 +81,84 @@ export class DomainController {
   async getAccountOverview(@Req() request: ContextualRequest) {
     const principal = await this.domain.authenticate(request);
     return this.domain.getAccountOverview(principal);
+  }
+
+  @ApiOperation({ summary: 'Link a provider identity from verified provider control' })
+  @ApiBody({ schema: openApiSchema(linkAccountIdentityRequestSchema) })
+  @ApiCreatedResponse({ schema: openApiSchema(accountIdentityMutationResponseSchema) })
+  @ApiBadRequestResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
+  @ApiConflictResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
+  @Post('account/identities')
+  async linkAccountIdentity(@Body() input: unknown, @Req() request: ContextualRequest) {
+    const body = linkAccountIdentityRequestSchema.safeParse(input);
+    if (!body.success) throw validationProblem(body.error.issues, 'body');
+    const principal = await this.domain.authenticate(request);
+    return this.domain.linkAccountIdentity(
+      principal,
+      body.data,
+      request.apiContext?.correlationId ?? 'request_context_unavailable',
+    );
+  }
+
+  @ApiOperation({ summary: 'Unlink one verified provider while retaining another method' })
+  @ApiParam({ name: 'provider', schema: openApiSchema(accountIdentityProviderParameterSchema) })
+  @ApiBody({ schema: openApiSchema(unlinkAccountIdentityRequestSchema) })
+  @ApiOkResponse({ schema: openApiSchema(accountIdentityMutationResponseSchema) })
+  @ApiBadRequestResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
+  @ApiConflictResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
+  @Delete('account/identities/:provider')
+  async unlinkAccountIdentity(
+    @Body() input: unknown,
+    @Param('provider') provider: string,
+    @Req() request: ContextualRequest,
+  ) {
+    const body = unlinkAccountIdentityRequestSchema.safeParse(input);
+    if (!body.success) throw validationProblem(body.error.issues, 'body');
+    const parsedProvider = accountIdentityProviderParameterSchema.safeParse(provider);
+    if (!parsedProvider.success) {
+      throw validationProblem(parsedProvider.error.issues, 'path.provider');
+    }
+    const principal = await this.domain.authenticate(request);
+    return this.domain.unlinkAccountIdentity(
+      principal,
+      parsedProvider.data,
+      body.data,
+      request.apiContext?.correlationId ?? 'request_context_unavailable',
+    );
+  }
+
+  @ApiOperation({ summary: 'Revoke one active session owned by the current account' })
+  @ApiBody({ schema: openApiSchema(revokeAccountSessionRequestSchema) })
+  @ApiOkResponse({ schema: openApiSchema(revokeAccountSessionResponseSchema) })
+  @ApiBadRequestResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
+  @HttpCode(200)
+  @Post('account/logout')
+  async revokeAccountSession(@Body() input: unknown, @Req() request: ContextualRequest) {
+    const body = revokeAccountSessionRequestSchema.safeParse(input);
+    if (!body.success) throw validationProblem(body.error.issues, 'body');
+    const principal = await this.domain.authenticate(request);
+    return this.domain.revokeAccountSession(
+      principal,
+      body.data.sessionPublicId,
+      request.apiContext?.correlationId ?? 'request_context_unavailable',
+    );
+  }
+
+  @ApiOperation({ summary: 'Request an account export or recent-authenticated deletion' })
+  @ApiBody({ schema: openApiSchema(createAccountRequestSchema) })
+  @ApiCreatedResponse({ schema: openApiSchema(accountRequestMutationResponseSchema) })
+  @ApiBadRequestResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
+  @ApiConflictResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
+  @Post('account/requests')
+  async createAccountRequest(@Body() input: unknown, @Req() request: ContextualRequest) {
+    const body = createAccountRequestSchema.safeParse(input);
+    if (!body.success) throw validationProblem(body.error.issues, 'body');
+    const principal = await this.domain.authenticate(request);
+    return this.domain.createAccountRequest(
+      principal,
+      body.data,
+      request.apiContext?.correlationId ?? 'request_context_unavailable',
+    );
   }
 
   @ApiOperation({ summary: 'Read optional per-platform Reach status for the current Creator' })

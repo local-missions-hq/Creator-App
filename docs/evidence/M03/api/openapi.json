@@ -674,6 +674,7 @@
                     "resources": {
                       "items": {
                         "enum": [
+                          "account",
                           "me",
                           "creator-missions",
                           "business-campaigns",
@@ -1017,6 +1018,1471 @@
           }
         ],
         "summary": "Read safe identity, session, and account-request state",
+        "tags": ["authenticated-v1"]
+      }
+    },
+    "/v1/account/identities": {
+      "post": {
+        "operationId": "DomainController_linkAccountIdentity",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "providerProofToken": {
+                    "maxLength": 4000,
+                    "minLength": 32,
+                    "type": "string"
+                  },
+                  "recentAuthGrantPublicId": {
+                    "pattern": "^rag_[a-z0-9_]{8,100}$",
+                    "type": "string"
+                  }
+                },
+                "required": ["providerProofToken", "recentAuthGrantPublicId"],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "provider": {
+                      "enum": ["apple", "google", "microsoft", "passwordless_email"],
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": ["active", "revoked"],
+                      "type": "string"
+                    }
+                  },
+                  "required": ["provider", "status"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "entra-bearer": []
+          }
+        ],
+        "summary": "Link a provider identity from verified provider control",
+        "tags": ["authenticated-v1"]
+      }
+    },
+    "/v1/account/identities/{provider}": {
+      "delete": {
+        "operationId": "DomainController_unlinkAccountIdentity",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "enum": ["apple", "google", "microsoft", "passwordless_email"],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "recentAuthGrantPublicId": {
+                    "pattern": "^rag_[a-z0-9_]{8,100}$",
+                    "type": "string"
+                  }
+                },
+                "required": ["recentAuthGrantPublicId"],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "provider": {
+                      "enum": ["apple", "google", "microsoft", "passwordless_email"],
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": ["active", "revoked"],
+                      "type": "string"
+                    }
+                  },
+                  "required": ["provider", "status"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "entra-bearer": []
+          }
+        ],
+        "summary": "Unlink one verified provider while retaining another method",
+        "tags": ["authenticated-v1"]
+      }
+    },
+    "/v1/account/logout": {
+      "post": {
+        "operationId": "DomainController_revokeAccountSession",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "sessionPublicId": {
+                    "pattern": "^ses_[a-z0-9_]{8,100}$",
+                    "type": "string"
+                  }
+                },
+                "required": ["sessionPublicId"],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "sessionPublicId": {
+                      "pattern": "^ses_[a-z0-9_]{8,100}$",
+                      "type": "string"
+                    },
+                    "status": {
+                      "const": "revoked",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["sessionPublicId", "status"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "entra-bearer": []
+          }
+        ],
+        "summary": "Revoke one active session owned by the current account",
+        "tags": ["authenticated-v1"]
+      }
+    },
+    "/v1/account/requests": {
+      "post": {
+        "operationId": "DomainController_createAccountRequest",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "publicId": {
+                    "pattern": "^acr_[a-z0-9_]{8,100}$",
+                    "type": "string"
+                  },
+                  "recentAuthGrantPublicId": {
+                    "pattern": "^rag_[a-z0-9_]{8,100}$",
+                    "type": "string"
+                  },
+                  "sessionPublicId": {
+                    "pattern": "^ses_[a-z0-9_]{8,100}$",
+                    "type": "string"
+                  },
+                  "type": {
+                    "enum": ["export", "deletion"],
+                    "type": "string"
+                  }
+                },
+                "required": ["publicId", "sessionPublicId", "type"],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "publicId": {
+                      "pattern": "^acr_[a-z0-9_]{8,100}$",
+                      "type": "string"
+                    },
+                    "status": {
+                      "const": "requested",
+                      "type": "string"
+                    },
+                    "type": {
+                      "enum": ["export", "deletion"],
+                      "type": "string"
+                    }
+                  },
+                  "required": ["publicId", "status", "type"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "entra-bearer": []
+          }
+        ],
+        "summary": "Request an account export or recent-authenticated deletion",
         "tags": ["authenticated-v1"]
       }
     },

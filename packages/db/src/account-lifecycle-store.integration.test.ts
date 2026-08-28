@@ -239,6 +239,49 @@ describe.sequential('account lifecycle against real PostgreSQL', () => {
     expect(active.rows[0]?.count).toBe(1);
   });
 
+  it('revokes only the account owner session and records the logout audit atomically', async () => {
+    const account = await createAccount('logout_owner');
+    const outsider = await createAccount('logout_outsider');
+    await expect(
+      accountStore.revokeSession({
+        correlationId: randomUUID(),
+        sessionId: outsider.sessionId,
+        userId: account.user.id,
+      }),
+    ).rejects.toMatchObject({ code: 'SESSION_INVALID' });
+
+    const correlationId = randomUUID();
+    const sessionPublicId = await accountStore.revokeSession({
+      correlationId,
+      sessionId: account.sessionId,
+      userId: account.user.id,
+    });
+    const result = await pool.query<{
+      audit_count: number;
+      revocation_reason: string;
+      status: string;
+    }>(
+      `SELECT session.status, session.revocation_reason,
+              (SELECT count(*)::int FROM audit_events
+                WHERE subject_id = session.id AND correlation_id = $2) AS audit_count
+         FROM account_sessions session WHERE session.id = $1`,
+      [account.sessionId, correlationId],
+    );
+    expect(sessionPublicId).toMatch(/^ses_/);
+    expect(result.rows[0]).toEqual({
+      audit_count: 1,
+      revocation_reason: 'USER_LOGOUT',
+      status: 'revoked',
+    });
+    await expect(
+      accountStore.revokeSession({
+        correlationId: randomUUID(),
+        sessionId: account.sessionId,
+        userId: account.user.id,
+      }),
+    ).rejects.toMatchObject({ code: 'SESSION_INVALID' });
+  });
+
   it('enforces dual-controlled recovery holds before sensitive identity changes', async () => {
     const account = await createAccount('hold_target');
     const staffOne = await createStaff('hold_staff_one');
@@ -273,14 +316,25 @@ describe.sequential('account lifecycle against real PostgreSQL', () => {
 
   it('records export/deletion requests and requires recent auth plus no recovery hold', async () => {
     const account = await createAccount('requests');
+    const exportPublicId = `arq_${randomUUID()}`;
     const exportId = await accountStore.requestAccountAction({
       correlationId: randomUUID(),
-      publicId: `arq_${randomUUID()}`,
+      publicId: exportPublicId,
       sessionId: account.sessionId,
       type: 'export',
       userId: account.user.id,
     });
     expect(exportId).toMatch(/[0-9a-f-]{36}/);
+    const otherAccount = await createAccount('request_public_id_conflict');
+    await expect(
+      accountStore.requestAccountAction({
+        correlationId: randomUUID(),
+        publicId: exportPublicId,
+        sessionId: otherAccount.sessionId,
+        type: 'export',
+        userId: otherAccount.user.id,
+      }),
+    ).rejects.toMatchObject({ code: 'ACCOUNT_REQUEST_CONFLICT' });
     await expect(
       accountStore.requestAccountAction({
         correlationId: randomUUID(),

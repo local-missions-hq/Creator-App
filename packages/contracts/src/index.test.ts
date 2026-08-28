@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   accountOverviewSchema,
+  createAccountRequestSchema,
   apiErrorEnvelopeSchema,
   apiPaginationQuerySchema,
   apiRequestIdSchema,
@@ -13,6 +14,7 @@ import {
   financialActionIntentTypeSchema,
   healthStatusSchema,
   identityProviderSchema,
+  linkAccountIdentityRequestSchema,
   ledgerEntryDirectionSchema,
   ledgerTransactionTypeSchema,
   localPassClaimStatusSchema,
@@ -130,6 +132,29 @@ describe('account overview contract', () => {
     expect(overview.identities[0]).not.toHaveProperty('subject');
     expect(overview).not.toHaveProperty('email');
     expect(overview).not.toHaveProperty('streetAddress');
+  });
+
+  it('requires opaque provider proof and recent authentication for sensitive mutations', () => {
+    expect(
+      linkAccountIdentityRequestSchema.parse({
+        providerProofToken: 'proof-token-that-is-long-enough-for-validation',
+        recentAuthGrantPublicId: 'rag_synthetic_link_001',
+      }),
+    ).not.toHaveProperty('provider');
+    expect(() =>
+      createAccountRequestSchema.parse({
+        publicId: 'acr_synthetic_deletion_001',
+        sessionPublicId: 'ses_synthetic_creator_001',
+        type: 'deletion',
+      }),
+    ).toThrow(/recent authentication/);
+    expect(
+      createAccountRequestSchema.parse({
+        publicId: 'acr_synthetic_export_001',
+        sessionPublicId: 'ses_synthetic_creator_001',
+        type: 'export',
+      }),
+    ).toBeTruthy();
   });
 });
 

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="6" failures="0" errors="0" time="6.403040792">
+    <testsuite name="src/account-lifecycle-store.integration.test.ts" timestamp="2026-08-28T13:16:03.625Z" hostname="local-development-host" tests="6" failures="0" errors="0" skipped="0" time="6.403040792">
+        <testcase classname="src/account-lifecycle-store.integration.test.ts" name="account lifecycle against real PostgreSQL &gt; migrates privacy-safe lifecycle records and blocks legacy provider linking" time="0.078342916">
+        </testcase>
+        <testcase classname="src/account-lifecycle-store.integration.test.ts" name="account lifecycle against real PostgreSQL &gt; links only with fresh single-use proof and records history, audit, and security fan-out" time="0.062270208">
+        </testcase>
+        <testcase classname="src/account-lifecycle-store.integration.test.ts" name="account lifecycle against real PostgreSQL &gt; rejects the last method and permits exactly one concurrent unlink winner" time="0.089413042">
+        </testcase>
+        <testcase classname="src/account-lifecycle-store.integration.test.ts" name="account lifecycle against real PostgreSQL &gt; revokes only the account owner session and records the logout audit atomically" time="0.036820042">
+        </testcase>
+        <testcase classname="src/account-lifecycle-store.integration.test.ts" name="account lifecycle against real PostgreSQL &gt; enforces dual-controlled recovery holds before sensitive identity changes" time="0.095346333">
+        </testcase>
+        <testcase classname="src/account-lifecycle-store.integration.test.ts" name="account lifecycle against real PostgreSQL &gt; records export/deletion requests and requires recent auth plus no recovery hold" time="0.072033167">
+        </testcase>
+    </testsuite>
+</testsuites>

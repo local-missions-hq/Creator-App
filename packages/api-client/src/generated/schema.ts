@@ -126,6 +126,74 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/v1/account/identities': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Link a provider identity from verified provider control */
+    post: operations['DomainController_linkAccountIdentity'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/account/identities/{provider}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Unlink one verified provider while retaining another method */
+    delete: operations['DomainController_unlinkAccountIdentity'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/account/logout': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Revoke one active session owned by the current account */
+    post: operations['DomainController_revokeAccountSession'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/account/requests': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Request an account export or recent-authenticated deletion */
+    post: operations['DomainController_createAccountRequest'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/v1/business/campaigns': {
     parameters: {
       query?: never;
@@ -648,7 +716,9 @@ export interface operations {
         };
         content: {
           'application/json': {
-            resources: ('me' | 'creator-missions' | 'business-campaigns' | 'mission-templates')[];
+            resources: (
+              'account' | 'me' | 'creator-missions' | 'business-campaigns' | 'mission-templates'
+            )[];
             /** @constant */
             version: 'v1';
           };
@@ -748,6 +818,641 @@ export interface operations {
         };
       };
       403: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+    };
+  };
+  DomainController_linkAccountIdentity: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Optional caller correlation ID. Invalid values are replaced. */
+        'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Optional caller request ID. Invalid values are replaced. */
+        'x-request-id'?: components['parameters']['RequestId'];
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          providerProofToken: string;
+          recentAuthGrantPublicId: string;
+        };
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @enum {string} */
+            provider: 'apple' | 'google' | 'microsoft' | 'passwordless_email';
+            /** @enum {string} */
+            status: 'active' | 'revoked';
+          };
+        };
+      };
+      400: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      401: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      403: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      409: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+    };
+  };
+  DomainController_unlinkAccountIdentity: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Optional caller correlation ID. Invalid values are replaced. */
+        'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Optional caller request ID. Invalid values are replaced. */
+        'x-request-id'?: components['parameters']['RequestId'];
+      };
+      path: {
+        provider: 'apple' | 'google' | 'microsoft' | 'passwordless_email';
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          recentAuthGrantPublicId: string;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @enum {string} */
+            provider: 'apple' | 'google' | 'microsoft' | 'passwordless_email';
+            /** @enum {string} */
+            status: 'active' | 'revoked';
+          };
+        };
+      };
+      400: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      401: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      403: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      409: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+    };
+  };
+  DomainController_revokeAccountSession: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Optional caller correlation ID. Invalid values are replaced. */
+        'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Optional caller request ID. Invalid values are replaced. */
+        'x-request-id'?: components['parameters']['RequestId'];
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          sessionPublicId: string;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            sessionPublicId: string;
+            /** @constant */
+            status: 'revoked';
+          };
+        };
+      };
+      400: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      401: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      403: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+    };
+  };
+  DomainController_createAccountRequest: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Optional caller correlation ID. Invalid values are replaced. */
+        'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Optional caller request ID. Invalid values are replaced. */
+        'x-request-id'?: components['parameters']['RequestId'];
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          publicId: string;
+          recentAuthGrantPublicId?: string;
+          sessionPublicId: string;
+          /** @enum {string} */
+          type: 'export' | 'deletion';
+        };
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            publicId: string;
+            /** @constant */
+            status: 'requested';
+            /** @enum {string} */
+            type: 'export' | 'deletion';
+          };
+        };
+      };
+      400: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      401: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      403: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      409: {
         headers: {
           'x-correlation-id': components['headers']['CorrelationId'];
           'x-request-id': components['headers']['RequestId'];

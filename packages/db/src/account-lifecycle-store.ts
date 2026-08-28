@@ -80,6 +80,53 @@ export class AccountLifecycleStore {
     });
   }
 
+  async revokeSession(input: {
+    correlationId: string;
+    sessionId: string;
+    userId: string;
+  }): Promise<string> {
+    return this.withTransaction(async (client) => {
+      const result = await client.query<SessionRow>(
+        `SELECT id, public_id, user_id, external_identity_id, status, version
+           FROM account_sessions
+          WHERE id = $1 AND user_id = $2 AND status = 'active' AND expires_at > now()
+          FOR UPDATE`,
+        [input.sessionId, input.userId],
+      );
+      const session = result.rows[0];
+      if (!session) {
+        throw new AccountLifecycleError(
+          'SESSION_INVALID',
+          403,
+          'The account session is unavailable.',
+        );
+      }
+      const revoked = await client.query(
+        `UPDATE account_sessions
+            SET status = 'revoked', revoked_at = now(), revocation_reason = 'USER_LOGOUT',
+                version = version + 1, updated_at = now()
+          WHERE id = $1 AND status = 'active' AND version = $2`,
+        [session.id, session.version],
+      );
+      if (revoked.rowCount !== 1) {
+        throw new AccountLifecycleError(
+          'SESSION_INVALID',
+          403,
+          'The account session is unavailable.',
+        );
+      }
+      await this.appendAudit(client, {
+        action: 'account.session-revoked-by-owner',
+        actorId: input.userId,
+        correlationId: input.correlationId,
+        details: { reason: 'USER_LOGOUT', sessionPublicId: session.public_id },
+        subjectId: session.id,
+        subjectType: 'account-session',
+      });
+      return session.public_id;
+    });
+  }
+
   async grantRecentAuth(input: {
     expiresAt: Date;
     publicId: string;
@@ -381,7 +428,10 @@ export class AccountLifecycleStore {
         return requestId;
       });
     } catch (error) {
-      if (postgresConstraint(error) === 'account_requests_open_user_type_uq') {
+      if (
+        postgresConstraint(error) === 'account_requests_open_user_type_uq' ||
+        postgresConstraint(error) === 'account_requests_public_id_uq'
+      ) {
         throw new AccountLifecycleError(
           'ACCOUNT_REQUEST_CONFLICT',
           409,

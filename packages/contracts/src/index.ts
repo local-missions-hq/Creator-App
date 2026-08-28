@@ -69,6 +69,7 @@ export const buildInfoSchema = z.object({
 });
 
 export const apiResourceSchema = z.enum([
+  'account',
   'me',
   'creator-missions',
   'business-campaigns',
@@ -177,6 +178,22 @@ export const identityProviderSchema = z.enum([
   'microsoft',
   'passwordless_email',
 ]);
+
+export const accountSessionPublicIdSchema = z.string().regex(/^ses_[a-z0-9_]{8,100}$/);
+export const recentAuthGrantPublicIdSchema = z.string().regex(/^rag_[a-z0-9_]{8,100}$/);
+export const accountRequestPublicIdSchema = z.string().regex(/^acr_[a-z0-9_]{8,100}$/);
+export const accountRequestTypeSchema = z.enum(['export', 'deletion']);
+export const accountIdentityProviderParameterSchema = identityProviderSchema;
+
+export const localProviderProofRequestSchema = z.object({
+  provider: identityProviderSchema,
+});
+export const localProviderProofResponseSchema = z.object({
+  expiresIn: z.literal(300),
+  proofToken: z.string().min(32).max(4_000),
+  provider: identityProviderSchema,
+  tokenType: z.literal('LocalProviderControlProof'),
+});
 
 export const userStatusSchema = z.enum(['active', 'disabled', 'deletion_requested']);
 export const creatorProfileStatusSchema = z.enum([
@@ -757,6 +774,46 @@ export const accountOverviewSchema = z.object({
   userPublicId: z.string().min(1).max(120),
 });
 
+export const linkAccountIdentityRequestSchema = z.object({
+  providerProofToken: z.string().min(32).max(4_000),
+  recentAuthGrantPublicId: recentAuthGrantPublicIdSchema,
+});
+export const unlinkAccountIdentityRequestSchema = z.object({
+  recentAuthGrantPublicId: recentAuthGrantPublicIdSchema,
+});
+export const accountIdentityMutationResponseSchema = z.object({
+  provider: identityProviderSchema,
+  status: z.enum(['active', 'revoked']),
+});
+export const revokeAccountSessionRequestSchema = z.object({
+  sessionPublicId: accountSessionPublicIdSchema,
+});
+export const revokeAccountSessionResponseSchema = z.object({
+  sessionPublicId: accountSessionPublicIdSchema,
+  status: z.literal('revoked'),
+});
+export const createAccountRequestSchema = z
+  .object({
+    publicId: accountRequestPublicIdSchema,
+    recentAuthGrantPublicId: recentAuthGrantPublicIdSchema.optional(),
+    sessionPublicId: accountSessionPublicIdSchema,
+    type: accountRequestTypeSchema,
+  })
+  .superRefine((value, context) => {
+    if (value.type === 'deletion' && !value.recentAuthGrantPublicId) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Account deletion requires recent authentication.',
+        path: ['recentAuthGrantPublicId'],
+      });
+    }
+  });
+export const accountRequestMutationResponseSchema = z.object({
+  publicId: accountRequestPublicIdSchema,
+  status: z.literal('requested'),
+  type: accountRequestTypeSchema,
+});
+
 export const reachQualificationSummarySchema = z.object({
   expiresAt: z.iso.datetime({ offset: true }),
   isGrace: z.boolean(),
@@ -886,6 +943,15 @@ export type LocalDevTokenResponse = z.infer<typeof localDevTokenResponseSchema>;
 export type AuthenticatedContext = z.infer<typeof authenticatedContextSchema>;
 export type AuthenticatedRole = z.infer<typeof authenticatedRoleSchema>;
 export type AccountOverview = z.infer<typeof accountOverviewSchema>;
+export type AccountIdentityMutationResponse = z.infer<typeof accountIdentityMutationResponseSchema>;
+export type AccountRequestMutationResponse = z.infer<typeof accountRequestMutationResponseSchema>;
+export type CreateAccountRequest = z.infer<typeof createAccountRequestSchema>;
+export type LinkAccountIdentityRequest = z.infer<typeof linkAccountIdentityRequestSchema>;
+export type LocalProviderProofRequest = z.infer<typeof localProviderProofRequestSchema>;
+export type LocalProviderProofResponse = z.infer<typeof localProviderProofResponseSchema>;
+export type RevokeAccountSessionRequest = z.infer<typeof revokeAccountSessionRequestSchema>;
+export type RevokeAccountSessionResponse = z.infer<typeof revokeAccountSessionResponseSchema>;
+export type UnlinkAccountIdentityRequest = z.infer<typeof unlinkAccountIdentityRequestSchema>;
 export type BusinessReachOptions = z.infer<typeof businessReachOptionsSchema>;
 export type BusinessCampaignDetail = z.infer<typeof businessCampaignDetailSchema>;
 export type BusinessCampaignPage = z.infer<typeof businessCampaignPageSchema>;

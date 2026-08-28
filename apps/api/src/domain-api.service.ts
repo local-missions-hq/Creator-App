@@ -3,24 +3,33 @@ import { randomUUID } from 'node:crypto';
 
 import { Inject, Injectable } from '@nestjs/common';
 import type {
+  AccountIdentityMutationResponse,
   AccountOverview,
+  AccountRequestMutationResponse,
   AuthenticatedContext,
   AuthenticatedRole,
   BusinessCampaignDetail,
   BusinessCampaignPage,
   BusinessCampaignSummary,
   BusinessReachOptions,
+  CreateAccountRequest,
   CreatorProfileStatus,
   CreatorMissionDetail,
   CreatorMissionPage,
   CreatorMissionSummary,
   CreatorReachOverview,
+  IdentityProvider,
+  LinkAccountIdentityRequest,
   MissionApplicationResponse,
   LocalityStatus,
   ReachCapabilityStatus,
+  RevokeAccountSessionResponse,
   SocialPlatform,
+  UnlinkAccountIdentityRequest,
 } from '@local-missions/contracts';
 import {
+  AccountLifecycleError,
+  AccountLifecycleStore,
   MissionApplicationError,
   MissionApplicationStore,
   ReachQualificationError,
@@ -33,6 +42,10 @@ import { ApiProblem, dependencyUnavailable, validationProblem } from './api-erro
 import { AuthenticationService, type VerifiedBearerIdentity } from './authentication.js';
 import type { ContextualRequest } from './api-context.js';
 import { DatabaseService } from './database.service.js';
+import {
+  PROVIDER_CONTROL_PROOF_VERIFIER,
+  type ProviderControlProofVerifier,
+} from './provider-control-proof.js';
 
 type AuthenticatedPrincipal = {
   businessId: string | null;
@@ -126,6 +139,8 @@ export class DomainApiService {
   constructor(
     @Inject(AuthenticationService) private readonly authentication: AuthenticationService,
     @Inject(DatabaseService) private readonly database: DatabaseService,
+    @Inject(PROVIDER_CONTROL_PROOF_VERIFIER)
+    private readonly providerProofs: ProviderControlProofVerifier,
   ) {}
 
   async authenticate(request: ContextualRequest): Promise<AuthenticatedPrincipal> {
@@ -218,6 +233,101 @@ export class DomainApiService {
       status: 'active',
       userPublicId: principal.context.userPublicId,
     };
+  }
+
+  async linkAccountIdentity(
+    principal: AuthenticatedPrincipal,
+    input: LinkAccountIdentityRequest,
+    correlationId: string,
+  ): Promise<AccountIdentityMutationResponse> {
+    try {
+      const proof = await this.providerProofs.verify(
+        input.providerProofToken,
+        principal.context.userPublicId,
+      );
+      const grantId = await this.resolveRecentAuthGrantId(
+        principal.userId,
+        input.recentAuthGrantPublicId,
+      );
+      await new AccountLifecycleStore(this.database.requirePool()).linkIdentity({
+        correlationId,
+        grantId,
+        issuer: proof.issuer,
+        provider: proof.provider,
+        subject: proof.subject,
+        userId: principal.userId,
+      });
+      return { provider: proof.provider, status: 'active' };
+    } catch (error) {
+      this.throwAccountProblem(error);
+    }
+  }
+
+  async unlinkAccountIdentity(
+    principal: AuthenticatedPrincipal,
+    provider: IdentityProvider,
+    input: UnlinkAccountIdentityRequest,
+    correlationId: string,
+  ): Promise<AccountIdentityMutationResponse> {
+    try {
+      const [externalIdentityId, grantId] = await Promise.all([
+        this.resolveExternalIdentityId(principal.userId, provider),
+        this.resolveRecentAuthGrantId(principal.userId, input.recentAuthGrantPublicId),
+      ]);
+      await new AccountLifecycleStore(this.database.requirePool()).unlinkIdentity({
+        correlationId,
+        externalIdentityId,
+        grantId,
+        userId: principal.userId,
+      });
+      return { provider, status: 'revoked' };
+    } catch (error) {
+      this.throwAccountProblem(error);
+    }
+  }
+
+  async revokeAccountSession(
+    principal: AuthenticatedPrincipal,
+    sessionPublicId: string,
+    correlationId: string,
+  ): Promise<RevokeAccountSessionResponse> {
+    try {
+      const sessionId = await this.resolveAccountSessionId(principal.userId, sessionPublicId);
+      const revokedSessionPublicId = await new AccountLifecycleStore(
+        this.database.requirePool(),
+      ).revokeSession({
+        correlationId,
+        sessionId,
+        userId: principal.userId,
+      });
+      return { sessionPublicId: revokedSessionPublicId, status: 'revoked' };
+    } catch (error) {
+      this.throwAccountProblem(error);
+    }
+  }
+
+  async createAccountRequest(
+    principal: AuthenticatedPrincipal,
+    input: CreateAccountRequest,
+    correlationId: string,
+  ): Promise<AccountRequestMutationResponse> {
+    try {
+      const sessionId = await this.resolveAccountSessionId(principal.userId, input.sessionPublicId);
+      const grantId = input.recentAuthGrantPublicId
+        ? await this.resolveRecentAuthGrantId(principal.userId, input.recentAuthGrantPublicId)
+        : undefined;
+      await new AccountLifecycleStore(this.database.requirePool()).requestAccountAction({
+        correlationId,
+        ...(grantId ? { grantId } : {}),
+        publicId: input.publicId,
+        sessionId,
+        type: input.type,
+        userId: principal.userId,
+      });
+      return { publicId: input.publicId, status: 'requested', type: input.type };
+    } catch (error) {
+      this.throwAccountProblem(error);
+    }
   }
 
   async getCreatorReach(principal: AuthenticatedPrincipal): Promise<CreatorReachOverview> {
@@ -649,6 +759,60 @@ export class DomainApiService {
       },
       userId: row.id,
     };
+  }
+
+  private async resolveAccountSessionId(userId: string, publicId: string): Promise<string> {
+    const result = await this.database.requirePool().query<{ id: string }>(
+      `SELECT id FROM account_sessions
+        WHERE user_id = $1 AND public_id = $2 AND status = 'active' AND expires_at > now()`,
+      [userId, publicId],
+    );
+    const id = result.rows[0]?.id;
+    if (!id) throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
+    return id;
+  }
+
+  private async resolveRecentAuthGrantId(userId: string, publicId: string): Promise<string> {
+    const result = await this.database.requirePool().query<{ id: string }>(
+      `SELECT id FROM recent_auth_grants
+        WHERE user_id = $1 AND public_id = $2 AND consumed_at IS NULL AND expires_at > now()`,
+      [userId, publicId],
+    );
+    const id = result.rows[0]?.id;
+    if (!id) {
+      throw new ApiProblem(
+        'STATE_CONFLICT',
+        'A fresh, single-use recent-authentication proof is required.',
+        409,
+      );
+    }
+    return id;
+  }
+
+  private async resolveExternalIdentityId(
+    userId: string,
+    provider: IdentityProvider,
+  ): Promise<string> {
+    const result = await this.database.requirePool().query<{ id: string }>(
+      `SELECT id FROM external_identities
+        WHERE user_id = $1 AND provider = $2 AND status = 'active'`,
+      [userId, provider],
+    );
+    const id = result.rows[0]?.id;
+    if (!id) throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
+    return id;
+  }
+
+  private throwAccountProblem(error: unknown): never {
+    if (error instanceof ApiProblem) throw error;
+    if (error instanceof AccountLifecycleError) {
+      throw new ApiProblem(
+        error.httpStatus === 403 ? 'ACCESS_DENIED' : 'STATE_CONFLICT',
+        error.message,
+        error.httpStatus,
+      );
+    }
+    throw dependencyUnavailable();
   }
 
   private throwReachProblem(error: unknown): never {

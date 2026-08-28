@@ -1,12 +1,12 @@
 # M04 authentication and account lifecycle evidence
 
-Status: M4 in progress; phone-free account lifecycle plus authenticated read/UI checkpoints passed
+Status: M4 in progress; phone-free account lifecycle, authenticated read/UI, and mutation checkpoints passed
 
 Date: 2026-08-28
 
-Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`
+Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`
 
-Environment: Node 24.19.0, pnpm 11.24.0, PostgreSQL 17 Alpine on loopback Docker
+Environment baseline: Node 24.19.0 and pnpm 11.24.0. The mutation continuation used pnpm 11.24.0 with shell Node 25.9.0 and an engine warning. PostgreSQL 17 Alpine ran on loopback Docker.
 
 ## Implemented
 
@@ -50,4 +50,19 @@ JUnit evidence: [`test-results/account-read-api-junit.xml`](./test-results/accou
 
 The repository pins Node 24.19.x. This continuation used pnpm 11.24.0 through the pinned-version runner while the shell exposed Node 25.9.0, so commands emitted an engine warning even though every gate passed. A later final M4 gate must rerun under the pinned Node runtime.
 
-Provider-proof-backed link, recent-authenticated unlink, session logout/revocation, export/deletion request HTTP mutations, cache/SecureStore purge, real Entra validation, and physical-device round trips remain open.
+## Authenticated account mutations and local provider-proof boundary
+
+- Added authenticated identity link/unlink, session logout, and export/deletion request routes. Every internal UUID is resolved from an account-owned public ID or provider under the bearer-resolved user.
+- Provider link accepts only a short-lived opaque provider-control proof and a fresh purpose-specific recent-auth grant. The request cannot assert provider, issuer, subject, email, contact, locality, or audience data.
+- Production provider proof fails closed. A separate local-only signer issues five-minute one-use proofs only for authenticated synthetic users, is absent from production OpenAPI/routes/build output, and refuses every non-local environment.
+- Unlink requires fresh one-use authentication, rejects the last method, observes recovery holds, revokes provider-bound sessions, and retains immutable history/security notices.
+- Logout revokes only an active same-user session, records an atomic audit, and rejects cross-user or repeated attempts. The mobile coordinator clears sensitive local state after success and after an unconfirmed remote failure.
+- Export requires an active session. Deletion additionally requires recent authentication, records immutable request/history/security evidence, preserves required money/legal history, and immediately rejects later bearer use through `deletion_requested` status.
+- The V1 discovery endpoint advertises the authenticated account lifecycle resource, and duplicate public account-request identifiers are converted to the same bounded conflict response as duplicate open requests.
+- The explicit mobile adapter never mutates in local preview. The Account & Safety and Account Deletion views now show sign-out, export, deletion-review, recent-auth, and no-persistence states in the same generated-image color/card system.
+
+Six focused account-lifecycle tests and all 98 database integration tests pass. Eleven authenticated-domain tests and all 19 API integration tests pass. `pnpm verify` passes all nine workspaces with 41 mobile tests, deterministic OpenAPI/client reconstruction, and production local-marker exclusion. `db:check` verifies 96 tables; the security scan passes 408 text files; and Gitleaks finds no leak in approximately 14.03 MB.
+
+JUnit evidence: [`test-results/account-mutations-api-junit.xml`](./test-results/account-mutations-api-junit.xml), [`test-results/account-mutations-db-junit.xml`](./test-results/account-mutations-db-junit.xml)
+
+The native SecureStore-backed mobile session implementation, real Entra verifier/registrations, provider cancellation and email-code flows, complete role/resource authorization matrix, and physical-device system-browser/deep-link execution remain open M4 gates.

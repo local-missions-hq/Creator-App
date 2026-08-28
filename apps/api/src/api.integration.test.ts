@@ -6,6 +6,7 @@ import { createApiApplication } from './create-application.js';
 import type { SafeRequestLog } from './api-logging.js';
 import { LocalAppModule } from './local-only/local-app.module.js';
 import { LocalDevTokenService } from './local-only/dev-token.service.js';
+import { LocalProviderProofService } from './local-only/provider-proof.service.js';
 
 const localDatabaseUrl =
   'postgresql://local_missions:local_missions_local_only@127.0.0.1:5432/local_missions';
@@ -33,6 +34,16 @@ afterAll(async () => {
 });
 
 describe('API operational boundary', () => {
+  it('discovers every implemented V1 resource including account lifecycle', async () => {
+    const response = await productionApp.inject({ method: 'GET', url: '/v1' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      resources: ['account', 'me', 'creator-missions', 'business-campaigns', 'mission-templates'],
+      version: 'v1',
+    });
+  });
+
   it('keeps liveness independent, readiness database-backed, and build info non-secret', async () => {
     const live = await productionApp.inject({ method: 'GET', url: '/health/live' });
     const ready = await productionApp.inject({ method: 'GET', url: '/health/ready' });
@@ -140,7 +151,9 @@ describe('API operational boundary', () => {
     });
 
     expect(productionDocument.json().paths['/v1/dev/token']).toBeUndefined();
+    expect(productionDocument.json().paths['/v1/dev/provider-proof']).toBeUndefined();
     expect(localDocument.json().paths['/v1/dev/token']).toBeTruthy();
+    expect(localDocument.json().paths['/v1/dev/provider-proof']).toBeTruthy();
     expect(productionToken.statusCode).toBe(404);
     expect(productionToken.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/);
     expect(productionToken.json()).toMatchObject({
@@ -155,6 +168,7 @@ describe('API operational boundary', () => {
     process.env.APP_ENV = 'staging';
     try {
       expect(() => new LocalDevTokenService()).toThrow(/forbidden/);
+      expect(() => new LocalProviderProofService()).toThrow(/forbidden/);
     } finally {
       process.env.APP_ENV = 'local';
     }

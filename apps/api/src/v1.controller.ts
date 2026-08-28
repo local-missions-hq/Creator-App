@@ -28,7 +28,13 @@ export class V1Controller {
   @Get()
   getIndex() {
     return {
-      resources: ['me', 'creator-missions', 'business-campaigns', 'mission-templates'] as const,
+      resources: [
+        'account',
+        'me',
+        'creator-missions',
+        'business-campaigns',
+        'mission-templates',
+      ] as const,
       version: 'v1' as const,
     };
   }

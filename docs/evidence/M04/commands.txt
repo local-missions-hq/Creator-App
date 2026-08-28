@@ -85,3 +85,49 @@ VISUAL — the visible in-app browser refreshed `http://localhost:8081/creator/a
 ENVIRONMENT NOTE — the repository pins Node 24.19.x. The shell exposed Node 25.9.0 and emitted an engine warning; pnpm 11.24.0 was selected explicitly and every gate passed. Rerun under pinned Node before the final M4 gate.
 
 No Entra, Azure, Stripe, social provider, notification provider, phone, payment, message, external account, or real customer action occurred.
+
+M04-account-mutations-local-002b — 2026-08-28
+
+pnpm --filter @local-missions/contracts test
+PASS — 19 contract tests passed, including opaque provider proof and deletion recent-auth requirements.
+
+pnpm --filter @local-missions/db exec vitest run src/account-lifecycle-store.integration.test.ts
+PASS — six focused lifecycle tests passed, including owner-only atomic session revocation and logout replay denial.
+
+pnpm --filter @local-missions/api test:integration
+PASS — all 19 API integration tests passed against real loopback PostgreSQL, including V1 account-resource discovery.
+
+pnpm openapi:generate
+pnpm --filter @local-missions/api-client build
+PASS — reviewed production/local OpenAPI and the shared typed client regenerated with identity, logout, and account-request mutations; local provider-proof issuance remains local-only.
+
+pnpm --filter @local-missions/mobile test
+pnpm --filter @local-missions/mobile typecheck
+PASS — all 41 mobile tests and strict TypeScript passed, including mutation no-persistence and logout cache-clear coordination.
+
+pnpm --filter @local-missions/db test:integration
+PASS — all 98 database integration tests passed across fifteen suites.
+
+pnpm db:check
+PASS — the deterministic 96-table schema/seed check passed.
+
+pnpm verify
+PASS — formatting, prerequisites, lint, strict type checks, unit tests, OpenAPI/migration contracts, production local-marker exclusion, and all nine builds passed with 41 mobile tests.
+
+FINAL COMPLETENESS RECHECK — the first final `pnpm verify` correctly rejected a stale typed-client artifact after account was added to V1 discovery. Contracts were rebuilt before OpenAPI/client regeneration; `pnpm --filter @local-missions/api contracts:check` and the complete `pnpm verify` gate then passed.
+
+pnpm --filter @local-missions/api exec vitest run src/domain-api.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/account-mutations-api-junit.xml
+PASS — retained eleven authenticated-domain tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+pnpm --filter @local-missions/db exec vitest run src/account-lifecycle-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/account-mutations-db-junit.xml
+PASS — retained six account-lifecycle tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+VISUAL — the visible in-app browser verified the new disabled local-preview sign-out control plus interactive export/deletion preview states at `http://localhost:8081/creator/account` and `/creator/delete-account`. Both states explicitly confirm that no request, session revocation, provider action, or record mutation occurred.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 408 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 14.03 MB.
+
+No Entra, Azure, Stripe, social provider, notification provider, phone, payment, message, external account, or real customer action occurred.

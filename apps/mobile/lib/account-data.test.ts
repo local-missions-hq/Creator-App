@@ -39,4 +39,59 @@ describe('mobile account data adapter', () => {
       headers: { Authorization: 'Bearer test-token-not-a-secret' },
     });
   });
+
+  it('never persists account mutations in local preview', async () => {
+    const post = vi.fn();
+    const remove = vi.fn();
+    const adapter = createMobileAccountDataAdapter({
+      client: { DELETE: remove, POST: post } as never,
+      mode: 'local-preview',
+    });
+
+    await expect(adapter.revokeSession('ses_synthetic_creator_001')).rejects.toThrow(
+      /never persists/,
+    );
+    await expect(
+      adapter.createAccountRequest({
+        publicId: 'acr_export_synthetic_001',
+        sessionPublicId: 'ses_synthetic_creator_001',
+        type: 'export',
+      }),
+    ).rejects.toThrow(/never persists/);
+    await expect(adapter.unlinkIdentity('google', 'rag_synthetic_unlink_001')).rejects.toThrow(
+      /never persists/,
+    );
+    expect(post).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
+  });
+
+  it('uses generated mutation routes and bearer authorization in API mode', async () => {
+    const post = vi.fn().mockResolvedValue({ data: { status: 'requested', type: 'export' } });
+    const remove = vi.fn().mockResolvedValue({ data: { provider: 'google', status: 'revoked' } });
+    const adapter = createMobileAccountDataAdapter({
+      accessToken: 'test-token-not-a-secret',
+      client: { DELETE: remove, POST: post } as never,
+      mode: 'api',
+    });
+    await adapter.createAccountRequest({
+      publicId: 'acr_export_synthetic_001',
+      sessionPublicId: 'ses_synthetic_creator_001',
+      type: 'export',
+    });
+    await adapter.unlinkIdentity('google', 'rag_synthetic_unlink_001');
+
+    expect(post).toHaveBeenCalledWith('/v1/account/requests', {
+      body: {
+        publicId: 'acr_export_synthetic_001',
+        sessionPublicId: 'ses_synthetic_creator_001',
+        type: 'export',
+      },
+      headers: { Authorization: 'Bearer test-token-not-a-secret' },
+    });
+    expect(remove).toHaveBeenCalledWith('/v1/account/identities/{provider}', {
+      body: { recentAuthGrantPublicId: 'rag_synthetic_unlink_001' },
+      headers: { Authorization: 'Bearer test-token-not-a-secret' },
+      params: { path: { provider: 'google' } },
+    });
+  });
 });

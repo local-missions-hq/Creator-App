@@ -2,7 +2,15 @@ import { readdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const outputDirectory = fileURLToPath(new URL('../dist/', import.meta.url));
-const forbiddenMarkers = ['LOCAL_DEV', 'LocalDevToken', 'local-missions-local-dev', 'v1/dev'];
+const forbiddenMarkers = [
+  'LOCAL_DEV',
+  'LOCAL_PROVIDER_CONTROL',
+  'LocalDevToken',
+  'LocalProviderProof',
+  'local-missions-local-dev',
+  'local-missions-local-provider-proof',
+  'v1/dev',
+];
 
 async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });

@@ -11,6 +11,10 @@ import { DomainController } from './domain.controller.js';
 import { HealthController } from './health.controller.js';
 import { OpenApiController } from './openapi.controller.js';
 import { OpenApiDocumentStore } from './openapi.js';
+import {
+  PROVIDER_CONTROL_PROOF_VERIFIER,
+  UnavailableProviderControlProofVerifier,
+} from './provider-control-proof.js';
 import { V1Controller } from './v1.controller.js';
 
 @Module({
@@ -20,8 +24,13 @@ import { V1Controller } from './v1.controller.js';
     DatabaseService,
     DomainApiService,
     OpenApiDocumentStore,
+    UnavailableProviderControlProofVerifier,
     UnavailableBearerVerifier,
     { provide: BEARER_VERIFIER, useExisting: UnavailableBearerVerifier },
+    {
+      provide: PROVIDER_CONTROL_PROOF_VERIFIER,
+      useExisting: UnavailableProviderControlProofVerifier,
+    },
   ],
 })
 export class AppModule {}

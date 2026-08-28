@@ -7,6 +7,7 @@ import { appColors } from '../../components/AppShell';
 import { CreatorMissionShell } from '../../components/CreatorMissionShell';
 
 export default function CreatorDeleteAccountScreen() {
+  const [exportPreviewed, setExportPreviewed] = useState(false);
   const [previewed, setPreviewed] = useState(false);
 
   return (
@@ -63,6 +64,26 @@ export default function CreatorDeleteAccountScreen() {
         </View>
       </View>
 
+      <Pressable
+        accessibilityLabel="Preview account export request"
+        accessibilityRole="button"
+        onPress={() => setExportPreviewed(true)}
+        style={[styles.exportButton, exportPreviewed && styles.exportButtonDone]}
+        testID="creator-preview-account-export"
+      >
+        <Ionicons
+          color={exportPreviewed ? '#159464' : appColors.teal}
+          name={exportPreviewed ? 'checkmark-circle' : 'download-outline'}
+          size={20}
+        />
+        <View style={styles.exportButtonCopy}>
+          <Text style={[styles.exportButtonTitle, exportPreviewed && styles.exportButtonTitleDone]}>
+            {exportPreviewed ? 'Export request previewed' : 'Preview export request'}
+          </Text>
+          <Text style={styles.exportButtonDetail}>No request leaves this local preview</Text>
+        </View>
+      </Pressable>
+
       {previewed ? (
         <View style={styles.previewState}>
           <Ionicons color="#159464" name="checkmark-circle" size={23} />
@@ -89,7 +110,8 @@ export default function CreatorDeleteAccountScreen() {
         <Ionicons color="#ffffff" name={previewed ? 'checkmark' : 'arrow-forward'} size={20} />
       </Pressable>
       <Text style={styles.footer}>
-        No account, profile, media, identity, mission, payment, or provider record is deleted.
+        No export or deletion request is submitted, and no account, profile, media, identity,
+        mission, payment, or provider record is changed.
       </Text>
     </CreatorMissionShell>
   );
@@ -141,6 +163,20 @@ const styles = StyleSheet.create({
   exportCopy: { flex: 1 },
   exportTitle: { color: appColors.ink, fontSize: 13, fontWeight: '900' },
   exportText: { color: appColors.muted, fontSize: 9, lineHeight: 14, marginTop: 3 },
+  exportButton: {
+    alignItems: 'center',
+    backgroundColor: appColors.tealSoft,
+    borderRadius: 16,
+    flexDirection: 'row',
+    gap: 9,
+    marginTop: 10,
+    padding: 13,
+  },
+  exportButtonDone: { backgroundColor: '#e9f7ef' },
+  exportButtonCopy: { flex: 1 },
+  exportButtonTitle: { color: appColors.teal, fontSize: 12, fontWeight: '900' },
+  exportButtonTitleDone: { color: '#116b49' },
+  exportButtonDetail: { color: appColors.muted, fontSize: 8, marginTop: 2 },
   previewState: {
     alignItems: 'flex-start',
     backgroundColor: '#e9f7ef',

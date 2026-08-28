@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -26,18 +28,67 @@ const logs: SafeRequestLog[] = [];
 async function issueToken(
   role: 'creator' | 'business_owner',
   tenant = role === 'creator' ? undefined : tenantPublicId,
+  subject = subjectPublicId,
 ) {
   const response = await localApp.inject({
     method: 'POST',
     payload: {
       role,
-      subjectPublicId,
+      subjectPublicId: subject,
       ...(tenant ? { tenantPublicId: tenant } : {}),
     },
     url: '/v1/dev/token',
   });
   expect(response.statusCode).toBe(201);
   return response.json<{ accessToken: string }>().accessToken;
+}
+
+async function createSyntheticAccountFixture(label: string) {
+  const suffix = randomUUID().replaceAll('-', '');
+  const userPublicId = `usr_${label}_synthetic_${suffix}`;
+  const sessionPublicId = `ses_${label}_synthetic_${suffix}`;
+  const user = await pool.query<{ id: string }>(
+    `INSERT INTO users (public_id) VALUES ($1) RETURNING id`,
+    [userPublicId],
+  );
+  const userId = user.rows[0]?.id;
+  if (!userId) throw new Error('Synthetic account user insert returned no row.');
+  const identity = await pool.query<{ id: string }>(
+    `INSERT INTO external_identities (user_id, provider, issuer, subject, verified_at)
+     VALUES ($1,'apple','https://identity.local.test/apple',$2,now()) RETURNING id`,
+    [userId, `synthetic-apple-${suffix}`],
+  );
+  const identityId = identity.rows[0]?.id;
+  if (!identityId) throw new Error('Synthetic account identity insert returned no row.');
+  await pool.query(
+    `INSERT INTO creator_profiles (
+       user_id, public_id, status, locality_status, verified_postal_area,
+       locality_verified_at, locality_expires_at
+     ) VALUES ($1,$2,'approved','verified','32801',now(),now() + interval '1 year')`,
+    [userId, `cr_${label}_synthetic_${suffix}`],
+  );
+  const session = await pool.query<{ id: string }>(
+    `INSERT INTO account_sessions (public_id, user_id, external_identity_id, expires_at)
+     VALUES ($1,$2,$3,now() + interval '30 days') RETURNING id`,
+    [sessionPublicId, userId, identityId],
+  );
+  const sessionId = session.rows[0]?.id;
+  if (!sessionId) throw new Error('Synthetic account session insert returned no row.');
+  return { sessionId, sessionPublicId, userId, userPublicId };
+}
+
+async function createRecentAuthGrant(
+  account: Awaited<ReturnType<typeof createSyntheticAccountFixture>>,
+  purpose: 'account_deletion' | 'identity_link' | 'identity_unlink',
+) {
+  const publicId = `rag_api_synthetic_${randomUUID().replaceAll('-', '')}`;
+  await pool.query(
+    `INSERT INTO recent_auth_grants (
+       public_id, user_id, account_session_id, purpose, expires_at
+     ) VALUES ($1,$2,$3,$4,now() + interval '5 minutes')`,
+    [publicId, account.userId, account.sessionId, purpose],
+  );
+  return publicId;
 }
 
 async function cleanApplicationFixture() {
@@ -245,6 +296,132 @@ describe('authenticated Creator and Business API slice', () => {
     expect(serialized).not.toContain('subject');
     expect(serialized).not.toContain('email');
     expect(serialized).not.toContain('street');
+  });
+
+  it('links and unlinks only through recent auth plus one-time local provider control', async () => {
+    const account = await createSyntheticAccountFixture('api_identity');
+    const token = await issueToken('creator', undefined, account.userPublicId);
+    const proofResponse = await localApp.inject({
+      headers: { authorization: `Bearer ${token}` },
+      method: 'POST',
+      payload: { provider: 'google' },
+      url: '/v1/dev/provider-proof',
+    });
+    const proofToken = proofResponse.json<{ proofToken: string }>().proofToken;
+    const link = await localApp.inject({
+      headers: { authorization: `Bearer ${token}` },
+      method: 'POST',
+      payload: {
+        providerProofToken: proofToken,
+        recentAuthGrantPublicId: await createRecentAuthGrant(account, 'identity_link'),
+      },
+      url: '/v1/account/identities',
+    });
+    const replay = await localApp.inject({
+      headers: { authorization: `Bearer ${token}` },
+      method: 'POST',
+      payload: {
+        providerProofToken: proofToken,
+        recentAuthGrantPublicId: await createRecentAuthGrant(account, 'identity_link'),
+      },
+      url: '/v1/account/identities',
+    });
+    const unlink = await localApp.inject({
+      headers: { authorization: `Bearer ${token}` },
+      method: 'DELETE',
+      payload: {
+        recentAuthGrantPublicId: await createRecentAuthGrant(account, 'identity_unlink'),
+      },
+      url: '/v1/account/identities/google',
+    });
+    const lastMethod = await localApp.inject({
+      headers: { authorization: `Bearer ${token}` },
+      method: 'DELETE',
+      payload: {
+        recentAuthGrantPublicId: await createRecentAuthGrant(account, 'identity_unlink'),
+      },
+      url: '/v1/account/identities/apple',
+    });
+
+    expect(proofResponse.statusCode).toBe(201);
+    expect(link.statusCode).toBe(201);
+    expect(link.json()).toEqual({ provider: 'google', status: 'active' });
+    expect(replay.statusCode).toBe(409);
+    expect(unlink.statusCode).toBe(200);
+    expect(unlink.json()).toEqual({ provider: 'google', status: 'revoked' });
+    expect(lastMethod.statusCode).toBe(409);
+    expect(lastMethod.json().error.message).toMatch(/another sign-in method/);
+    expect(JSON.stringify(logs)).not.toContain(proofToken);
+  });
+
+  it('revokes only own sessions and accepts export/deletion requests with the right proof', async () => {
+    const logoutAccount = await createSyntheticAccountFixture('api_logout');
+    const requestAccount = await createSyntheticAccountFixture('api_requests');
+    const rootToken = await issueToken('creator');
+    const logoutToken = await issueToken('creator', undefined, logoutAccount.userPublicId);
+    const requestToken = await issueToken('creator', undefined, requestAccount.userPublicId);
+
+    const crossAccountLogout = await localApp.inject({
+      headers: { authorization: `Bearer ${rootToken}` },
+      method: 'POST',
+      payload: { sessionPublicId: logoutAccount.sessionPublicId },
+      url: '/v1/account/logout',
+    });
+    const logout = await localApp.inject({
+      headers: { authorization: `Bearer ${logoutToken}` },
+      method: 'POST',
+      payload: { sessionPublicId: logoutAccount.sessionPublicId },
+      url: '/v1/account/logout',
+    });
+    const exportRequest = await localApp.inject({
+      headers: { authorization: `Bearer ${requestToken}` },
+      method: 'POST',
+      payload: {
+        publicId: `acr_export_synthetic_${randomUUID().replaceAll('-', '')}`,
+        sessionPublicId: requestAccount.sessionPublicId,
+        type: 'export',
+      },
+      url: '/v1/account/requests',
+    });
+    const deletionWithoutProof = await localApp.inject({
+      headers: { authorization: `Bearer ${requestToken}` },
+      method: 'POST',
+      payload: {
+        publicId: `acr_deletion_synthetic_${randomUUID().replaceAll('-', '')}`,
+        sessionPublicId: requestAccount.sessionPublicId,
+        type: 'deletion',
+      },
+      url: '/v1/account/requests',
+    });
+    const deletionRequest = await localApp.inject({
+      headers: { authorization: `Bearer ${requestToken}` },
+      method: 'POST',
+      payload: {
+        publicId: `acr_deletion_synthetic_${randomUUID().replaceAll('-', '')}`,
+        recentAuthGrantPublicId: await createRecentAuthGrant(requestAccount, 'account_deletion'),
+        sessionPublicId: requestAccount.sessionPublicId,
+        type: 'deletion',
+      },
+      url: '/v1/account/requests',
+    });
+    const afterDeletion = await localApp.inject({
+      headers: { authorization: `Bearer ${requestToken}` },
+      method: 'GET',
+      url: '/v1/account',
+    });
+
+    expect(crossAccountLogout.statusCode).toBe(403);
+    expect(logout.statusCode).toBe(200);
+    expect(logout.json()).toEqual({
+      sessionPublicId: logoutAccount.sessionPublicId,
+      status: 'revoked',
+    });
+    expect(exportRequest.statusCode).toBe(201);
+    expect(exportRequest.json()).toMatchObject({ status: 'requested', type: 'export' });
+    expect(deletionWithoutProof.statusCode).toBe(400);
+    expect(deletionRequest.statusCode).toBe(201);
+    expect(deletionRequest.json()).toMatchObject({ status: 'requested', type: 'deletion' });
+    expect(afterDeletion.statusCode).toBe(403);
   });
 
   it('rejects disabled and deletion-requested users at the bearer boundary', async () => {

@@ -164,6 +164,26 @@ export default function CreatorAccountScreen() {
           </Text>
         </View>
       </Pressable>
+      <Pressable
+        accessibilityLabel="Sign out this session"
+        accessibilityRole="button"
+        disabled={source === 'local-preview' || data.sessions.length === 0}
+        style={[
+          styles.sessionActionButton,
+          (source === 'local-preview' || data.sessions.length === 0) && styles.previewButton,
+        ]}
+        testID="creator-sign-out-session"
+      >
+        <Ionicons color={appColors.orange} name="log-out-outline" size={20} />
+        <View style={styles.addMethodCopy}>
+          <Text style={styles.addMethodTitle}>Sign out this session</Text>
+          <Text style={styles.addMethodDetail}>
+            {source === 'local-preview'
+              ? 'Preview only · no local session is revoked'
+              : 'Clears protected account data after server revocation'}
+          </Text>
+        </View>
+      </Pressable>
 
       {data.sensitiveHoldActive ? (
         <View style={styles.holdCard}>
@@ -307,6 +327,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 9,
     marginTop: 10,
+    padding: 12,
+  },
+  sessionActionButton: {
+    alignItems: 'center',
+    backgroundColor: appColors.orangeSoft,
+    borderRadius: 16,
+    flexDirection: 'row',
+    gap: 9,
+    marginTop: 8,
     padding: 12,
   },
   previewButton: { opacity: 0.82 },
