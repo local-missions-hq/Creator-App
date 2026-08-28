@@ -610,3 +610,33 @@ PASS — no leaks found in approximately 11.65 MB.
 
 pnpm --filter @local-missions/db exec vitest run src/rights-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/content-rights-renewal-junit.xml
 PASS — retained ten content-rights tests with no failures or errors; machine hostname replaced by local-development-host.
+
+M03-reach-qualification-017 — 2026-08-27
+
+pnpm --filter @local-missions/db exec vitest run src/reach-qualification-store.integration.test.ts src/mission-application-store.integration.test.ts src/migration-recovery.integration.test.ts --reporter=verbose
+PASS — all fourteen focused Reach, mission-capacity, and migration-recovery scenarios passed against real PostgreSQL.
+
+pnpm test:integration
+PASS — all 88 database integration tests and twelve API integration tests passed against loopback PostgreSQL.
+
+pnpm db:migrate
+pnpm db:seed
+pnpm db:seed
+pnpm db:check
+PASS — migration 0016 applied locally, the deterministic seed remained repeatable, and all 87 tables plus the synthetic mission contract were verified.
+
+pnpm --filter @local-missions/db exec drizzle-kit check
+pnpm --filter @local-missions/db contracts:check
+PASS — the seventeen-entry Drizzle journal/snapshots are consistent and all ordered SQL/snapshot hashes match the reviewed manifest.
+
+pnpm verify
+PASS — formatting, prerequisite policy, lint, strict type checks, unit tests, contract drift checks, clean production marker scan, and all nine workspace builds passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security
+PASS — local high-confidence scan passed for 369 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 12.32 MB.
+
+pnpm --filter @local-missions/db exec vitest run src/reach-qualification-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M03/test-results/reach-qualification-junit.xml
+PASS — retained six Reach qualification tests with no failures or errors; machine hostname replaced by local-development-host.

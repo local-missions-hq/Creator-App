@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="6" failures="0" errors="0" time="1.339819916">
+    <testsuite name="src/reach-qualification-store.integration.test.ts" timestamp="2026-08-28T00:04:05.860Z" hostname="local-development-host" tests="6" failures="0" errors="0" skipped="0" time="1.339819916">
+        <testcase classname="src/reach-qualification-store.integration.test.ts" name="optional per-platform Reach qualification &gt; migrates disabled-by-default capabilities and keeps Community independent of follower data" time="0.11002125">
+        </testcase>
+        <testcase classname="src/reach-qualification-store.integration.test.ts" name="optional per-platform Reach qualification &gt; requires every activation review, creator consent, and the exact approved read-only source" time="0.092391334">
+        </testcase>
+        <testcase classname="src/reach-qualification-store.integration.test.ts" name="optional per-platform Reach qualification &gt; derives 90-day levels independently per platform without combining audiences" time="0.153005834">
+        </testcase>
+        <testcase classname="src/reach-qualification-store.integration.test.ts" name="optional per-platform Reach qualification &gt; snapshots an exact-platform tier, hides raw analytics, and protects Community plus accepted reward after revocation" time="0.13214">
+        </testcase>
+        <testcase classname="src/reach-qualification-store.integration.test.ts" name="optional per-platform Reach qualification &gt; grants one outage-specific 14-day grace only to tiers valid when the outage begins" time="0.110150125">
+        </testcase>
+        <testcase classname="src/reach-qualification-store.integration.test.ts" name="optional per-platform Reach qualification &gt; supports independent appeal and deletes raw, cached, and derived evidence while retaining only the tier" time="0.100096625">
+        </testcase>
+    </testsuite>
+</testsuites>
