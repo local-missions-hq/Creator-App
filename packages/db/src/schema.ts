@@ -30,6 +30,34 @@ export const identityProvider = pgEnum('identity_provider', [
   'microsoft',
   'passwordless_email',
 ]);
+export const identityBindingStatus = pgEnum('identity_binding_status', ['active', 'revoked']);
+export const accountSessionStatus = pgEnum('account_session_status', [
+  'active',
+  'revoked',
+  'expired',
+]);
+export const recentAuthPurpose = pgEnum('recent_auth_purpose', [
+  'identity_link',
+  'identity_unlink',
+  'account_deletion',
+  'payout_destination_change',
+  'contact_change',
+]);
+export const accountHoldStatus = pgEnum('account_hold_status', ['active', 'released']);
+export const sensitiveAction = pgEnum('sensitive_action', [
+  'funding',
+  'payout_destination_change',
+  'identity_provider_change',
+  'account_deletion',
+]);
+export const accountRequestType = pgEnum('account_request_type', ['export', 'deletion']);
+export const accountRequestStatus = pgEnum('account_request_status', [
+  'requested',
+  'processing',
+  'completed',
+  'canceled',
+  'denied',
+]);
 export const userStatus = pgEnum('user_status', ['active', 'disabled', 'deletion_requested']);
 export const creatorProfileStatus = pgEnum('creator_profile_status', [
   'invited',
@@ -507,14 +535,242 @@ export const externalIdentities = pgTable(
     issuer: text('issuer').notNull(),
     subject: text('subject').notNull(),
     verifiedAt: timestamp('verified_at', { withTimezone: true }).notNull(),
+    status: identityBindingStatus('status').default('active').notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    version: integer('version').default(1).notNull(),
   },
   (table) => [
     uniqueIndex('external_identities_issuer_subject_uq').on(table.issuer, table.subject),
-    uniqueIndex('external_identities_user_provider_uq').on(table.userId, table.provider),
-    index('external_identities_user_idx').on(table.userId),
+    uniqueIndex('external_identities_user_provider_uq')
+      .on(table.userId, table.provider)
+      .where(sql`${table.status} = 'active'`),
+    index('external_identities_user_idx').on(table.userId, table.status),
     check('external_identities_issuer_nonempty_ck', sql`length(btrim(${table.issuer})) > 0`),
     check('external_identities_subject_nonempty_ck', sql`length(btrim(${table.subject})) > 0`),
+    check(
+      'external_identities_status_shape_ck',
+      sql`(${table.status} = 'active' AND ${table.revokedAt} IS NULL) OR
+          (${table.status} = 'revoked' AND ${table.revokedAt} IS NOT NULL)`,
+    ),
+    check('external_identities_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const identityBindingStatusHistory = pgTable(
+  'identity_binding_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    externalIdentityId: uuid('external_identity_id')
+      .notNull()
+      .references(() => externalIdentities.id, { onDelete: 'restrict' }),
+    fromStatus: identityBindingStatus('from_status'),
+    toStatus: identityBindingStatus('to_status').notNull(),
+    bindingVersion: integer('binding_version').notNull(),
+    actorUserId: uuid('actor_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    accountSessionId: uuid('account_session_id'),
+    reason: text('reason').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('identity_binding_status_history_version_uq').on(
+      table.externalIdentityId,
+      table.bindingVersion,
+    ),
+    index('identity_binding_status_history_timeline_idx').on(
+      table.externalIdentityId,
+      table.occurredAt,
+    ),
+    check('identity_binding_status_history_version_ck', sql`${table.bindingVersion} > 0`),
+    check('identity_binding_status_history_reason_ck', sql`length(btrim(${table.reason})) > 0`),
+  ],
+);
+
+export const accountSessions = pgTable(
+  'account_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    externalIdentityId: uuid('external_identity_id')
+      .notNull()
+      .references(() => externalIdentities.id, { onDelete: 'restrict' }),
+    status: accountSessionStatus('status').default('active').notNull(),
+    authenticatedAt: timestamp('authenticated_at', { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    revocationReason: text('revocation_reason'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    version: integer('version').default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex('account_sessions_public_id_uq').on(table.publicId),
+    index('account_sessions_user_status_idx').on(table.userId, table.status),
+    index('account_sessions_identity_status_idx').on(table.externalIdentityId, table.status),
+    check('account_sessions_expiry_ck', sql`${table.expiresAt} > ${table.authenticatedAt}`),
+    check(
+      'account_sessions_status_shape_ck',
+      sql`(${table.status} = 'active' AND ${table.revokedAt} IS NULL AND ${table.revocationReason} IS NULL) OR
+          (${table.status} IN ('revoked','expired') AND ${table.revokedAt} IS NOT NULL
+           AND length(btrim(${table.revocationReason})) > 0)`,
+    ),
+    check('account_sessions_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const recentAuthGrants = pgTable(
+  'recent_auth_grants',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    accountSessionId: uuid('account_session_id')
+      .notNull()
+      .references(() => accountSessions.id, { onDelete: 'restrict' }),
+    purpose: recentAuthPurpose('purpose').notNull(),
+    grantedAt: timestamp('granted_at', { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    consumedAt: timestamp('consumed_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('recent_auth_grants_public_id_uq').on(table.publicId),
+    index('recent_auth_grants_user_purpose_idx').on(table.userId, table.purpose, table.expiresAt),
+    check(
+      'recent_auth_grants_window_ck',
+      sql`${table.expiresAt} > ${table.grantedAt}
+          AND ${table.expiresAt} <= ${table.grantedAt} + interval '10 minutes'`,
+    ),
+    check(
+      'recent_auth_grants_consumed_ck',
+      sql`${table.consumedAt} IS NULL OR ${table.consumedAt} >= ${table.grantedAt}`,
+    ),
+  ],
+);
+
+export const accountSensitiveHolds = pgTable(
+  'account_sensitive_holds',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    status: accountHoldStatus('status').default('active').notNull(),
+    reasonCode: text('reason_code').notNull(),
+    placedByUserId: uuid('placed_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    placedAt: timestamp('placed_at', { withTimezone: true }).defaultNow().notNull(),
+    releasedByUserId: uuid('released_by_user_id').references(() => users.id, {
+      onDelete: 'restrict',
+    }),
+    releasedAt: timestamp('released_at', { withTimezone: true }),
+    releaseReason: text('release_reason'),
+    version: integer('version').default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex('account_sensitive_holds_public_id_uq').on(table.publicId),
+    uniqueIndex('account_sensitive_holds_active_user_uq')
+      .on(table.userId)
+      .where(sql`${table.status} = 'active'`),
+    check('account_sensitive_holds_reason_ck', sql`${table.reasonCode} ~ '^[A-Z0-9_]{2,80}$'`),
+    check(
+      'account_sensitive_holds_status_ck',
+      sql`(${table.status} = 'active' AND ${table.releasedByUserId} IS NULL
+           AND ${table.releasedAt} IS NULL AND ${table.releaseReason} IS NULL) OR
+          (${table.status} = 'released' AND ${table.releasedByUserId} IS NOT NULL
+           AND ${table.releasedAt} IS NOT NULL AND length(btrim(${table.releaseReason})) > 0)`,
+    ),
+    check('account_sensitive_holds_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const accountSensitiveHoldActions = pgTable(
+  'account_sensitive_hold_actions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    accountSensitiveHoldId: uuid('account_sensitive_hold_id')
+      .notNull()
+      .references(() => accountSensitiveHolds.id, { onDelete: 'restrict' }),
+    action: sensitiveAction('action').notNull(),
+  },
+  (table) => [
+    uniqueIndex('account_sensitive_hold_actions_hold_action_uq').on(
+      table.accountSensitiveHoldId,
+      table.action,
+    ),
+  ],
+);
+
+export const accountRequests = pgTable(
+  'account_requests',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    publicId: text('public_id').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    type: accountRequestType('type').notNull(),
+    status: accountRequestStatus('status').default('requested').notNull(),
+    requestedAt: timestamp('requested_at', { withTimezone: true }).defaultNow().notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    canceledAt: timestamp('canceled_at', { withTimezone: true }),
+    deniedAt: timestamp('denied_at', { withTimezone: true }),
+    version: integer('version').default(1).notNull(),
+  },
+  (table) => [
+    uniqueIndex('account_requests_public_id_uq').on(table.publicId),
+    uniqueIndex('account_requests_open_user_type_uq')
+      .on(table.userId, table.type)
+      .where(sql`${table.status} IN ('requested','processing')`),
+    index('account_requests_user_timeline_idx').on(table.userId, table.requestedAt),
+    check(
+      'account_requests_status_ck',
+      sql`(${table.status} IN ('requested','processing') AND ${table.completedAt} IS NULL
+           AND ${table.canceledAt} IS NULL AND ${table.deniedAt} IS NULL) OR
+          (${table.status} = 'completed' AND ${table.completedAt} IS NOT NULL
+           AND ${table.canceledAt} IS NULL AND ${table.deniedAt} IS NULL) OR
+          (${table.status} = 'canceled' AND ${table.canceledAt} IS NOT NULL
+           AND ${table.completedAt} IS NULL AND ${table.deniedAt} IS NULL) OR
+          (${table.status} = 'denied' AND ${table.deniedAt} IS NOT NULL
+           AND ${table.completedAt} IS NULL AND ${table.canceledAt} IS NULL)`,
+    ),
+    check('account_requests_version_ck', sql`${table.version} > 0`),
+  ],
+);
+
+export const accountRequestHistory = pgTable(
+  'account_request_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    accountRequestId: uuid('account_request_id')
+      .notNull()
+      .references(() => accountRequests.id, { onDelete: 'restrict' }),
+    fromStatus: accountRequestStatus('from_status'),
+    toStatus: accountRequestStatus('to_status').notNull(),
+    requestVersion: integer('request_version').notNull(),
+    actorUserId: uuid('actor_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    reason: text('reason').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('account_request_history_version_uq').on(
+      table.accountRequestId,
+      table.requestVersion,
+    ),
+    index('account_request_history_timeline_idx').on(table.accountRequestId, table.occurredAt),
+    check('account_request_history_version_ck', sql`${table.requestVersion} > 0`),
+    check('account_request_history_reason_ck', sql`length(btrim(${table.reason})) > 0`),
   ],
 );
 
@@ -4006,6 +4262,13 @@ export const idempotencyRecords = pgTable(
 export const initialSchemaTables = [
   'users',
   'external_identities',
+  'identity_binding_status_history',
+  'account_sessions',
+  'recent_auth_grants',
+  'account_sensitive_holds',
+  'account_sensitive_hold_actions',
+  'account_requests',
+  'account_request_history',
   'creator_profiles',
   'businesses',
   'business_memberships',

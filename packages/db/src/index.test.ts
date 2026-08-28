@@ -7,6 +7,13 @@ describe('initial schema', () => {
     expect(initialSchemaTables).toEqual([
       'users',
       'external_identities',
+      'identity_binding_status_history',
+      'account_sessions',
+      'recent_auth_grants',
+      'account_sensitive_holds',
+      'account_sensitive_hold_actions',
+      'account_requests',
+      'account_request_history',
       'creator_profiles',
       'businesses',
       'business_memberships',

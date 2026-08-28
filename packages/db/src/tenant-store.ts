@@ -275,6 +275,16 @@ export class IdentityTenantStore {
   }): Promise<void> {
     try {
       await this.withTransaction(async (client) => {
+        const lifecycle = await client.query<{ lifecycle_table: string | null }>(
+          `SELECT to_regclass('public.account_sessions')::text AS lifecycle_table`,
+        );
+        if (lifecycle.rows[0]?.lifecycle_table) {
+          throw new IdentityTenantError(
+            'IDENTITY_RECENT_AUTH_REQUIRED',
+            409,
+            'Use the recent-authenticated account lifecycle flow to link another provider.',
+          );
+        }
         const user = await client.query('SELECT id FROM users WHERE id = $1 FOR UPDATE', [
           input.actorUserId,
         ]);

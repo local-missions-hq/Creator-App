@@ -1,0 +1,48 @@
+M04-account-lifecycle-local-001 — 2026-08-27
+
+pnpm db:generate
+PASS — generated append-only migration 0018_tiresome_wallflower.sql; latest schema declares 96 tables.
+
+pnpm --filter @local-missions/db exec vitest run src/account-lifecycle-store.integration.test.ts
+INITIAL FAIL — PostgreSQL rejected `grant` as an UPDATE alias, and the account store duplicated notification outbox/inbox rows already created by database fan-out triggers.
+RESOLUTION — renamed the SQL alias and reused the existing atomic notification fan-out instead of duplicating it.
+
+pnpm --filter @local-missions/db exec vitest run src/account-lifecycle-store.integration.test.ts
+INITIAL FAIL — deletion changed the user to `deletion_requested` before the security-notification trigger validated its active recipient.
+RESOLUTION — enqueue the required security event before the same transaction changes the root account status.
+
+pnpm --filter @local-missions/db exec vitest run src/account-lifecycle-store.integration.test.ts
+PASS — all five focused account-lifecycle tests passed.
+
+pnpm db:migrate
+pnpm db:seed
+pnpm db:check
+PASS — all nineteen migrations applied, the deterministic seed completed, and all 96 tables plus the synthetic mission contract were verified.
+
+pnpm --filter @local-missions/db test:integration
+INITIAL FAIL — the roll-forward test still expected venue contacts, rather than account sessions, to be absent at N-1.
+RESOLUTION — updated the latest-migration assertion while retaining proof for the prior venue-contact migration.
+
+pnpm --filter @local-missions/db test:integration
+PASS — all 97 database tests passed across fifteen suites against real loopback PostgreSQL.
+
+pnpm --filter @local-missions/api test:integration
+PASS — all 14 API integration tests passed against real loopback PostgreSQL.
+
+pnpm --filter @local-missions/db db:migrations:manifest
+pnpm --filter @local-missions/db exec drizzle-kit check
+PASS — all nineteen ordered SQL/snapshot hashes match and the Drizzle journal is consistent.
+
+pnpm verify
+PASS — formatting, prerequisites, lint, strict type checks, unit tests, OpenAPI/migration contract checks, production marker scan, and all nine builds passed with 35 mobile tests.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 397 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 13.78 MB.
+
+pnpm --filter @local-missions/db exec vitest run src/account-lifecycle-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/account-lifecycle-junit.xml
+PASS — retained five tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+No Entra, Azure, Stripe, social provider, notification provider, phone, payment, message, or external customer action occurred.

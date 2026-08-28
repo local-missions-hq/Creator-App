@@ -833,6 +833,7 @@ export const businessCampaignDetailSchema = businessCampaignSummarySchema.extend
 export const identityTenantConflictCodeSchema = z.enum([
   'BUSINESS_ACCESS_DENIED',
   'IDENTITY_ALREADY_BOUND',
+  'IDENTITY_RECENT_AUTH_REQUIRED',
   'USER_IDENTITY_PROVIDER_ALREADY_LINKED',
   'USER_NOT_FOUND',
   'USER_PUBLIC_ID_EXISTS',

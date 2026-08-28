@@ -236,7 +236,7 @@ describe.sequential('latest schema and roll-forward recovery', () => {
 
       expect(await trackedMigrations(pool)).toHaveLength(migrations.length - 1);
       expect(
-        await pool.query(`SELECT to_regclass('public.venue_contacts') AS relation`),
+        await pool.query(`SELECT to_regclass('public.account_sessions') AS relation`),
       ).toMatchObject({ rows: [{ relation: null }] });
       await expectFixtureIntact(pool);
 
@@ -267,6 +267,9 @@ describe.sequential('latest schema and roll-forward recovery', () => {
       expect(
         await pool.query(`SELECT to_regclass('public.venue_contacts') AS relation`),
       ).toMatchObject({ rows: [{ relation: 'venue_contacts' }] });
+      expect(
+        await pool.query(`SELECT to_regclass('public.account_sessions') AS relation`),
+      ).toMatchObject({ rows: [{ relation: 'account_sessions' }] });
 
       await pool.query(`
         UPDATE notification_preferences

@@ -1,3 +1,4 @@
+export * from './account-lifecycle-store.js';
 export * from './campaign-store.js';
 export * from './check-in-store.js';
 export * from './dispute-store.js';

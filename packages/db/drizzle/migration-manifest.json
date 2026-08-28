@@ -126,6 +126,13 @@
       "snapshotSha256": "4de91596badccb2add91c741c135f46d153b6df4a707812f64a14195cd7e6773",
       "sqlSha256": "211655a7b5e43925179f614bc703302be2a61d5b8b6afc73834b64012a57d64f",
       "tag": "0017_charming_marrow"
+    },
+    {
+      "index": 18,
+      "journalTimestamp": 1787878804125,
+      "snapshotSha256": "696ec518a1e35c3ba8aad17f732f87dae8239907585b5fbbcecf10c02c70773f",
+      "sqlSha256": "963b8696a099f1b4fe7cc59fad27ff667b5216fb74357efb0834afe73d2e6281",
+      "tag": "0018_tiresome_wallflower"
     }
   ],
   "hashAlgorithm": "sha256",

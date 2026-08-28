@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="5" failures="0" errors="0" time="0.669341584">
+    <testsuite name="src/account-lifecycle-store.integration.test.ts" timestamp="2026-08-28T01:11:05.944Z" hostname="local-development-host" tests="5" failures="0" errors="0" skipped="0" time="0.669341584">
+        <testcase classname="src/account-lifecycle-store.integration.test.ts" name="account lifecycle against real PostgreSQL &gt; migrates privacy-safe lifecycle records and blocks legacy provider linking" time="0.022151334">
+        </testcase>
+        <testcase classname="src/account-lifecycle-store.integration.test.ts" name="account lifecycle against real PostgreSQL &gt; links only with fresh single-use proof and records history, audit, and security fan-out" time="0.013658">
+        </testcase>
+        <testcase classname="src/account-lifecycle-store.integration.test.ts" name="account lifecycle against real PostgreSQL &gt; rejects the last method and permits exactly one concurrent unlink winner" time="0.028806875">
+        </testcase>
+        <testcase classname="src/account-lifecycle-store.integration.test.ts" name="account lifecycle against real PostgreSQL &gt; enforces dual-controlled recovery holds before sensitive identity changes" time="0.031557166">
+        </testcase>
+        <testcase classname="src/account-lifecycle-store.integration.test.ts" name="account lifecycle against real PostgreSQL &gt; records export/deletion requests and requires recent auth plus no recovery hold" time="0.018027708">
+        </testcase>
+    </testsuite>
+</testsuites>
