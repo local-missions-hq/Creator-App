@@ -112,6 +112,7 @@ export function MobileAuthSessionProvider({ children }: PropsWithChildren) {
           accessToken: current.session.accessToken,
           authorizationContext: apiAuthorizationContextForSession(current.session),
           mode: 'api',
+          sessionPublicId: current.session.sessionPublicId,
         });
         await revokeSessionAndClearLocalState({
           adapter,

@@ -74,6 +74,12 @@ const publicIdParameterSchema = z.string().regex(/^cmp_[a-z0-9_]{8,100}$/);
   required: false,
   schema: { pattern: '^biz_[a-z0-9_]{8,100}$', type: 'string' },
 })
+@ApiHeader({
+  description: 'Opaque Local Missions session ID bound to the verified external identity.',
+  name: 'x-local-missions-session',
+  required: false,
+  schema: { pattern: '^ses_[a-z0-9_]{8,100}$', type: 'string' },
+})
 @ApiUnauthorizedResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
 @ApiForbiddenResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
 @Controller('v1')

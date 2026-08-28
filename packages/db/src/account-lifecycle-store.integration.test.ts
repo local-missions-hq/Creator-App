@@ -97,6 +97,50 @@ afterAll(async () => {
 });
 
 describe.sequential('account lifecycle against real PostgreSQL', () => {
+  it('creates one identity-bound session for retries and rejects public-ID collisions', async () => {
+    const account = await createAccount('session_retry');
+    const outsider = await createAccount('session_collision');
+    const publicId = `ses_${randomUUID().replaceAll('-', '')}${randomUUID().replaceAll('-', '')}`;
+    const correlationId = randomUUID();
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    const attempts = await Promise.all([
+      accountStore.createOrReuseSession({
+        correlationId,
+        expiresAt,
+        externalIdentityId: account.identityId,
+        publicId,
+        userId: account.user.id,
+      }),
+      accountStore.createOrReuseSession({
+        correlationId,
+        expiresAt,
+        externalIdentityId: account.identityId,
+        publicId,
+        userId: account.user.id,
+      }),
+    ]);
+    expect(attempts.map((attempt) => attempt.id)).toEqual([attempts[0]!.id, attempts[0]!.id]);
+    expect(attempts.filter((attempt) => attempt.created)).toHaveLength(1);
+    const proof = await pool.query<{ audit_count: number; session_count: number }>(
+      `SELECT
+         (SELECT count(*)::int FROM account_sessions WHERE public_id = $1) AS session_count,
+         (SELECT count(*)::int FROM audit_events
+           WHERE action = 'account.session-created'
+             AND details ->> 'sessionPublicId' = $1) AS audit_count`,
+      [publicId],
+    );
+    expect(proof.rows[0]).toEqual({ audit_count: 1, session_count: 1 });
+    await expect(
+      accountStore.createOrReuseSession({
+        correlationId: randomUUID(),
+        expiresAt,
+        externalIdentityId: outsider.identityId,
+        publicId,
+        userId: outsider.user.id,
+      }),
+    ).rejects.toMatchObject({ code: 'SESSION_INVALID' });
+  });
+
   it('migrates privacy-safe lifecycle records and blocks legacy provider linking', async () => {
     const account = await createAccount('schema');
     const outsider = await createAccount('schema_outsider');

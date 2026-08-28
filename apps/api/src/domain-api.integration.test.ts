@@ -29,6 +29,7 @@ const otherTenantPublicId = 'biz_other_synthetic_001';
 const otherCampaignPublicId = 'cmp_other_synthetic_001';
 const accountSessionPublicId = 'ses_api_synthetic_0001';
 const decoyUserPublicId = 'usr_account_decoy_synthetic_001';
+const bootstrapSessionPublicId = `ses_${'b'.repeat(64)}`;
 
 let productionApp: NestFastifyApplication;
 let localApp: NestFastifyApplication;
@@ -51,11 +52,15 @@ class SyntheticExternalVerifier implements BearerVerifier {
 function externalRequest(input: {
   businessPublicId?: string;
   role?: string;
+  sessionPublicId?: string | null;
   token: string;
 }): ContextualRequest {
   return {
     headers: {
       authorization: `Bearer ${input.token}`,
+      ...(input.sessionPublicId === null
+        ? {}
+        : { 'x-local-missions-session': input.sessionPublicId ?? accountSessionPublicId }),
       ...(input.businessPublicId ? { 'x-local-missions-business': input.businessPublicId } : {}),
       ...(input.role ? { 'x-local-missions-role': input.role } : {}),
     },
@@ -172,6 +177,10 @@ beforeAll(async () => {
     issuer: 'https://identity.local.test/v1',
     subject: 'synthetic-provider-subject-revoked-001',
   });
+  externalEvidenceByToken.set('external.decoy.token', {
+    issuer: 'https://identity.local.test/decoy',
+    subject: 'synthetic-provider-subject-decoy-001',
+  });
   await pool.query(
     `INSERT INTO external_identities (
        user_id, provider, issuer, subject, verified_at, status, revoked_at
@@ -230,6 +239,13 @@ beforeAll(async () => {
      ON CONFLICT (issuer, subject) DO NOTHING`,
     [decoyUserPublicId],
   );
+  await pool.query(
+    `INSERT INTO creator_profiles (user_id, public_id, status, locality_status)
+     SELECT id, 'cr_account_decoy_synthetic_001', 'approved', 'unverified'
+       FROM users WHERE public_id = $1
+     ON CONFLICT (user_id) DO NOTHING`,
+    [decoyUserPublicId],
+  );
   await pool.query(`UPDATE campaigns SET status = 'published' WHERE public_id = $1`, [
     campaignPublicId,
   ]);
@@ -243,6 +259,7 @@ beforeEach(async () => {
   logs.length = 0;
   await cleanApplicationFixture();
   await pool.query(`DELETE FROM account_sessions WHERE public_id = $1`, [accountSessionPublicId]);
+  await pool.query(`DELETE FROM account_sessions WHERE public_id = $1`, [bootstrapSessionPublicId]);
   await pool.query(
     `UPDATE users SET status = 'active'
       WHERE public_id = $1`,
@@ -271,6 +288,7 @@ beforeEach(async () => {
 afterAll(async () => {
   await cleanApplicationFixture();
   await pool.query(`DELETE FROM account_sessions WHERE public_id = $1`, [accountSessionPublicId]);
+  await pool.query(`DELETE FROM account_sessions WHERE public_id = $1`, [bootstrapSessionPublicId]);
   await pool.query(`UPDATE users SET status = 'active' WHERE public_id = $1`, [subjectPublicId]);
   await pool.query(`UPDATE campaigns SET status = 'draft' WHERE public_id = $1`, [
     campaignPublicId,
@@ -287,6 +305,70 @@ afterAll(async () => {
 });
 
 describe('authenticated Creator and Business API slice', () => {
+  it('bootstraps one safe session idempotently and reprojects current Creator and Business access', async () => {
+    const request = externalRequest({ sessionPublicId: null, token: 'external.known.token' });
+    const firstCorrelationId = randomUUID();
+    const first = await externalDomain.bootstrapExternalSession(
+      request,
+      bootstrapSessionPublicId,
+      firstCorrelationId,
+    );
+    const retried = await externalDomain.bootstrapExternalSession(
+      request,
+      bootstrapSessionPublicId,
+      randomUUID(),
+    );
+    expect(retried).toEqual(first);
+    expect(first).toMatchObject({
+      accountStatus: 'active',
+      provider: 'apple',
+      roles: ['creator', 'business_owner'],
+      sessionPublicId: bootstrapSessionPublicId,
+      userPublicId: subjectPublicId,
+      workspaces: [{ publicId: tenantPublicId, role: 'owner' }],
+    });
+    const serialized = JSON.stringify(first);
+    expect(serialized).not.toContain('subject');
+    expect(serialized).not.toContain('email');
+    expect(serialized).not.toContain('address');
+    const proof = await pool.query<{ audit_count: number; session_count: number }>(
+      `SELECT
+         (SELECT count(*)::int FROM account_sessions WHERE public_id = $1) AS session_count,
+         (SELECT count(*)::int FROM audit_events
+           WHERE action = 'account.session-created'
+             AND details ->> 'sessionPublicId' = $1
+             AND correlation_id = $2) AS audit_count`,
+      [bootstrapSessionPublicId, firstCorrelationId],
+    );
+    expect(proof.rows[0]).toEqual({ audit_count: 1, session_count: 1 });
+  });
+
+  it('rejects session collisions and requires the same active identity-bound session later', async () => {
+    const known = externalRequest({ sessionPublicId: null, token: 'external.known.token' });
+    await externalDomain.bootstrapExternalSession(known, bootstrapSessionPublicId, randomUUID());
+    await expect(
+      externalDomain.bootstrapExternalSession(
+        externalRequest({ sessionPublicId: null, token: 'external.decoy.token' }),
+        bootstrapSessionPublicId,
+        randomUUID(),
+      ),
+    ).rejects.toMatchObject({ apiCode: 'ACCESS_DENIED', status: 403 });
+    await expect(
+      externalDomain.authenticate(
+        externalRequest({ role: 'creator', sessionPublicId: null, token: 'external.known.token' }),
+      ),
+    ).rejects.toMatchObject({ apiCode: 'AUTHENTICATION_REQUIRED', status: 401 });
+    await expect(
+      externalDomain.authenticate(
+        externalRequest({
+          role: 'creator',
+          sessionPublicId: bootstrapSessionPublicId,
+          token: 'external.decoy.token',
+        }),
+      ),
+    ).rejects.toMatchObject({ apiCode: 'AUTHENTICATION_REQUIRED', status: 401 });
+  });
+
   it('maps one external issuer/subject to current Creator and Business contexts without trusting a token role', async () => {
     const creator = await externalDomain.authenticate(
       externalRequest({ role: 'creator', token: 'external.known.token' }),
@@ -367,6 +449,13 @@ describe('authenticated Creator and Business API slice', () => {
       apiCode: 'ACCESS_DENIED',
       status: 403,
     });
+    await expect(
+      externalDomain.bootstrapExternalSession(
+        externalRequest({ sessionPublicId: null, token: 'external.known.token' }),
+        `ses_${'d'.repeat(64)}`,
+        randomUUID(),
+      ),
+    ).rejects.toMatchObject({ apiCode: 'ACCESS_DENIED', status: 403 });
     await pool.query(`UPDATE users SET status = 'active' WHERE public_id = $1`, [subjectPublicId]);
 
     await expect(externalDomain.authenticate(businessRequest)).resolves.toBeTruthy();
@@ -380,12 +469,56 @@ describe('authenticated Creator and Business API slice', () => {
       apiCode: 'ACCESS_DENIED',
       status: 403,
     });
+    await expect(
+      externalDomain.refreshExternalSession(
+        externalRequest({ sessionPublicId: null, token: 'external.known.token' }),
+        accountSessionPublicId,
+      ),
+    ).resolves.toMatchObject({ roles: ['creator'], workspaces: [] });
     await pool.query(
       `UPDATE business_memberships SET status = 'active'
         WHERE user_id = (SELECT id FROM users WHERE public_id = $1)
           AND business_id = (SELECT id FROM businesses WHERE public_id = $2)`,
       [subjectPublicId, tenantPublicId],
     );
+  });
+
+  it('invalidates the same provider token immediately after Local Missions logout', async () => {
+    const request = externalRequest({ role: 'creator', token: 'external.known.token' });
+    const principal = await externalDomain.authenticate(request);
+    await externalDomain.revokeAccountSession(principal, accountSessionPublicId, randomUUID());
+    await expect(externalDomain.authenticate(request)).rejects.toMatchObject({
+      apiCode: 'AUTHENTICATION_REQUIRED',
+      status: 401,
+    });
+    await expect(
+      externalDomain.refreshExternalSession(
+        externalRequest({ sessionPublicId: null, token: 'external.known.token' }),
+        accountSessionPublicId,
+      ),
+    ).rejects.toMatchObject({ apiCode: 'AUTHENTICATION_REQUIRED', status: 401 });
+  });
+
+  it('rejects an expired Local Missions session even while the provider token remains valid', async () => {
+    const request = externalRequest({ role: 'creator', token: 'external.known.token' });
+    await expect(externalDomain.authenticate(request)).resolves.toBeTruthy();
+    await pool.query(
+      `UPDATE account_sessions
+          SET status = 'expired', revoked_at = now(), revocation_reason = 'SESSION_EXPIRED',
+              version = version + 1, updated_at = now()
+        WHERE public_id = $1`,
+      [accountSessionPublicId],
+    );
+    await expect(externalDomain.authenticate(request)).rejects.toMatchObject({
+      apiCode: 'AUTHENTICATION_REQUIRED',
+      status: 401,
+    });
+    await expect(
+      externalDomain.refreshExternalSession(
+        externalRequest({ sessionPublicId: null, token: 'external.known.token' }),
+        accountSessionPublicId,
+      ),
+    ).rejects.toMatchObject({ apiCode: 'AUTHENTICATION_REQUIRED', status: 401 });
   });
 
   it('stops accepting the same external token immediately after its identity binding is revoked', async () => {
@@ -412,7 +545,13 @@ describe('authenticated Creator and Business API slice', () => {
       [user.rows[0]!.id, creatorPublicId],
     );
     externalEvidenceByToken.set(token, { issuer, subject });
-    const request = externalRequest({ role: 'creator', token });
+    const sessionPublicId = `ses_${suffix}${suffix}`;
+    await externalDomain.bootstrapExternalSession(
+      externalRequest({ sessionPublicId: null, token }),
+      sessionPublicId,
+      randomUUID(),
+    );
+    const request = externalRequest({ role: 'creator', sessionPublicId, token });
     await expect(externalDomain.authenticate(request)).resolves.toBeTruthy();
     await pool.query(
       `UPDATE external_identities
@@ -429,6 +568,7 @@ describe('authenticated Creator and Business API slice', () => {
   it('keeps deployed verification fail-closed and synthetic verification local-only', async () => {
     const deployedToken = 'structurally.valid.token';
     const privateWorkspaceMarker = 'biz_private_log_marker_0001';
+    const privateSessionMarker = `ses_${'c'.repeat(64)}`;
     const missing = await productionApp.inject({ method: 'GET', url: '/v1/me' });
     const deployed = await productionApp.inject({
       headers: {
@@ -439,6 +579,12 @@ describe('authenticated Creator and Business API slice', () => {
       method: 'GET',
       url: '/v1/me',
     });
+    const deployedBootstrap = await productionApp.inject({
+      headers: { authorization: `Bearer ${deployedToken}` },
+      method: 'POST',
+      payload: { sessionPublicId: privateSessionMarker },
+      url: '/v1/session/bootstrap',
+    });
     const token = await issueToken('creator');
     const local = await localApp.inject({
       headers: { authorization: `Bearer ${token}` },
@@ -448,6 +594,7 @@ describe('authenticated Creator and Business API slice', () => {
 
     expect(missing.statusCode).toBe(401);
     expect(deployed.statusCode).toBe(503);
+    expect(deployedBootstrap.statusCode).toBe(503);
     expect(local.statusCode).toBe(200);
     expect(local.json()).toMatchObject({
       business: null,
@@ -459,6 +606,7 @@ describe('authenticated Creator and Business API slice', () => {
     expect(serializedLogs).not.toContain(token);
     expect(serializedLogs).not.toContain(deployedToken);
     expect(serializedLogs).not.toContain(privateWorkspaceMarker);
+    expect(serializedLogs).not.toContain(privateSessionMarker);
     expect(serializedLogs).not.toContain('x-local-missions-role');
   });
 

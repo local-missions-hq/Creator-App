@@ -18,6 +18,8 @@ export function useCreatorMissionFeed() {
   const auth = useMobileAuthSession();
   const accessToken =
     auth.state.phase === 'authenticated' ? auth.state.session.accessToken : undefined;
+  const sessionPublicId =
+    auth.state.phase === 'authenticated' ? auth.state.session.sessionPublicId : undefined;
   const authorizationContext = useMemo(
     () =>
       auth.state.phase === 'authenticated'
@@ -33,6 +35,7 @@ export function useCreatorMissionFeed() {
       accessToken,
       authorizationContext,
       mode: auth.dataMode,
+      sessionPublicId,
     })
       .getCreatorMissions()
       .then((result) => {
@@ -45,7 +48,7 @@ export function useCreatorMissionFeed() {
     return () => {
       active = false;
     };
-  }, [accessToken, auth.cacheEpoch, auth.dataMode, authorizationContext]);
+  }, [accessToken, auth.cacheEpoch, auth.dataMode, authorizationContext, sessionPublicId]);
   return { data, source };
 }
 
@@ -53,6 +56,8 @@ export function useCreatorMissionDetail(campaignPublicId = 'cmp_orlando_syntheti
   const auth = useMobileAuthSession();
   const accessToken =
     auth.state.phase === 'authenticated' ? auth.state.session.accessToken : undefined;
+  const sessionPublicId =
+    auth.state.phase === 'authenticated' ? auth.state.session.sessionPublicId : undefined;
   const authorizationContext = useMemo(
     () =>
       auth.state.phase === 'authenticated'
@@ -68,6 +73,7 @@ export function useCreatorMissionDetail(campaignPublicId = 'cmp_orlando_syntheti
       accessToken,
       authorizationContext,
       mode: auth.dataMode,
+      sessionPublicId,
     })
       .getCreatorMission(campaignPublicId)
       .then((result) => {
@@ -80,7 +86,14 @@ export function useCreatorMissionDetail(campaignPublicId = 'cmp_orlando_syntheti
     return () => {
       active = false;
     };
-  }, [accessToken, auth.cacheEpoch, auth.dataMode, authorizationContext, campaignPublicId]);
+  }, [
+    accessToken,
+    auth.cacheEpoch,
+    auth.dataMode,
+    authorizationContext,
+    campaignPublicId,
+    sessionPublicId,
+  ]);
   return { data, source };
 }
 
@@ -88,6 +101,8 @@ export function useBusinessCampaigns() {
   const auth = useMobileAuthSession();
   const accessToken =
     auth.state.phase === 'authenticated' ? auth.state.session.accessToken : undefined;
+  const sessionPublicId =
+    auth.state.phase === 'authenticated' ? auth.state.session.sessionPublicId : undefined;
   const authorizationContext = useMemo(
     () =>
       auth.state.phase === 'authenticated'
@@ -103,6 +118,7 @@ export function useBusinessCampaigns() {
       accessToken,
       authorizationContext,
       mode: auth.dataMode,
+      sessionPublicId,
     })
       .getBusinessCampaigns()
       .then((result) => {
@@ -115,6 +131,6 @@ export function useBusinessCampaigns() {
     return () => {
       active = false;
     };
-  }, [accessToken, auth.cacheEpoch, auth.dataMode, authorizationContext]);
+  }, [accessToken, auth.cacheEpoch, auth.dataMode, authorizationContext, sessionPublicId]);
   return { data, source };
 }

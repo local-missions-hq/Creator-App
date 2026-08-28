@@ -34,6 +34,8 @@ import {
   reachAnalyticsSourceTypeSchema,
   reachLevelSchema,
   socialPlatformSchema,
+  sessionBootstrapRequestSchema,
+  sessionBootstrapResponseSchema,
 } from './index.js';
 
 describe('healthStatusSchema', () => {
@@ -104,6 +106,28 @@ describe('versioned API foundation contracts', () => {
 });
 
 describe('account overview contract', () => {
+  it('accepts only cryptographically sized new session IDs and returns safe role choices', () => {
+    const sessionPublicId = `ses_${'a'.repeat(64)}`;
+    expect(sessionBootstrapRequestSchema.parse({ sessionPublicId })).toEqual({ sessionPublicId });
+    expect(() =>
+      sessionBootstrapRequestSchema.parse({ sessionPublicId: 'ses_user_chosen_0001' }),
+    ).toThrow();
+    const projection = sessionBootstrapResponseSchema.parse({
+      accountStatus: 'active',
+      expiresAt: '2026-09-27T12:00:00.000Z',
+      provider: 'apple',
+      roles: ['creator', 'business_owner'],
+      sessionPublicId,
+      userPublicId: 'usr_synthetic_creator_001',
+      workspaces: [
+        { name: 'Demo Family Fun Center', publicId: 'biz_synthetic_orlando_001', role: 'owner' },
+      ],
+    });
+    expect(projection).not.toHaveProperty('subject');
+    expect(projection).not.toHaveProperty('email');
+    expect(projection.workspaces[0]).not.toHaveProperty('address');
+  });
+
   it('exposes safe provider and session metadata without provider subjects or private contact data', () => {
     const overview = accountOverviewSchema.parse({
       identities: [

@@ -319,3 +319,44 @@ pnpm test:gitleaks
 PASS — no leaks found in approximately 14.25 MB.
 
 No provider endpoint, authorization code, token, refresh credential, external JWKS, real identity, Azure, Stripe, phone, payment, message, external account, or customer action occurred.
+
+M04-server-session-bootstrap-local-008 — 2026-08-28
+
+Node 24.19.0 and pnpm 11.24.0 were selected from the pinned local runtime for every verification command below.
+
+pnpm --filter @local-missions/contracts test
+pnpm --filter @local-missions/db exec vitest run src/account-lifecycle-store.integration.test.ts
+pnpm --filter @local-missions/api test:integration
+pnpm --filter @local-missions/mobile test
+PASS — contracts passed 20 tests, focused account lifecycle passed seven PostgreSQL tests, API integration passed 33 tests, and mobile passed 77 tests.
+
+pnpm openapi:generate
+pnpm --filter @local-missions/api-client build
+PASS — production/local OpenAPI and the generated client contain bootstrap/refresh routes plus the session header on protected external routes.
+
+pnpm test:integration
+PASS — all 99 database integration tests and all 33 API integration tests passed against disposable loopback PostgreSQL.
+
+pnpm db:seed
+pnpm db:check
+PASS — deterministic seed remained repeatable and the database check verified 96 tables plus the synthetic identity/business/campaign contract.
+
+pnpm --filter @local-missions/api exec vitest run src/domain-api.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/server-session-bootstrap-api-junit.xml
+pnpm --filter @local-missions/db exec vitest run src/account-lifecycle-store.integration.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/server-session-bootstrap-db-junit.xml
+pnpm --filter @local-missions/mobile exec vitest run lib/oidc-session-exchange.test.ts lib/session-data.test.ts lib/auth-session.test.ts lib/account-data.test.ts lib/mission-data.test.ts lib/reach-data.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/server-session-bootstrap-mobile-junit.xml
+PASS — retained 25 API, seven PostgreSQL account-lifecycle, and 32 mobile tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+pnpm verify
+PASS — formatting, prerequisites, lint, strict type checks, all unit tests, reviewed OpenAPI/migration contracts, production local-marker exclusion, and all nine builds passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security
+PASS — final local high-confidence secret scan passed for 435 text files.
+
+gitleaks dir . --redact --no-banner
+INITIAL REVIEW — three candidates were synthetic session-header literals in one unit test; no credential value was present.
+RESOLUTION — assembled the visibly synthetic fixture from fixed non-secret segments so the scanner no longer misclassified it; final Gitleaks found no leaks in approximately 14.39 MB, and the mobile suite remained 77/77.
+
+docker compose down --volumes --remove-orphans
+PASS — destroyed the disposable Creator App PostgreSQL container, database volume, and Compose network. The unrelated `post-proof-demo-local-postgis` container remained running on `127.0.0.1:55438`.
+
+No Entra/provider endpoint, external JWKS, authorization code, real token, real identity, Azure, Stripe, physical phone, payment, message, external account, customer action, or customer data was used.

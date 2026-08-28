@@ -12,6 +12,8 @@ export function useAccountOverview() {
   const auth = useMobileAuthSession();
   const accessToken =
     auth.state.phase === 'authenticated' ? auth.state.session.accessToken : undefined;
+  const sessionPublicId =
+    auth.state.phase === 'authenticated' ? auth.state.session.sessionPublicId : undefined;
   const authorizationContext = useMemo(
     () =>
       auth.state.phase === 'authenticated'
@@ -28,6 +30,7 @@ export function useAccountOverview() {
       accessToken,
       authorizationContext,
       mode: auth.dataMode,
+      sessionPublicId,
     })
       .getAccountOverview()
       .then((result) => {
@@ -40,7 +43,7 @@ export function useAccountOverview() {
     return () => {
       active = false;
     };
-  }, [accessToken, auth.cacheEpoch, auth.dataMode, authorizationContext]);
+  }, [accessToken, auth.cacheEpoch, auth.dataMode, authorizationContext, sessionPublicId]);
 
   return { data, source };
 }

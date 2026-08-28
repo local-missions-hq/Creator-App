@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="32" failures="0" errors="0" time="0.045995042">
+    <testsuite name="lib/account-data.test.ts" timestamp="2026-08-28T14:57:18.440Z" hostname="local-development-host" tests="4" failures="0" errors="0" skipped="0" time="0.003386583">
+        <testcase classname="lib/account-data.test.ts" name="mobile account data adapter &gt; shows safe provider and session metadata without calling an identity provider locally" time="0.001417">
+        </testcase>
+        <testcase classname="lib/account-data.test.ts" name="mobile account data adapter &gt; requires authentication and uses the generated account endpoint in API mode" time="0.000783917">
+        </testcase>
+        <testcase classname="lib/account-data.test.ts" name="mobile account data adapter &gt; never persists account mutations in local preview" time="0.000337834">
+        </testcase>
+        <testcase classname="lib/account-data.test.ts" name="mobile account data adapter &gt; uses generated mutation routes and bearer authorization in API mode" time="0.000278083">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/auth-session.test.ts" timestamp="2026-08-28T14:57:18.441Z" hostname="local-development-host" tests="10" failures="0" errors="0" skipped="0" time="0.004564042">
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; restores a valid protected cold-start session and normalizes a stale selected mode" time="0.001176834">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; clears expired protected state before exposing private routes" time="0.000361417">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; fails closed and attempts cleanup when protected cold-start storage cannot be read" time="0.000151083">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; clears and blocks a disabled account during cold start" time="0.000110209">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; clears and blocks a deletion_requested account during cold start" time="0.000078666">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; authorizes public routes but enforces the complete Creator, Business, and Venue role matrix" time="0.0002395">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; switches only among server-resolved modes and keeps the access token out of persisted output" time="0.000570292">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; derives API role and workspace context only from the selected authenticated mode" time="0.000227958">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; builds explicit API headers and rejects contradictory role context" time="0.000171292">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; keeps recent-auth proof purpose-specific, five-minute, and memory-only" time="0.000807875">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/mission-data.test.ts" timestamp="2026-08-28T14:57:18.442Z" hostname="local-development-host" tests="3" failures="0" errors="0" skipped="0" time="0.002816">
+        <testcase classname="lib/mission-data.test.ts" name="mobile mission data adapter &gt; uses an explicit local preview without making a provider or API call" time="0.000870208">
+        </testcase>
+        <testcase classname="lib/mission-data.test.ts" name="mobile mission data adapter &gt; refuses API mode without an authenticated session token" time="0.00052025">
+        </testcase>
+        <testcase classname="lib/mission-data.test.ts" name="mobile mission data adapter &gt; passes bearer context to the generated API client in API mode" time="0.000871416">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/oidc-session-exchange.test.ts" timestamp="2026-08-28T14:57:18.442Z" hostname="local-development-host" tests="10" failures="0" errors="0" skipped="0" time="0.021925667">
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; generates an opaque 256-bit Local Missions session id without user input" time="0.000993333">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; verifies a signed nonce-bound ID token but takes roles and workspace only from the server" time="0.003623334">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; maps cancellation and provider errors without calling exchange, verification, or storage" time="0.000289292">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; allows one code exchange and rejects replay with one generic response" time="0.001103541">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; rejects wrong code without exposing code, verifier, or provider details" time="0.000703792">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; rejects wrong verifier without exposing code, verifier, or provider details" time="0.000518542">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; rejects the wrong nonce and an expired signed ID token before server bootstrap" time="0.001259875">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; rejects injected server roles and expired Local Missions session projections" time="0.000739209">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; rotates the refresh credential atomically and retains the selected mode" time="0.000235625">
+        </testcase>
+        <testcase classname="lib/oidc-session-exchange.test.ts" name="OIDC code exchange to protected mobile session &gt; refuses a refresh response for another Local Missions session without overwriting storage" time="0.000135792">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/reach-data.test.ts" timestamp="2026-08-28T14:57:18.442Z" hostname="local-development-host" tests="3" failures="0" errors="0" skipped="0" time="0.010416333">
+        <testcase classname="lib/reach-data.test.ts" name="mobile Reach data adapter &gt; keeps local preview provider-free and explicitly disabled" time="0.000859625">
+        </testcase>
+        <testcase classname="lib/reach-data.test.ts" name="mobile Reach data adapter &gt; never silently falls back or mutates consent in local preview" time="0.0083485">
+        </testcase>
+        <testcase classname="lib/reach-data.test.ts" name="mobile Reach data adapter &gt; requires authentication and uses generated Reach endpoints in API mode" time="0.000688833">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/session-data.test.ts" timestamp="2026-08-28T14:57:18.442Z" hostname="local-development-host" tests="2" failures="0" errors="0" skipped="0" time="0.002886417">
+        <testcase classname="lib/session-data.test.ts" name="mobile Local Missions session adapter &gt; bootstraps through the generated client and keeps provider evidence out of the projection" time="0.001724291">
+        </testcase>
+        <testcase classname="lib/session-data.test.ts" name="mobile Local Missions session adapter &gt; refreshes only the requested Local Missions session and rejects malformed access tokens" time="0.000602">
+        </testcase>
+    </testsuite>
+</testsuites>

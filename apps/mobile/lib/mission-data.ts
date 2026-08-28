@@ -74,6 +74,7 @@ export type MobileMissionDataAdapterOptions = {
   authorizationContext?: MobileApiAuthorizationContext;
   client?: LocalMissionsApiClient;
   mode?: 'api' | 'local-preview';
+  sessionPublicId?: string;
 };
 
 export function createMobileMissionDataAdapter(options: MobileMissionDataAdapterOptions = {}) {
@@ -82,7 +83,11 @@ export function createMobileMissionDataAdapter(options: MobileMissionDataAdapter
   const client = options.client ?? createMobileApiClient();
 
   function authorizationHeaders() {
-    return authenticatedMobileApiHeaders(options.accessToken, options.authorizationContext);
+    return authenticatedMobileApiHeaders(
+      options.accessToken,
+      options.sessionPublicId,
+      options.authorizationContext,
+    );
   }
 
   return {

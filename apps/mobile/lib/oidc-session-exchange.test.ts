@@ -9,6 +9,7 @@ import {
 import type { OidcCallbackResult } from './oidc-client';
 import {
   completeOidcMobileSession,
+  createMobileSessionPublicId,
   OidcSessionExchangeError,
   refreshOidcMobileSession,
   SignedOidcIdTokenVerifier,
@@ -78,7 +79,7 @@ function bootstrap(overrides: Partial<MobileSessionBootstrapBoundary> = {}) {
     workspaceRole: 'business_owner' as const,
   };
   return {
-    bootstrap: vi.fn().mockResolvedValue(projection),
+    bootstrap: vi.fn(async ({ sessionPublicId }) => ({ ...projection, sessionPublicId })),
     refresh: vi.fn().mockResolvedValue(projection),
     ...overrides,
   } as MobileSessionBootstrapBoundary;
@@ -108,6 +109,15 @@ function verifierBoundary() {
 }
 
 describe('OIDC code exchange to protected mobile session', () => {
+  it('generates an opaque 256-bit Local Missions session id without user input', async () => {
+    await expect(
+      createMobileSessionPublicId(async (length) => new Uint8Array(length).fill(0xab)),
+    ).resolves.toBe(`ses_${'ab'.repeat(32)}`);
+    await expect(createMobileSessionPublicId(async () => new Uint8Array(31))).rejects.toMatchObject(
+      { code: 'OIDC_SESSION_INVALID' },
+    );
+  });
+
   it('verifies a signed nonce-bound ID token but takes roles and workspace only from the server', async () => {
     const idToken = await signedIdToken();
     const tokenEndpoint = endpoint({

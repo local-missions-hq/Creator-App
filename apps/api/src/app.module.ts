@@ -21,9 +21,16 @@ import {
   UnavailableProviderControlProofVerifier,
 } from './provider-control-proof.js';
 import { V1Controller } from './v1.controller.js';
+import { SessionController } from './session.controller.js';
 
 @Module({
-  controllers: [HealthController, OpenApiController, V1Controller, DomainController],
+  controllers: [
+    HealthController,
+    OpenApiController,
+    V1Controller,
+    SessionController,
+    DomainController,
+  ],
   providers: [
     AuthenticationService,
     DatabaseService,

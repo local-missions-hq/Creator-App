@@ -180,6 +180,7 @@ export const identityProviderSchema = z.enum([
 ]);
 
 export const accountSessionPublicIdSchema = z.string().regex(/^ses_[a-z0-9_]{8,100}$/);
+export const newAccountSessionPublicIdSchema = z.string().regex(/^ses_[a-f0-9]{64}$/);
 export const recentAuthGrantPublicIdSchema = z.string().regex(/^rag_[a-z0-9_]{8,100}$/);
 export const accountRequestPublicIdSchema = z.string().regex(/^acr_[a-z0-9_]{8,100}$/);
 export const accountRequestTypeSchema = z.enum(['export', 'deletion']);
@@ -774,6 +775,28 @@ export const accountOverviewSchema = z.object({
   userPublicId: z.string().min(1).max(120),
 });
 
+export const sessionBootstrapRequestSchema = z.object({
+  sessionPublicId: newAccountSessionPublicIdSchema,
+});
+export const sessionRefreshRequestSchema = z.object({
+  sessionPublicId: accountSessionPublicIdSchema,
+});
+export const sessionBootstrapResponseSchema = z.object({
+  accountStatus: z.literal('active'),
+  expiresAt: z.iso.datetime({ offset: true }),
+  provider: identityProviderSchema,
+  roles: z.array(authenticatedRoleSchema).min(1),
+  sessionPublicId: accountSessionPublicIdSchema,
+  userPublicId: z.string().min(1).max(120),
+  workspaces: z.array(
+    z.object({
+      name: z.string().min(1).max(200),
+      publicId: z.string().regex(/^biz_[a-z0-9_]{8,100}$/),
+      role: z.enum(['owner', 'manager']),
+    }),
+  ),
+});
+
 export const linkAccountIdentityRequestSchema = z.object({
   providerProofToken: z.string().min(32).max(4_000),
   recentAuthGrantPublicId: recentAuthGrantPublicIdSchema,
@@ -951,6 +974,9 @@ export type LocalProviderProofRequest = z.infer<typeof localProviderProofRequest
 export type LocalProviderProofResponse = z.infer<typeof localProviderProofResponseSchema>;
 export type RevokeAccountSessionRequest = z.infer<typeof revokeAccountSessionRequestSchema>;
 export type RevokeAccountSessionResponse = z.infer<typeof revokeAccountSessionResponseSchema>;
+export type SessionBootstrapRequest = z.infer<typeof sessionBootstrapRequestSchema>;
+export type SessionBootstrapResponse = z.infer<typeof sessionBootstrapResponseSchema>;
+export type SessionRefreshRequest = z.infer<typeof sessionRefreshRequestSchema>;
 export type UnlinkAccountIdentityRequest = z.infer<typeof unlinkAccountIdentityRequestSchema>;
 export type BusinessReachOptions = z.infer<typeof businessReachOptionsSchema>;
 export type BusinessCampaignDetail = z.infer<typeof businessCampaignDetailSchema>;

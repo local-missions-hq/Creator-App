@@ -166,6 +166,7 @@ export function apiAuthorizationContextForSession(
 
 export function authenticatedMobileApiHeaders(
   accessToken: string | undefined,
+  sessionPublicId: string | undefined,
   context: MobileApiAuthorizationContext | undefined,
 ): Record<string, string> {
   if (!accessToken) {
@@ -173,6 +174,9 @@ export function authenticatedMobileApiHeaders(
   }
   if (!context) {
     throw new Error('API data mode requires an authenticated role context.');
+  }
+  if (!sessionPublicId || !/^ses_[a-z0-9_]{8,100}$/.test(sessionPublicId)) {
+    throw new Error('API data mode requires an active Local Missions session.');
   }
   if (context.role === 'creator' && context.businessPublicId) {
     throw new Error('Creator API context cannot include a business workspace.');
@@ -182,6 +186,7 @@ export function authenticatedMobileApiHeaders(
   }
   return {
     Authorization: `Bearer ${accessToken}`,
+    'x-local-missions-session': sessionPublicId,
     'x-local-missions-role': context.role,
     ...(context.businessPublicId ? { 'x-local-missions-business': context.businessPublicId } : {}),
   };

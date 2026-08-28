@@ -142,3 +142,17 @@ Nine focused exchange/refresh tests and fifteen retained exchange/storage/logout
 JUnit evidence: [`test-results/mobile-code-exchange-junit.xml`](./test-results/mobile-code-exchange-junit.xml)
 
 No authorization code, token, refresh credential, Entra/provider endpoint, external JWKS, real identity, Azure resource, Stripe action, physical phone, payment, message, external account, or customer data was used. A real HTTPS token transport, server bootstrap/refresh endpoint, session-bound bearer enforcement, network-key proof, system-browser return, and provider round trips remain open.
+
+## Identity-bound server session bootstrap and refresh
+
+- Added production-buildable bootstrap and refresh routes that accept only verified external bearer evidence. Missing Entra configuration remains unavailable, and local synthetic role tokens cannot bootstrap a production-style session.
+- The mobile boundary generates a 256-bit opaque `ses_` public ID. PostgreSQL creates or idempotently reuses one session only when the public ID, active root user, and active external identity all match. Cross-user/cross-identity collisions, revoked sessions, and expired sessions are denied without revival or enumeration.
+- Bootstrap returns only active account status, the provider label, current Creator/Business roles, and safe Business workspace name/public-ID/owner-or-manager projections. Provider subject, issuer, token, email, address, bank, payment, and private locality evidence are absent.
+- Every later external request requires the provider bearer token plus `x-local-missions-session`. The server rechecks the same active identity/session/user tuple and then current Creator profile or exact Business membership/workspace, so logout, session expiry, identity unlink/revocation, account disablement, and membership removal take effect on the next request.
+- Regenerated production/local OpenAPI snapshots and the shared client. Mobile bootstrap/refresh, account, mission, Reach, and logout adapters now carry the server-bound session while access tokens remain runtime-memory-only.
+
+Pinned Node 24.19.0 and pnpm 11.24.0 passed the full nine-workspace verification. All 99 database integration tests and 33 API integration tests passed; focused JUnit evidence retained 25 API, seven account-lifecycle PostgreSQL, and 32 mobile tests with zero failures/errors. All 77 mobile tests passed. The deterministic seed and 96-table database check passed, the final local security scan passed 435 text files, and Gitleaks found no leak in approximately 14.39 MB.
+
+JUnit evidence: [`test-results/server-session-bootstrap-api-junit.xml`](./test-results/server-session-bootstrap-api-junit.xml), [`test-results/server-session-bootstrap-db-junit.xml`](./test-results/server-session-bootstrap-db-junit.xml), [`test-results/server-session-bootstrap-mobile-junit.xml`](./test-results/server-session-bootstrap-mobile-junit.xml)
+
+The app remained visible at 390 × 844 on the generated-image-aligned Business dashboard. The disposable Creator App PostgreSQL container, volume, and Compose network were destroyed; the unrelated Post Proof database remained running on its separate port. No Entra/provider endpoint, external JWKS, authorization code, real token, real identity, Azure resource, Stripe action, phone, payment, message, external account, or customer data was used. Real provider registration/round trips, system-browser/deep-link execution, multi-workspace choice, network-key proof, and the physical-device gate remain open.

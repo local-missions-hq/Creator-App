@@ -40,12 +40,14 @@ describe('mobile Reach data adapter', () => {
       authorizationContext: { role: 'creator' },
       client: { GET: get } as never,
       mode: 'api',
+      sessionPublicId: 'ses_synthetic_adapter_001',
     });
     await adapter.getCreatorReach();
     expect(get).toHaveBeenCalledWith('/v1/creator/reach', {
       headers: {
         Authorization: 'Bearer test-token-not-a-secret',
         'x-local-missions-role': 'creator',
+        'x-local-missions-session': 'ses_synthetic_adapter_001',
       },
     });
   });

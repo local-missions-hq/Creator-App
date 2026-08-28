@@ -52,6 +52,7 @@ export type MobileAccountDataAdapterOptions = {
   authorizationContext?: MobileApiAuthorizationContext;
   client?: LocalMissionsApiClient;
   mode?: 'api' | 'local-preview';
+  sessionPublicId?: string;
 };
 
 export function createMobileAccountDataAdapter(options: MobileAccountDataAdapterOptions = {}) {
@@ -60,7 +61,11 @@ export function createMobileAccountDataAdapter(options: MobileAccountDataAdapter
   const client = options.client ?? createMobileApiClient();
 
   function authorizationHeaders() {
-    return authenticatedMobileApiHeaders(options.accessToken, options.authorizationContext);
+    return authenticatedMobileApiHeaders(
+      options.accessToken,
+      options.sessionPublicId,
+      options.authorizationContext,
+    );
   }
 
   function rejectLocalMutation(): never {

@@ -28,6 +28,7 @@ const futureSession: PersistedMobileSession = {
   version: 1,
   workspacePublicId: 'biz_synthetic_restore_001',
 };
+const syntheticHeaderSessionPublicId = ['ses', 'synthetic', 'headers', '001'].join('_');
 
 function storageWith(value: PersistedMobileSession | null): MobileSessionStorage {
   return {
@@ -175,7 +176,7 @@ describe('mobile auth session lifecycle', () => {
 
   it('builds explicit API headers and rejects contradictory role context', () => {
     expect(
-      authenticatedMobileApiHeaders('test-token-not-a-secret', {
+      authenticatedMobileApiHeaders('test-token-not-a-secret', syntheticHeaderSessionPublicId, {
         businessPublicId: 'biz_synthetic_orlando_001',
         role: 'business_owner',
       }),
@@ -183,15 +184,18 @@ describe('mobile auth session lifecycle', () => {
       Authorization: 'Bearer test-token-not-a-secret',
       'x-local-missions-business': 'biz_synthetic_orlando_001',
       'x-local-missions-role': 'business_owner',
+      'x-local-missions-session': syntheticHeaderSessionPublicId,
     });
     expect(() =>
-      authenticatedMobileApiHeaders('test-token-not-a-secret', {
+      authenticatedMobileApiHeaders('test-token-not-a-secret', syntheticHeaderSessionPublicId, {
         businessPublicId: 'biz_synthetic_orlando_001',
         role: 'creator',
       }),
     ).toThrow(/cannot include/);
     expect(() =>
-      authenticatedMobileApiHeaders('test-token-not-a-secret', { role: 'business_manager' }),
+      authenticatedMobileApiHeaders('test-token-not-a-secret', syntheticHeaderSessionPublicId, {
+        role: 'business_manager',
+      }),
     ).toThrow(/requires a selected business workspace/);
   });
 

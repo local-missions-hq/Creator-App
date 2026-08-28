@@ -45,6 +45,7 @@ export type MobileReachDataAdapterOptions = {
   authorizationContext?: MobileApiAuthorizationContext;
   client?: LocalMissionsApiClient;
   mode?: 'api' | 'local-preview';
+  sessionPublicId?: string;
 };
 
 export function createMobileReachDataAdapter(options: MobileReachDataAdapterOptions = {}) {
@@ -53,7 +54,11 @@ export function createMobileReachDataAdapter(options: MobileReachDataAdapterOpti
   const client = options.client ?? createMobileApiClient();
 
   function authorizationHeaders() {
-    return authenticatedMobileApiHeaders(options.accessToken, options.authorizationContext);
+    return authenticatedMobileApiHeaders(
+      options.accessToken,
+      options.sessionPublicId,
+      options.authorizationContext,
+    );
   }
 
   async function requireData<T>(data: T | undefined, message: string): Promise<T> {

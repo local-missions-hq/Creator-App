@@ -35,11 +35,13 @@ describe('mobile account data adapter', () => {
       authorizationContext: { role: 'creator' },
       client: { GET: get } as never,
       mode: 'api',
+      sessionPublicId: 'ses_synthetic_adapter_001',
     }).getAccountOverview();
     expect(get).toHaveBeenCalledWith('/v1/account', {
       headers: {
         Authorization: 'Bearer test-token-not-a-secret',
         'x-local-missions-role': 'creator',
+        'x-local-missions-session': 'ses_synthetic_adapter_001',
       },
     });
   });
@@ -80,6 +82,7 @@ describe('mobile account data adapter', () => {
       },
       client: { DELETE: remove, POST: post } as never,
       mode: 'api',
+      sessionPublicId: 'ses_synthetic_adapter_001',
     });
     await adapter.createAccountRequest({
       publicId: 'acr_export_synthetic_001',
@@ -98,6 +101,7 @@ describe('mobile account data adapter', () => {
         Authorization: 'Bearer test-token-not-a-secret',
         'x-local-missions-business': 'biz_synthetic_orlando_001',
         'x-local-missions-role': 'business_owner',
+        'x-local-missions-session': 'ses_synthetic_adapter_001',
       },
     });
     expect(remove).toHaveBeenCalledWith('/v1/account/identities/{provider}', {
@@ -106,6 +110,7 @@ describe('mobile account data adapter', () => {
         Authorization: 'Bearer test-token-not-a-secret',
         'x-local-missions-business': 'biz_synthetic_orlando_001',
         'x-local-missions-role': 'business_owner',
+        'x-local-missions-session': 'ses_synthetic_adapter_001',
       },
       params: { path: { provider: 'google' } },
     });

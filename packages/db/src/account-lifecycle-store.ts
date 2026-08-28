@@ -29,6 +29,7 @@ export class AccountLifecycleError extends Error {
 
 type SessionRow = QueryResultRow & {
   external_identity_id: string;
+  expires_at: Date;
   id: string;
   public_id: string;
   status: 'active' | 'expired' | 'revoked';
@@ -77,6 +78,78 @@ export class AccountLifecycleStore {
         subjectType: 'account-session',
       });
       return { id: row.id, publicId: row.public_id, version: row.version };
+    });
+  }
+
+  async createOrReuseSession(input: {
+    correlationId: string;
+    expiresAt: Date;
+    externalIdentityId: string;
+    publicId: string;
+    userId: string;
+  }): Promise<{
+    created: boolean;
+    expiresAt: Date;
+    id: string;
+    publicId: string;
+    version: number;
+  }> {
+    return this.withTransaction(async (client) => {
+      const inserted = await client.query<SessionRow>(
+        `INSERT INTO account_sessions (
+           public_id, user_id, external_identity_id, expires_at
+         ) VALUES ($1,$2,$3,$4)
+         ON CONFLICT (public_id) DO NOTHING
+         RETURNING id, public_id, user_id, external_identity_id, status, expires_at, version`,
+        [input.publicId, input.userId, input.externalIdentityId, input.expiresAt],
+      );
+      let row = inserted.rows[0];
+      if (row) {
+        await this.appendAudit(client, {
+          action: 'account.session-created',
+          actorId: input.userId,
+          correlationId: input.correlationId,
+          details: { sessionPublicId: row.public_id },
+          subjectId: row.id,
+          subjectType: 'account-session',
+        });
+        return {
+          created: true,
+          expiresAt: row.expires_at,
+          id: row.id,
+          publicId: row.public_id,
+          version: row.version,
+        };
+      }
+
+      const existing = await client.query<SessionRow>(
+        `SELECT id, public_id, user_id, external_identity_id, status, expires_at, version
+           FROM account_sessions
+          WHERE public_id = $1
+          FOR UPDATE`,
+        [input.publicId],
+      );
+      row = existing.rows[0];
+      if (
+        !row ||
+        row.user_id !== input.userId ||
+        row.external_identity_id !== input.externalIdentityId ||
+        row.status !== 'active' ||
+        row.expires_at.getTime() <= Date.now()
+      ) {
+        throw new AccountLifecycleError(
+          'SESSION_INVALID',
+          403,
+          'The account session is unavailable.',
+        );
+      }
+      return {
+        created: false,
+        expiresAt: row.expires_at,
+        id: row.id,
+        publicId: row.public_id,
+        version: row.version,
+      };
     });
   }
 

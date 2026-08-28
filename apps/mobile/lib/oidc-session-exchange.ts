@@ -56,7 +56,10 @@ export type MobileSessionBootstrap = {
 };
 
 export interface MobileSessionBootstrapBoundary {
-  bootstrap(input: { accessToken: string }): Promise<MobileSessionBootstrap>;
+  bootstrap(input: {
+    accessToken: string;
+    sessionPublicId: string;
+  }): Promise<MobileSessionBootstrap>;
   refresh(input: { accessToken: string; sessionPublicId: string }): Promise<MobileSessionBootstrap>;
 }
 
@@ -91,6 +94,22 @@ const publicIdPatterns = {
   user: /^usr_[a-z0-9_]{8,100}$/,
   workspace: /^biz_[a-z0-9_]{8,100}$/,
 };
+
+export async function createMobileSessionPublicId(
+  randomBytes: (length: number) => Promise<Uint8Array> = async (length) => {
+    if (globalThis.crypto?.getRandomValues) {
+      const bytes = new Uint8Array(new ArrayBuffer(length));
+      globalThis.crypto.getRandomValues(bytes);
+      return bytes;
+    }
+    const crypto = await import('expo-crypto');
+    return crypto.getRandomBytesAsync(length);
+  },
+): Promise<string> {
+  const bytes = await randomBytes(32);
+  if (bytes.length !== 32) throw new OidcSessionExchangeError('OIDC_SESSION_INVALID');
+  return `ses_${Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('')}`;
+}
 
 function constantTimeEqual(left: string, right: string): boolean {
   const length = Math.max(left.length, right.length);
@@ -258,10 +277,17 @@ export async function completeOidcMobileSession(input: {
       idToken: tokenSet.idToken!,
       now: input.now,
     });
+    const requestedSessionPublicId = await createMobileSessionPublicId();
     const bootstrap = safeBootstrap(
-      await input.bootstrap.bootstrap({ accessToken: tokenSet.accessToken }),
+      await input.bootstrap.bootstrap({
+        accessToken: tokenSet.accessToken,
+        sessionPublicId: requestedSessionPublicId,
+      }),
       input.now,
     );
+    if (bootstrap.sessionPublicId !== requestedSessionPublicId) {
+      throw new OidcSessionExchangeError('OIDC_SESSION_INVALID');
+    }
     const now = input.now ?? new Date();
     const session = runtimeSession({
       accessToken: tokenSet.accessToken,

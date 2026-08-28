@@ -365,6 +365,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/v1/session/bootstrap': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create or idempotently reuse an identity-bound app session */
+    post: operations['SessionController_bootstrap'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/session/refresh': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Revalidate an active identity-bound app session and current roles */
+    post: operations['SessionController_refresh'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -736,6 +770,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -865,6 +901,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1035,6 +1073,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1206,6 +1246,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1342,6 +1384,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1519,6 +1563,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1664,6 +1710,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1806,6 +1854,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -1921,6 +1971,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -2067,6 +2119,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -2226,6 +2280,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -2440,6 +2496,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -2558,6 +2616,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -2710,6 +2770,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -2862,6 +2924,8 @@ export interface operations {
         'x-local-missions-business'?: string;
         /** @description Requested app role; always re-authorized against current server state. */
         'x-local-missions-role'?: 'creator' | 'business_owner' | 'business_manager';
+        /** @description Opaque Local Missions session ID bound to the verified external identity. */
+        'x-local-missions-session'?: string;
         /** @description Optional caller request ID. Invalid values are replaced. */
         'x-request-id'?: components['parameters']['RequestId'];
       };
@@ -3039,6 +3103,326 @@ export interface operations {
         };
       };
       503: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+    };
+  };
+  SessionController_bootstrap: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Optional caller correlation ID. Invalid values are replaced. */
+        'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Optional caller request ID. Invalid values are replaced. */
+        'x-request-id'?: components['parameters']['RequestId'];
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          sessionPublicId: string;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @constant */
+            accountStatus: 'active';
+            /** Format: date-time */
+            expiresAt: string;
+            /** @enum {string} */
+            provider: 'apple' | 'google' | 'microsoft' | 'passwordless_email';
+            roles: ('creator' | 'business_owner' | 'business_manager')[];
+            sessionPublicId: string;
+            userPublicId: string;
+            workspaces: {
+              name: string;
+              publicId: string;
+              /** @enum {string} */
+              role: 'owner' | 'manager';
+            }[];
+          };
+        };
+      };
+      400: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      401: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      403: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      409: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+    };
+  };
+  SessionController_refresh: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Optional caller correlation ID. Invalid values are replaced. */
+        'x-correlation-id'?: components['parameters']['CorrelationId'];
+        /** @description Optional caller request ID. Invalid values are replaced. */
+        'x-request-id'?: components['parameters']['RequestId'];
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          sessionPublicId: string;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @constant */
+            accountStatus: 'active';
+            /** Format: date-time */
+            expiresAt: string;
+            /** @enum {string} */
+            provider: 'apple' | 'google' | 'microsoft' | 'passwordless_email';
+            roles: ('creator' | 'business_owner' | 'business_manager')[];
+            sessionPublicId: string;
+            userPublicId: string;
+            workspaces: {
+              name: string;
+              publicId: string;
+              /** @enum {string} */
+              role: 'owner' | 'manager';
+            }[];
+          };
+        };
+      };
+      400: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      401: {
+        headers: {
+          'x-correlation-id': components['headers']['CorrelationId'];
+          'x-request-id': components['headers']['RequestId'];
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            correlationId: string;
+            error: {
+              /** @enum {string} */
+              code:
+                | 'ACCESS_DENIED'
+                | 'AUTHENTICATION_REQUIRED'
+                | 'DEPENDENCY_UNAVAILABLE'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'INTERNAL_ERROR'
+                | 'NOT_FOUND'
+                | 'RATE_LIMITED'
+                | 'STATE_CONFLICT'
+                | 'VALIDATION_FAILED'
+                | 'VERSION_CONFLICT';
+              details?: {
+                code: string;
+                path: string;
+              }[];
+              message: string;
+            };
+            requestId: string;
+          };
+        };
+      };
+      403: {
         headers: {
           'x-correlation-id': components['headers']['CorrelationId'];
           'x-request-id': components['headers']['RequestId'];

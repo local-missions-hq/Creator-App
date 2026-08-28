@@ -24,6 +24,7 @@ import type {
   LocalityStatus,
   ReachCapabilityStatus,
   RevokeAccountSessionResponse,
+  SessionBootstrapResponse,
   SocialPlatform,
   UnlinkAccountIdentityRequest,
 } from '@local-missions/contracts';
@@ -93,6 +94,7 @@ const cursorSchema = z.object({
 
 const externalRoleSchema = z.enum(['creator', 'business_owner', 'business_manager']);
 const businessContextSchema = z.string().regex(/^biz_[a-z0-9_]{8,100}$/);
+const externalSessionHeaderSchema = z.string().regex(/^ses_[a-z0-9_]{8,100}$/);
 
 function isExternalIdentity(
   identity: VerifiedBearerIdentity,
@@ -189,6 +191,83 @@ export class DomainApiService {
     } catch (error) {
       if (error instanceof ApiProblem) throw error;
       throw dependencyUnavailable();
+    }
+  }
+
+  async bootstrapExternalSession(
+    request: ContextualRequest,
+    sessionPublicId: string,
+    correlationId: string,
+  ): Promise<SessionBootstrapResponse> {
+    const identity = await this.authentication.verifyAuthorizationHeader(
+      request.headers.authorization,
+    );
+    if (!isExternalIdentity(identity)) {
+      throw new ApiProblem('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401);
+    }
+    try {
+      const resolved = await this.resolveActiveExternalIdentity(identity);
+      const candidateProjection = await this.projectSessionBootstrap({
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        provider: resolved.provider,
+        sessionPublicId,
+        userId: resolved.userId,
+        userPublicId: resolved.userPublicId,
+      });
+      const session = await new AccountLifecycleStore(
+        this.database.requirePool(),
+      ).createOrReuseSession({
+        correlationId,
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        externalIdentityId: resolved.externalIdentityId,
+        publicId: sessionPublicId,
+        userId: resolved.userId,
+      });
+      return {
+        ...candidateProjection,
+        expiresAt: session.expiresAt.toISOString(),
+        sessionPublicId: session.publicId,
+      };
+    } catch (error) {
+      this.throwSessionProblem(error);
+    }
+  }
+
+  async refreshExternalSession(
+    request: ContextualRequest,
+    sessionPublicId: string,
+  ): Promise<SessionBootstrapResponse> {
+    const identity = await this.authentication.verifyAuthorizationHeader(
+      request.headers.authorization,
+    );
+    if (!isExternalIdentity(identity)) {
+      throw new ApiProblem('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401);
+    }
+    try {
+      const resolved = await this.resolveActiveExternalIdentity(identity);
+      const session = await this.database.requirePool().query<{
+        expires_at: Date;
+        public_id: string;
+      }>(
+        `SELECT public_id, expires_at
+           FROM account_sessions
+          WHERE public_id = $1 AND user_id = $2 AND external_identity_id = $3
+            AND status = 'active' AND expires_at > now()`,
+        [sessionPublicId, resolved.userId, resolved.externalIdentityId],
+      );
+      const row = session.rows[0];
+      if (!row) {
+        throw new ApiProblem('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401);
+      }
+      return this.projectSessionBootstrap({
+        expiresAt: row.expires_at,
+        provider: resolved.provider,
+        sessionPublicId: row.public_id,
+        userId: resolved.userId,
+        userPublicId: resolved.userPublicId,
+      });
+    } catch (error) {
+      this.throwSessionProblem(error);
     }
   }
 
@@ -727,14 +806,27 @@ export class DomainApiService {
     const requested = isExternalIdentity(identity)
       ? requestedExternalContext(request)
       : { role: identity.role, tenantPublicId: identity.tenantPublicId };
+    const externalSessionPublicId = isExternalIdentity(identity)
+      ? externalSessionHeaderSchema.safeParse(
+          oneHeader(request.headers['x-local-missions-session']),
+        )
+      : undefined;
+    if (externalSessionPublicId && !externalSessionPublicId.success) {
+      throw new ApiProblem('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401);
+    }
     const user = isExternalIdentity(identity)
       ? await pool.query<{ id: string; public_id: string; status: string }>(
           `SELECT account_user.id, account_user.public_id, account_user.status
              FROM external_identities identity
              JOIN users account_user ON account_user.id = identity.user_id
+             JOIN account_sessions session
+               ON session.user_id = account_user.id
+              AND session.external_identity_id = identity.id
             WHERE identity.issuer = $1 AND identity.subject = $2
-              AND identity.status = 'active'`,
-          [identity.issuer, identity.subject],
+              AND identity.status = 'active'
+              AND session.public_id = $3 AND session.status = 'active'
+              AND session.expires_at > now()`,
+          [identity.issuer, identity.subject, externalSessionPublicId?.data],
         )
       : await pool.query<{ id: string; public_id: string; status: string }>(
           `SELECT id, public_id, status FROM users WHERE public_id = $1`,
@@ -811,6 +903,89 @@ export class DomainApiService {
     };
   }
 
+  private async resolveActiveExternalIdentity(identity: VerifiedExternalBearerIdentity): Promise<{
+    externalIdentityId: string;
+    provider: IdentityProvider;
+    userId: string;
+    userPublicId: string;
+  }> {
+    const result = await this.database.requirePool().query<{
+      external_identity_id: string;
+      provider: IdentityProvider;
+      user_id: string;
+      user_public_id: string;
+      user_status: string;
+    }>(
+      `SELECT identity.id AS external_identity_id, identity.provider,
+              account_user.id AS user_id, account_user.public_id AS user_public_id,
+              account_user.status AS user_status
+         FROM external_identities identity
+         JOIN users account_user ON account_user.id = identity.user_id
+        WHERE identity.issuer = $1 AND identity.subject = $2
+          AND identity.status = 'active'`,
+      [identity.issuer, identity.subject],
+    );
+    const row = result.rows[0];
+    if (!row) throw new ApiProblem('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401);
+    if (row.user_status !== 'active') {
+      throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
+    }
+    return {
+      externalIdentityId: row.external_identity_id,
+      provider: row.provider,
+      userId: row.user_id,
+      userPublicId: row.user_public_id,
+    };
+  }
+
+  private async projectSessionBootstrap(input: {
+    expiresAt: Date;
+    provider: IdentityProvider;
+    sessionPublicId: string;
+    userId: string;
+    userPublicId: string;
+  }): Promise<SessionBootstrapResponse> {
+    const pool = this.database.requirePool();
+    const [creator, memberships] = await Promise.all([
+      pool.query(`SELECT 1 FROM creator_profiles WHERE user_id = $1`, [input.userId]),
+      pool.query<{
+        name: string;
+        public_id: string;
+        role: 'manager' | 'owner';
+      }>(
+        `SELECT business.public_id, business.name, membership.role
+           FROM business_memberships membership
+           JOIN businesses business ON business.id = membership.business_id
+          WHERE membership.user_id = $1 AND membership.status = 'active'
+            AND membership.role IN ('owner','manager')
+          ORDER BY business.name, business.public_id`,
+        [input.userId],
+      ),
+    ]);
+    const roles: SessionBootstrapResponse['roles'] = [];
+    if (creator.rowCount) roles.push('creator');
+    if (memberships.rows.some((workspace) => workspace.role === 'owner')) {
+      roles.push('business_owner');
+    }
+    if (memberships.rows.some((workspace) => workspace.role === 'manager')) {
+      roles.push('business_manager');
+    }
+    if (roles.length === 0) throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
+    return {
+      accountStatus: 'active',
+      expiresAt: input.expiresAt.toISOString(),
+      provider: input.provider,
+      roles,
+      sessionPublicId: input.sessionPublicId,
+      userPublicId: input.userPublicId,
+      workspaces: memberships.rows.map((workspace) => ({
+        name: workspace.name,
+        publicId: workspace.public_id,
+        role: workspace.role,
+      })),
+    };
+  }
+
   private async resolveAccountSessionId(userId: string, publicId: string): Promise<string> {
     const result = await this.database.requirePool().query<{ id: string }>(
       `SELECT id FROM account_sessions
@@ -859,6 +1034,20 @@ export class DomainApiService {
       throw new ApiProblem(
         error.httpStatus === 403 ? 'ACCESS_DENIED' : 'STATE_CONFLICT',
         error.message,
+        error.httpStatus,
+      );
+    }
+    throw dependencyUnavailable();
+  }
+
+  private throwSessionProblem(error: unknown): never {
+    if (error instanceof ApiProblem) throw error;
+    if (error instanceof AccountLifecycleError) {
+      throw new ApiProblem(
+        error.httpStatus === 403 ? 'ACCESS_DENIED' : 'STATE_CONFLICT',
+        error.httpStatus === 403
+          ? 'Access is denied.'
+          : 'The request conflicts with current state.',
         error.httpStatus,
       );
     }
