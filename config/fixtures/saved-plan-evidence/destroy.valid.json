@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "fixtureStatus": "synthetic_only",
+  "operation": "destroy",
+  "artifact": {
+    "logicalName": "dev-workload-destroy.tfplan",
+    "syntheticFixturePath": "destroy-plan.synthetic.fixture",
+    "sha256": "f171666bbb73dedeb37e39cacf5d77f92fe1e1cdc4dd4a9c448c2fbd676689c4"
+  },
+  "source": {
+    "repository": "stratiosai/Creator-App",
+    "ref": "refs/heads/main",
+    "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "terraformRoot": "infra/terraform/environments/dev",
+    "backendKey": "local-missions/dev-workload.tfstate",
+    "targetResourceGroup": "rg-local-missions-dev-example",
+    "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
+    "targetInventorySha256": "1ccd6f0ef7b9dfded940f21904d300f81693dc9e57240dd28008f1e87892e3b1",
+    "workloadResourceCount": 28,
+    "retainedTargetCount": 0
+  },
+  "producer": {
+    "identityReference": "AZURE_DESTROY_CLIENT_ID",
+    "environment": "azure-development-destroy",
+    "workflowRunReference": "synthetic:run:destroy-plan:001",
+    "initiatedBy": "synthetic:actor:operator",
+    "producedAt": "2026-08-28T20:00:00-04:00"
+  },
+  "planSummary": {
+    "create": 0,
+    "update": 0,
+    "delete": 28,
+    "replace": 0,
+    "destructiveChanges": true,
+    "sanitizedText": "Destroy plan: 0 to add, 0 to change, 28 to destroy.",
+    "sanitizedJson": {
+      "create": 0,
+      "update": 0,
+      "delete": 28,
+      "replace": 0
+    }
+  },
+  "costEvidence": {
+    "status": "synthetic_fixture_only",
+    "source": "synthetic_fixture_only",
+    "currency": "USD",
+    "estimatedRunCostMinor": 250,
+    "approvedCeilingMinor": 500,
+    "estimatedMonthlyCostMinor": 0,
+    "estimatedAt": "2026-08-28T20:05:00-04:00",
+    "livePriceApproved": false,
+    "reviewedBy": "synthetic:actor:cost-reviewer",
+    "boundArtifactSha256": "f171666bbb73dedeb37e39cacf5d77f92fe1e1cdc4dd4a9c448c2fbd676689c4"
+  },
+  "lifecycle": {
+    "createdAt": "2026-08-28T20:00:00-04:00",
+    "expiresAt": "2026-08-28T22:00:00-04:00",
+    "warningAt": "2026-08-28T21:00:00-04:00"
+  },
+  "review": {
+    "reference": "synthetic:review:destroy:001",
+    "reviewedBy": "synthetic:actor:target-reviewer",
+    "reviewedAt": "2026-08-28T20:15:00-04:00",
+    "reviewPayloadSha256": "fa5851ffb25b0dafbf34df709aa1a17abca2542e8081960907067794b70ff1bd"
+  },
+  "approval": {
+    "kind": "destroy",
+    "status": "synthetic_fixture_only",
+    "reference": "synthetic:approval:destroy:001",
+    "approvedBy": "synthetic:actor:destroy-approver",
+    "approvedAt": "2026-08-28T20:20:00-04:00",
+    "reviewPayloadSha256": "fa5851ffb25b0dafbf34df709aa1a17abca2542e8081960907067794b70ff1bd"
+  },
+  "consumer": {
+    "identityReference": "AZURE_DESTROY_CLIENT_ID",
+    "environment": "azure-development-destroy",
+    "command": "terraform apply -input=false dev-workload-destroy.tfplan",
+    "expectedArtifactSha256": "f171666bbb73dedeb37e39cacf5d77f92fe1e1cdc4dd4a9c448c2fbd676689c4",
+    "expectedReviewPayloadSha256": "fa5851ffb25b0dafbf34df709aa1a17abca2542e8081960907067794b70ff1bd",
+    "consumedAt": "2026-08-28T20:25:00-04:00",
+    "transientArtifactDeleted": true
+  }
+}

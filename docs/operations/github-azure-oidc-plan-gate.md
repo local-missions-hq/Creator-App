@@ -41,6 +41,8 @@ Concrete Azure role definitions and scopes remain unapproved external decisions.
 
 The future plan job may emit only a saved `dev-workload.tfplan` plus sanitized text/JSON summaries, commit SHA, plan SHA-256, approved cost summary, expiration, and exact root/resource-group evidence. The apply job accepts only `terraform apply -input=false dev-workload.tfplan` after matching the commit and digest. The destroy job first creates `dev-workload-destroy.tfplan`, requires independent target review, and then applies that exact file.
 
+The closed manifest, review-payload digest, independent actors, cost ceiling, expiry, and transient-artifact retention rules are defined by the separate [saved-plan evidence gate](./saved-plan-evidence-gate.md). The current fixtures are synthetic and cannot be promoted into live approval by changing a status value.
+
 Direct `terraform destroy`, direct/unreviewed `terraform apply`, `-auto-approve`, `-target`, `import`, `refresh`, `force-unlock`, state mutation, taint, and untaint are refused. The command policy also refuses pull requests, forks, non-main refs, wrong environments/identities, self-hosted runners, missing or excessive GitHub permissions, self-approval, stale/overnight evidence, commit/digest mismatch, broad targets, client secrets, and shared identities.
 
 ## Future activation sequence

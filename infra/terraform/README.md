@@ -17,4 +17,6 @@ The intended progression is:
 
 `pnpm azure-oidc:check` separately proves the future GitHub-to-Azure plan/apply/destroy identity and command contract while every active workflow remains non-deploying. The only workflow-shaped example is hard-disabled under [`ci/`](./ci/) and is not inside `.github/workflows`.
 
+`pnpm saved-plan:check` proves two synthetic apply/destroy producer-consumer manifests, SHA-256 artifact and canonical review binding, exact source/target/cost/approval/expiry evidence, strict sanitization, transient-copy deletion, and fail-closed mutations. Harmless `.synthetic.fixture` text is used instead of a Terraform plan binary.
+
 Do not add credentials, subscription identifiers, broad targets, persistent dev resources, or resource mutations merely to make the foundation look complete. Current region/SKU prices, named owners, alert delivery, OIDC identities, budgets, saved plans, and every apply/destroy action remain separate external gates.

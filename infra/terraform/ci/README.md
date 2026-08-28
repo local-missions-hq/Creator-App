@@ -4,4 +4,6 @@ This directory contains documentation-only CI shapes. Files here are not GitHub 
 
 `azure-workload-identity.workflow.yml.example` demonstrates job-scoped OIDC permission and distinct plan/apply/destroy environments. Every job is hard-disabled and intentionally contains no Azure login or Terraform command. The executable policy lives in `config/azure-oidc-plan-gate.v1.json` and is checked by `pnpm azure-oidc:check`.
 
+The separate saved-plan producer-consumer, digest, sanitization, cost, approval, expiry, and retention rules live in `config/saved-plan-evidence.v1.json` and are checked by `pnpm saved-plan:check` using synthetic fixtures only.
+
 Do not activate the template until the external subject-preview, identity, scope, environment-protection, action-pin, plan/cost, and explicit approval gates in `docs/operations/github-azure-oidc-plan-gate.md` all have evidence.

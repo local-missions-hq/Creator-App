@@ -1,0 +1,129 @@
+{
+  "activationStatus": "synthetic_contract_only",
+  "allFixturesSynthetic": true,
+  "checkpoint": "M05-saved-plan-evidence-contract-local-005",
+  "cloudEvidenceClaimed": false,
+  "currentCiConsumerPresent": false,
+  "digestAlgorithm": "sha256",
+  "fixtureRoot": "config/fixtures/saved-plan-evidence",
+  "operations": [
+    {
+      "artifactLogicalName": "dev-workload.tfplan",
+      "consumerEnvironment": "azure-development-apply",
+      "consumerIdentityReference": "AZURE_APPLY_CLIENT_ID",
+      "exactCommand": "terraform apply -input=false dev-workload.tfplan",
+      "fixtureManifest": "apply.valid.json",
+      "kind": "apply",
+      "producerEnvironment": "azure-development-plan",
+      "producerIdentityReference": "AZURE_PLAN_CLIENT_ID"
+    },
+    {
+      "artifactLogicalName": "dev-workload-destroy.tfplan",
+      "consumerEnvironment": "azure-development-destroy",
+      "consumerIdentityReference": "AZURE_DESTROY_CLIENT_ID",
+      "exactCommand": "terraform apply -input=false dev-workload-destroy.tfplan",
+      "fixtureManifest": "destroy.valid.json",
+      "kind": "destroy",
+      "producerEnvironment": "azure-development-destroy",
+      "producerIdentityReference": "AZURE_DESTROY_CLIENT_ID"
+    }
+  ],
+  "requiredEvidenceFieldsFromOidcContract": [
+    "source_commit_sha",
+    "terraform_plan_sha256",
+    "sanitized_text_plan",
+    "sanitized_json_summary",
+    "approved_cost_summary",
+    "expires_at",
+    "exact_target_root",
+    "exact_target_resource_group"
+  ],
+  "retentionContract": {
+    "binaryPlanInRepositoryAllowed": false,
+    "binaryPlanInRetainedEvidenceAllowed": false,
+    "consumerMustDeleteTransientCopy": true,
+    "manifestMayContainSecrets": false,
+    "maximumTransientArtifactHours": 8
+  },
+  "sanitizationContract": {
+    "forbiddenFieldNames": [
+      "access_token",
+      "account_key",
+      "client_secret",
+      "connection_string",
+      "password",
+      "private_key",
+      "refresh_token",
+      "sas_token",
+      "secret",
+      "token"
+    ],
+    "forbiddenValueMarkerClasses": [
+      "private-key-pem-header",
+      "azure-account-key-assignment",
+      "shared-access-signature",
+      "client-secret-assignment",
+      "password-assignment",
+      "signature-query-parameter"
+    ],
+    "maximumSummaryBytes": 16384
+  },
+  "targetContract": {
+    "backendKey": "local-missions/dev-workload.tfstate",
+    "exactTerraformRoot": "infra/terraform/environments/dev",
+    "resourceGroupPattern": "^rg-local-missions-dev-[a-z0-9]{6,12}$",
+    "retainedTargetCount": 0,
+    "workloadResourceCount": 28
+  },
+  "timeContract": {
+    "cutoffHourAmericaNewYork": 23,
+    "maximumHours": 8,
+    "requiredTimeZone": "America/New_York",
+    "warningMinutes": 60
+  },
+  "refusalScenarios": [
+    "schema-version-drift",
+    "non-synthetic-fixture",
+    "wrong-operation",
+    "wrong-artifact-name",
+    "missing-artifact-fixture",
+    "artifact-digest-mismatch",
+    "unsafe-artifact-path",
+    "wrong-repository",
+    "wrong-ref",
+    "malformed-commit",
+    "wrong-terraform-root",
+    "wrong-backend-key",
+    "broad-resource-group",
+    "provider-lock-digest-mismatch",
+    "target-inventory-digest-mismatch",
+    "unexpected-retained-target",
+    "wrong-resource-count",
+    "wrong-producer-identity",
+    "wrong-producer-environment",
+    "wrong-consumer-identity",
+    "wrong-consumer-environment",
+    "wrong-consumer-command",
+    "consumer-artifact-digest-mismatch",
+    "consumer-review-digest-mismatch",
+    "undeclared-destructive-change",
+    "unsanitized-secret-field",
+    "unexpected-manifest-field",
+    "oversized-summary",
+    "live-price-claim-in-synthetic-fixture",
+    "cost-artifact-digest-mismatch",
+    "cost-over-approved-ceiling",
+    "missing-independent-cost-reviewer",
+    "review-payload-digest-mismatch",
+    "self-plan-review",
+    "self-approval",
+    "approval-before-review",
+    "wrong-approval-kind",
+    "expired-consumption",
+    "over-eight-hour-window",
+    "after-eleven-pm-cutoff",
+    "wrong-warning-time",
+    "consumer-before-approval",
+    "apply-identity-not-separated"
+  ]
+}
