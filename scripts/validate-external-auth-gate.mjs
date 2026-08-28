@@ -33,6 +33,8 @@ const mobileExample = read('apps/mobile/.env.example');
 const apiExample = read('apps/api/.env.example');
 const mobileParser = read('apps/mobile/lib/oidc-client.ts');
 const apiParser = read('apps/api/src/entra-token-verifier.ts');
+const mobileRuntime = read('apps/mobile/lib/auth-orchestration-runtime.ts');
+const mobileTransport = read('apps/mobile/lib/oidc-network-transport.ts');
 
 const mobileKeys = [
   'EXPO_PUBLIC_ENTRA_AUTHORIZATION_ENDPOINT',
@@ -150,8 +152,32 @@ assert(
 );
 assert(
   manifest.transportBoundaries.find((entry) => entry.key === 'mobile_token').implementationState ===
-    'unavailable_until_reviewed_transport_is_implemented',
-  'Mobile token transport must remain unavailable.',
+    'local_transport_implemented_external_network_pending',
+  'Mobile token transport must be locally implemented without external proof.',
+);
+assert(
+  manifest.transportBoundaries.find((entry) => entry.key === 'mobile_id_token_jwks')
+    .implementationState === 'local_transport_implemented_external_network_pending',
+  'Mobile JWKS transport must be locally implemented without external proof.',
+);
+for (const requiredBoundary of [
+  'application/x-www-form-urlencoded;charset=UTF-8',
+  "redirect: 'manual'",
+  "credentials: 'omit'",
+  "referrerPolicy: 'no-referrer'",
+  '64 * 1024',
+  'createRemoteJWKSet',
+]) {
+  assert(
+    mobileTransport.includes(requiredBoundary),
+    `Mobile transport is missing reviewed boundary: ${requiredBoundary}`,
+  );
+}
+assert(
+  mobileRuntime.includes('UnavailableOidcTokenEndpoint') &&
+    !mobileRuntime.includes('HttpsOidcTokenEndpoint') &&
+    !mobileRuntime.includes('createMobileOidcJwksResolver'),
+  'Installed mobile runtime must remain unactivated.',
 );
 
 exactKeys(

@@ -1,10 +1,10 @@
 # M04 authentication and account lifecycle evidence
 
-Status: M4 in progress; local checkpoints through the external-auth configuration gate passed
+Status: M4 in progress; local checkpoints through the mobile auth transport passed
 
 Date: 2026-08-28
 
-Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`, `M04-mobile-auth-session-local-003`, `M04-oidc-client-boundary-local-004`, `M04-entra-verifier-local-005`, `M04-external-principal-mapping-local-006`, `M04-mobile-code-exchange-local-007`, `M04-server-session-bootstrap-local-008`, `M04-mobile-auth-orchestration-local-009`, `M04-external-auth-configuration-gate-local-010`
+Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`, `M04-mobile-auth-session-local-003`, `M04-oidc-client-boundary-local-004`, `M04-entra-verifier-local-005`, `M04-external-principal-mapping-local-006`, `M04-mobile-code-exchange-local-007`, `M04-server-session-bootstrap-local-008`, `M04-mobile-auth-orchestration-local-009`, `M04-external-auth-configuration-gate-local-010`, `M04-mobile-auth-transport-local-011`
 
 Environment baseline: Node 24.19.0 and pnpm 11.24.0. The mutation continuation used pnpm 11.24.0 with shell Node 25.9.0 and an engine warning. PostgreSQL 17 Alpine ran on loopback Docker.
 
@@ -185,3 +185,17 @@ JUnit evidence: [`test-results/external-auth-config-mobile-junit.xml`](./test-re
 Contract evidence: [`../../../config/external-auth-gate.v1.json`](../../../config/external-auth-gate.v1.json), [`../../operations/external-auth-configuration-gate.md`](../../operations/external-auth-configuration-gate.md)
 
 No Entra tenant/app/API registration, provider credential, provider/JWKS network request, authorization code, token, refresh credential, real identity, Azure resource, Stripe action, physical phone, payment, message, external account, or customer data was used. The installed token transport remains unavailable. External registration/activation, network-key proof, provider consent/cancellation/email-code round trips, native system-browser/deep-link execution, final authorization matrix, and the physical-device M4 gate remain open.
+
+## Mobile HTTPS token and JWKS transport
+
+- Added a production-buildable token endpoint for authorization-code/PKCE exchange and refresh. It revalidates exact same-origin, UUID-tenant HTTPS endpoints; exact client/callback/proof inputs; and posts form-encoded public-client fields without a client secret, cookies, ambient credentials, or referrer data.
+- Added manual redirect/followed-redirect denial, a ten-second token timeout, 64 KiB streamed response cap, exact JSON content type, strict token-set shape/lifetime limits, required initial ID/refresh tokens, optional refresh rotation, and failure-specific but detail-free exchange/refresh errors.
+- Added a mobile JWKS resolver with exact-URL credential-free GET, manual redirect denial, three-second timeout, 64 KiB/twenty-key limits, ten-minute in-memory cache, thirty-second cooldown, and unknown-key rotation reload. Existing RS256/issuer/audience/nonce/header checks remain authoritative after key resolution.
+- Strengthened OIDC endpoint parsing to reject localhost, IP literals, non-UUID tenant paths, mixed tenant paths, and mixed origins. Updated the external-auth manifest/runbook/validator while preserving `planned_not_activated`; the validator proves the installed runtime imports neither concrete adapter and still uses the unavailable token endpoint.
+- Added one complete fixture-backed path from concrete token response through concrete JWKS fetch, signed ID-token nonce verification, server bootstrap, and protected mobile session. The stored projection contains neither access token nor ID token.
+
+Twenty-seven focused transport tests and all 111 mobile tests pass. Pinned Node 24.19.0 and pnpm 11.24.0 passed formatting, prerequisite/external-auth checks, lint, strict type checks, all repository unit tests, contract checks, production local-marker exclusion, and all nine builds. The security scan passes 447 text files, and Gitleaks finds no leak in approximately 14.53 MB.
+
+JUnit evidence: [`test-results/mobile-auth-transport-junit.xml`](./test-results/mobile-auth-transport-junit.xml)
+
+No Entra tenant/app/API registration, provider credential, provider/JWKS network request, authorization code, real token, refresh credential, real identity, Azure resource, Stripe action, physical phone, payment, message, external account, or customer data was used. The production transport exists but the installed runtime remains unavailable. External registration/activation, real network-key proof, provider consent/cancellation/email-code round trips, native system-browser/deep-link execution, final authorization matrix, and the physical-device M4 gate remain open.

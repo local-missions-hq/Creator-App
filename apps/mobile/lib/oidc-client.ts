@@ -58,6 +58,8 @@ export class OidcBoundaryError extends Error {
 }
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const tenantPathPattern =
+  /^\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const opaquePattern = /^[A-Za-z0-9_-]{43,128}$/;
 const apiScopePattern =
   /^api:\/\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/access_as_user$/i;
@@ -96,6 +98,7 @@ function canonicalRedirect(value: string): string {
 
 function trustedEndpoint(value: string, pathSuffix: string): URL {
   const url = new URL(value);
+  const hostname = url.hostname.toLowerCase();
   if (
     url.protocol !== 'https:' ||
     url.username ||
@@ -104,6 +107,10 @@ function trustedEndpoint(value: string, pathSuffix: string): URL {
     url.hash ||
     url.port ||
     !url.hostname ||
+    hostname === 'localhost' ||
+    hostname.endsWith('.localhost') ||
+    hostname.includes(':') ||
+    /^[0-9.]+$/u.test(hostname) ||
     !url.pathname.endsWith(pathSuffix)
   ) {
     throw new OidcBoundaryError('OIDC_CONFIG_INVALID');
@@ -128,13 +135,28 @@ export function readOidcConfiguration(
     throw new OidcBoundaryError('OIDC_CONFIG_INVALID');
   }
 
+  return {
+    available: true,
+    configuration: validateOidcConfiguration({
+      authorizationEndpoint: values.authorizationEndpoint!,
+      clientId: values.clientId!,
+      issuer: values.issuer!,
+      jwksUri: values.jwksUri!,
+      redirectUri: values.redirectUri!,
+      scopes: values.scope!.split(/\s+/u).filter(Boolean),
+      tokenEndpoint: values.tokenEndpoint!,
+    }),
+  };
+}
+
+export function validateOidcConfiguration(configuration: OidcConfiguration): OidcConfiguration {
   const authorizationEndpoint = trustedEndpoint(
-    values.authorizationEndpoint!,
+    configuration.authorizationEndpoint,
     '/oauth2/v2.0/authorize',
   );
-  const issuer = trustedEndpoint(values.issuer!, '/v2.0');
-  const jwksUri = trustedEndpoint(values.jwksUri!, '/discovery/v2.0/keys');
-  const tokenEndpoint = trustedEndpoint(values.tokenEndpoint!, '/oauth2/v2.0/token');
+  const issuer = trustedEndpoint(configuration.issuer, '/v2.0');
+  const jwksUri = trustedEndpoint(configuration.jwksUri, '/discovery/v2.0/keys');
+  const tokenEndpoint = trustedEndpoint(configuration.tokenEndpoint, '/oauth2/v2.0/token');
   const tenantPrefixes = [
     authorizationEndpoint.pathname.slice(0, -'/oauth2/v2.0/authorize'.length),
     issuer.pathname.slice(0, -'/v2.0'.length),
@@ -145,12 +167,15 @@ export function readOidcConfiguration(
     authorizationEndpoint.origin !== issuer.origin ||
     authorizationEndpoint.origin !== jwksUri.origin ||
     authorizationEndpoint.origin !== tokenEndpoint.origin ||
-    tenantPrefixes.some((prefix) => !prefix || prefix !== tenantPrefixes[0])
+    tenantPrefixes.some((prefix) => !prefix || prefix !== tenantPrefixes[0]) ||
+    !tenantPathPattern.test(tenantPrefixes[0]!)
   ) {
     throw new OidcBoundaryError('OIDC_CONFIG_INVALID');
   }
-  if (!uuidPattern.test(values.clientId!)) throw new OidcBoundaryError('OIDC_CONFIG_INVALID');
-  const scopes = values.scope!.split(/\s+/u).filter(Boolean);
+  if (!uuidPattern.test(configuration.clientId)) {
+    throw new OidcBoundaryError('OIDC_CONFIG_INVALID');
+  }
+  const scopes = configuration.scopes;
   if (
     scopes.length !== 4 ||
     new Set(scopes).size !== scopes.length ||
@@ -162,16 +187,13 @@ export function readOidcConfiguration(
     throw new OidcBoundaryError('OIDC_CONFIG_INVALID');
   }
   return {
-    available: true,
-    configuration: {
-      authorizationEndpoint: authorizationEndpoint.toString(),
-      clientId: values.clientId!,
-      issuer: issuer.toString(),
-      jwksUri: jwksUri.toString(),
-      redirectUri: canonicalRedirect(values.redirectUri!),
-      scopes,
-      tokenEndpoint: tokenEndpoint.toString(),
-    },
+    authorizationEndpoint: authorizationEndpoint.toString(),
+    clientId: configuration.clientId,
+    issuer: issuer.toString(),
+    jwksUri: jwksUri.toString(),
+    redirectUri: canonicalRedirect(configuration.redirectUri),
+    scopes: [...scopes],
+    tokenEndpoint: tokenEndpoint.toString(),
   };
 }
 

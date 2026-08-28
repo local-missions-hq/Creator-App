@@ -124,14 +124,20 @@
       "httpsRequired": true,
       "redirectPolicy": "reject",
       "clientSecretAllowed": false,
-      "implementationState": "unavailable_until_reviewed_transport_is_implemented"
+      "timeoutMilliseconds": 10000,
+      "maxResponseBytes": 65536,
+      "implementationState": "local_transport_implemented_external_network_pending"
     },
     {
       "key": "mobile_id_token_jwks",
       "method": "GET",
       "httpsRequired": true,
       "redirectPolicy": "reject",
-      "implementationState": "local_key_verification_proven_external_network_pending"
+      "timeoutMilliseconds": 3000,
+      "maxResponseBytes": 65536,
+      "cacheMaxAgeMilliseconds": 600000,
+      "cooldownMilliseconds": 30000,
+      "implementationState": "local_transport_implemented_external_network_pending"
     },
     {
       "key": "api_access_token_jwks",

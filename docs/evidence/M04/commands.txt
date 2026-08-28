@@ -409,3 +409,32 @@ pnpm test:gitleaks
 PASS — Gitleaks found no leaks in approximately 14.49 MB.
 
 No Entra tenant/app/API registration, provider credential, provider/JWKS network request, authorization code, token, refresh credential, real identity, Azure, Stripe, physical phone, payment, message, external account, customer action, or customer data was used. The mobile token transport and runtime activation remain unavailable, and no external or physical-device M4 gate is claimed.
+
+M04-mobile-auth-transport-local-011 — 2026-08-28
+
+Node 24.19.0 and pnpm 11.24.0 were selected from the pinned local runtime for every verification command below.
+
+pnpm --filter @local-missions/mobile exec vitest run lib/oidc-network-transport.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/mobile-auth-transport-junit.xml
+PASS — retained 27 fixture-backed token/JWKS request, input, redirect, timeout, content/body/schema, generic-error, cache, rotation, and concrete composed-session tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+pnpm --filter @local-missions/mobile test
+PASS — all 111 mobile tests passed across 17 files.
+
+pnpm --filter @local-missions/mobile typecheck
+pnpm --filter @local-missions/mobile lint
+pnpm --filter @local-missions/mobile build
+PASS — strict TypeScript, mobile lint, and the Expo web production export passed with the concrete transport present but unreferenced by the installed runtime.
+
+pnpm external-auth:check
+PASS — the machine contract recognizes locally implemented token/JWKS transports while proving activation remains `planned_not_activated`, every external approval/test remains open, and the installed runtime still uses only unavailable boundaries.
+
+pnpm verify
+PASS — formatting, prerequisite/external-auth validation, lint, strict type checks, all repository unit tests, reviewed API/migration contracts, production local-marker exclusion, and all nine builds passed.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 447 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks found no leaks in approximately 14.53 MB.
+
+No Entra tenant/app/API registration, provider credential, provider/JWKS network request, authorization code, token, refresh credential, real identity, Azure, Stripe, physical phone, payment, message, external account, customer action, or customer data was used. The production transport exists but runtime activation remains unavailable, and no external or physical-device M4 gate is claimed.

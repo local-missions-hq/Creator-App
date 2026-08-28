@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="27" failures="0" errors="0" time="0.206129458">
+    <testsuite name="lib/oidc-network-transport.test.ts" timestamp="2026-08-28T15:50:25.006Z" hostname="local-development-host" tests="27" failures="0" errors="0" skipped="0" time="0.206129458">
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; posts an exact public-client code exchange with no client secret and maps bounded JSON" time="0.008872708">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; posts only the refresh grant and accepts safe credential rotation" time="0.000445375">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; composes the concrete token and JWKS boundaries into one fixture-backed mobile session" time="0.003687208">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; fails before fetch for mismatched client, redirect, malformed code/verifier, or refresh proof" time="0.000391542">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; returns one generic exchange failure for provider error body" time="0.000206708">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; returns one generic exchange failure for redirect" time="0.000129667">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; returns one generic exchange failure for followed redirect" time="0.000131625">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; returns one generic exchange failure for wrong content type" time="0.000143125">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; returns one generic exchange failure for malformed JSON" time="0.0001685">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; returns one generic exchange failure for oversized declaration" time="0.000145959">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; returns one generic exchange failure for oversized streamed body" time="0.000155666">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; returns one generic exchange failure for missing initial refresh credential" time="0.000107958">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; returns one generic exchange failure for wrong token type" time="0.000116292">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; returns one generic exchange failure for string expiration" time="0.000113">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; aborts a stalled exchange and exposes no network failure detail" time="0.0008815">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; maps refresh provider details to the refresh-specific generic failure" time="0.000138833">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC HTTPS token transport &gt; rejects an unsafe constructor configuration without making a request" time="0.000166541">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC bounded JWKS transport &gt; fetches the exact JWKS without credentials, caches it, and reloads for key rotation" time="0.002363958">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC bounded JWKS transport &gt; maps provider error to one ID-token verification failure" time="0.00054575">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC bounded JWKS transport &gt; maps redirect to one ID-token verification failure" time="0.000544167">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC bounded JWKS transport &gt; maps wrong content type to one ID-token verification failure" time="0.000600416">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC bounded JWKS transport &gt; maps malformed JSON to one ID-token verification failure" time="0.0005195">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC bounded JWKS transport &gt; maps empty set to one ID-token verification failure" time="0.000494625">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC bounded JWKS transport &gt; maps too many keys to one ID-token verification failure" time="0.000537125">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC bounded JWKS transport &gt; maps oversized body to one ID-token verification failure" time="0.000558167">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC bounded JWKS transport &gt; enforces the JWKS timeout and keeps the network detail generic" time="0.102466833">
+        </testcase>
+        <testcase classname="lib/oidc-network-transport.test.ts" name="mobile OIDC bounded JWKS transport &gt; rejects unsafe JWKS configuration and option bounds before fetch" time="0.000227167">
+        </testcase>
+    </testsuite>
+</testsuites>

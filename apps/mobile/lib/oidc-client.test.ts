@@ -98,6 +98,26 @@ describe('mobile OIDC and PKCE boundary', () => {
     expect(() =>
       readOidcConfiguration(
         environment({
+          EXPO_PUBLIC_ENTRA_AUTHORIZATION_ENDPOINT:
+            'https://127.0.0.1/00000000-0000-4000-8000-000000000000/oauth2/v2.0/authorize',
+        }),
+      ),
+    ).toThrowError(OidcBoundaryError);
+    expect(() =>
+      readOidcConfiguration(
+        environment({
+          EXPO_PUBLIC_ENTRA_AUTHORIZATION_ENDPOINT:
+            'https://login.example.test/not-a-tenant/oauth2/v2.0/authorize',
+          EXPO_PUBLIC_ENTRA_ISSUER: 'https://login.example.test/not-a-tenant/v2.0',
+          EXPO_PUBLIC_ENTRA_JWKS_URI: 'https://login.example.test/not-a-tenant/discovery/v2.0/keys',
+          EXPO_PUBLIC_ENTRA_TOKEN_ENDPOINT:
+            'https://login.example.test/not-a-tenant/oauth2/v2.0/token',
+        }),
+      ),
+    ).toThrowError(OidcBoundaryError);
+    expect(() =>
+      readOidcConfiguration(
+        environment({
           EXPO_PUBLIC_ENTRA_JWKS_URI: configuration.jwksUri.replace(
             '00000000-0000-4000-8000-000000000000',
             '00000000-0000-4000-8000-000000000099',
