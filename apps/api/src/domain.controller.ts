@@ -1,4 +1,16 @@
-import { Body, Controller, Get, Headers, Inject, Param, Post, Query, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  HttpCode,
+  Inject,
+  Param,
+  Post,
+  Query,
+  Req,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -19,13 +31,16 @@ import {
   apiErrorEnvelopeSchema,
   apiPaginationQuerySchema,
   authenticatedContextSchema,
+  businessReachOptionsSchema,
   businessCampaignDetailSchema,
   businessCampaignPageSchema,
   createMissionApplicationRequestSchema,
   creatorMissionDetailSchema,
   creatorMissionPageSchema,
+  creatorReachOverviewSchema,
   idempotencyKeySchema,
   missionApplicationResponseSchema,
+  socialPlatformSchema,
 } from '@local-missions/contracts';
 import { z } from 'zod';
 
@@ -49,6 +64,49 @@ export class DomainController {
   @Get('me')
   async getMe(@Req() request: ContextualRequest) {
     return (await this.domain.authenticate(request)).context;
+  }
+
+  @ApiOperation({ summary: 'Read optional per-platform Reach status for the current Creator' })
+  @ApiOkResponse({ schema: openApiSchema(creatorReachOverviewSchema) })
+  @Get('creator/reach')
+  async getCreatorReach(@Req() request: ContextualRequest) {
+    const principal = await this.domain.authenticate(request);
+    return this.domain.getCreatorReach(principal);
+  }
+
+  @ApiOperation({ summary: 'Grant optional read-only Reach analytics consent for one platform' })
+  @ApiParam({ name: 'platform', schema: openApiSchema(socialPlatformSchema) })
+  @ApiOkResponse({ schema: openApiSchema(creatorReachOverviewSchema) })
+  @ApiConflictResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
+  @HttpCode(200)
+  @Post('creator/reach/:platform/consent')
+  async grantCreatorReachConsent(
+    @Param('platform') platform: string,
+    @Req() request: ContextualRequest,
+  ) {
+    const principal = await this.domain.authenticate(request);
+    return this.domain.grantCreatorReachConsent(
+      principal,
+      this.parseSocialPlatform(platform),
+      request.apiContext?.correlationId ?? 'request_context_unavailable',
+    );
+  }
+
+  @ApiOperation({ summary: 'Revoke optional Reach analytics consent for one platform' })
+  @ApiParam({ name: 'platform', schema: openApiSchema(socialPlatformSchema) })
+  @ApiOkResponse({ schema: openApiSchema(creatorReachOverviewSchema) })
+  @ApiConflictResponse({ schema: openApiSchema(apiErrorEnvelopeSchema) })
+  @Delete('creator/reach/:platform/consent')
+  async revokeCreatorReachConsent(
+    @Param('platform') platform: string,
+    @Req() request: ContextualRequest,
+  ) {
+    const principal = await this.domain.authenticate(request);
+    return this.domain.revokeCreatorReachConsent(
+      principal,
+      this.parseSocialPlatform(platform),
+      request.apiContext?.correlationId ?? 'request_context_unavailable',
+    );
   }
 
   @ApiOperation({ summary: 'List published Community missions with available capacity' })
@@ -140,9 +198,23 @@ export class DomainController {
     return this.domain.getBusinessCampaign(principal, this.parseCampaignId(campaignPublicId));
   }
 
+  @ApiOperation({ summary: 'Read fixed Reach packages and per-platform availability' })
+  @ApiOkResponse({ schema: openApiSchema(businessReachOptionsSchema) })
+  @Get('business/reach-options')
+  async getBusinessReachOptions(@Req() request: ContextualRequest) {
+    const principal = await this.domain.authenticate(request);
+    return this.domain.getBusinessReachOptions(principal);
+  }
+
   private parseCampaignId(value: string): string {
     const parsed = publicIdParameterSchema.safeParse(value);
     if (!parsed.success) throw validationProblem(parsed.error.issues, 'path.campaignPublicId');
+    return parsed.data;
+  }
+
+  private parseSocialPlatform(value: string) {
+    const parsed = socialPlatformSchema.safeParse(value);
+    if (!parsed.success) throw validationProblem(parsed.error.issues, 'path.platform');
     return parsed.data;
   }
 }

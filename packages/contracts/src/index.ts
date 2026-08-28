@@ -726,6 +726,48 @@ export const authenticatedContextSchema = z.object({
   userPublicId: z.string().min(1).max(120),
 });
 
+export const reachQualificationSummarySchema = z.object({
+  expiresAt: z.iso.datetime({ offset: true }),
+  isGrace: z.boolean(),
+  platform: socialPlatformSchema,
+  status: z.enum(['current', 'outage_grace']),
+  tier: reachLevelSchema,
+  verifiedAt: z.iso.datetime({ offset: true }),
+});
+export const creatorReachPlatformSchema = z.object({
+  capabilityStatus: reachCapabilityStatusSchema,
+  connectionAvailable: z.boolean(),
+  consentStatus: reachAnalyticsConsentStatusSchema.nullable(),
+  platform: socialPlatformSchema,
+  qualification: reachQualificationSummarySchema.nullable(),
+});
+export const creatorReachOverviewSchema = z.object({
+  communityAccessIndependent: z.literal(true),
+  platforms: z.array(creatorReachPlatformSchema).length(3),
+});
+export const businessReachOptionsSchema = z.object({
+  communityMinimumPercent: z.literal(80),
+  packages: z.array(
+    z.object({
+      bonusMultiplierBps: z.union([z.literal(5_000), z.literal(10_000), z.literal(20_000)]),
+      creatorRewardMultiplierBps: z.union([
+        z.literal(15_000),
+        z.literal(20_000),
+        z.literal(30_000),
+      ]),
+      level: reachLevelSchema,
+    }),
+  ),
+  platforms: z.array(
+    z.object({
+      bookingAvailable: z.boolean(),
+      capabilityStatus: reachCapabilityStatusSchema,
+      platform: socialPlatformSchema,
+    }),
+  ),
+  rawAudienceFiltersAllowed: z.literal(false),
+});
+
 export const creatorMissionSummarySchema = z.object({
   availableCommunitySlots: z.int().nonnegative(),
   baseRewardMinor: z.int().nonnegative(),
@@ -810,6 +852,7 @@ export type LocalDevTokenRequest = z.infer<typeof localDevTokenRequestSchema>;
 export type LocalDevTokenResponse = z.infer<typeof localDevTokenResponseSchema>;
 export type AuthenticatedContext = z.infer<typeof authenticatedContextSchema>;
 export type AuthenticatedRole = z.infer<typeof authenticatedRoleSchema>;
+export type BusinessReachOptions = z.infer<typeof businessReachOptionsSchema>;
 export type BusinessCampaignDetail = z.infer<typeof businessCampaignDetailSchema>;
 export type BusinessCampaignPage = z.infer<typeof businessCampaignPageSchema>;
 export type BusinessCampaignSummary = z.infer<typeof businessCampaignSummarySchema>;
@@ -817,7 +860,10 @@ export type CreateMissionApplicationRequest = z.infer<typeof createMissionApplic
 export type CreatorMissionDetail = z.infer<typeof creatorMissionDetailSchema>;
 export type CreatorMissionPage = z.infer<typeof creatorMissionPageSchema>;
 export type CreatorMissionSummary = z.infer<typeof creatorMissionSummarySchema>;
+export type CreatorReachOverview = z.infer<typeof creatorReachOverviewSchema>;
+export type CreatorReachPlatform = z.infer<typeof creatorReachPlatformSchema>;
 export type MissionApplicationResponse = z.infer<typeof missionApplicationResponseSchema>;
+export type ReachQualificationSummaryApi = z.infer<typeof reachQualificationSummarySchema>;
 export type MissionTemplatePage = z.infer<typeof missionTemplatePageSchema>;
 export type MissionTemplateSummary = z.infer<typeof missionTemplateSummarySchema>;
 export type ReadinessStatus = z.infer<typeof readinessStatusSchema>;

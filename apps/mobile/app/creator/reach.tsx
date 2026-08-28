@@ -5,6 +5,7 @@ import { AccessiblePressable as Pressable } from '../../components/AccessiblePre
 
 import { appColors } from '../../components/AppShell';
 import { CreatorMissionShell } from '../../components/CreatorMissionShell';
+import { useCreatorReachOverview } from '../../lib/use-reach-data';
 
 type PlatformKey = 'instagram' | 'tiktok' | 'youtube';
 
@@ -19,6 +20,7 @@ const platforms: Array<{
 ];
 
 export default function CreatorReachScreen() {
+  const { data, source } = useCreatorReachOverview();
   const [consentPreviewed, setConsentPreviewed] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformKey>('instagram');
   const selected = platforms.find((platform) => platform.key === selectedPlatform) ?? platforms[0]!;
@@ -45,6 +47,14 @@ export default function CreatorReachScreen() {
       <View style={styles.platformList}>
         {platforms.map((platform) => {
           const selectedPlatformCard = platform.key === selectedPlatform;
+          const platformState = data.platforms.find((item) => item.platform === platform.key);
+          const status = platformState?.qualification
+            ? platformState.qualification.tier.replace('_', ' ').toUpperCase()
+            : platformState?.connectionAvailable
+              ? 'READY TO CONNECT'
+              : selectedPlatformCard
+                ? 'SETUP PREVIEW'
+                : 'NOT CONNECTED';
 
           return (
             <Pressable
@@ -70,9 +80,7 @@ export default function CreatorReachScreen() {
               </View>
               <View style={styles.platformCopy}>
                 <Text style={styles.platformName}>{platform.label}</Text>
-                <Text style={styles.platformStatus}>
-                  {selectedPlatformCard ? 'SETUP PREVIEW' : 'NOT CONNECTED'}
-                </Text>
+                <Text style={styles.platformStatus}>{status}</Text>
               </View>
               <Ionicons
                 color={selectedPlatformCard ? appColors.teal : appColors.muted}
@@ -155,7 +163,8 @@ export default function CreatorReachScreen() {
         </Text>
       </View>
       <Text style={styles.footer}>
-        Local preview only · No provider is enabled and no social account is contacted.
+        {source === 'local-preview' ? 'Local preview only · ' : ''}No provider is enabled and no
+        social account is contacted.
       </Text>
     </CreatorMissionShell>
   );

@@ -303,4 +303,87 @@ describe('authenticated Creator and Business API slice', () => {
     expect(reused.statusCode).toBe(409);
     expect(count.rows[0]?.count).toBe('1');
   });
+
+  it('returns Creator-owned Reach state and records then revokes per-platform consent', async () => {
+    const creatorToken = await issueToken('creator');
+    const ownerToken = await issueToken('business_owner');
+    const initial = await localApp.inject({
+      headers: { authorization: `Bearer ${creatorToken}` },
+      method: 'GET',
+      url: '/v1/creator/reach',
+    });
+    const denied = await localApp.inject({
+      headers: { authorization: `Bearer ${ownerToken}` },
+      method: 'POST',
+      url: '/v1/creator/reach/instagram/consent',
+    });
+    const granted = await localApp.inject({
+      headers: { authorization: `Bearer ${creatorToken}` },
+      method: 'POST',
+      url: '/v1/creator/reach/instagram/consent',
+    });
+    const revoked = await localApp.inject({
+      headers: { authorization: `Bearer ${creatorToken}` },
+      method: 'DELETE',
+      url: '/v1/creator/reach/instagram/consent',
+    });
+
+    expect(initial.statusCode).toBe(200);
+    expect(initial.json()).toMatchObject({ communityAccessIndependent: true });
+    expect(initial.json().platforms).toHaveLength(3);
+    expect(initial.json().platforms.map((item: { platform: string }) => item.platform)).toEqual([
+      'instagram',
+      'tiktok',
+      'youtube',
+    ]);
+    expect(
+      initial
+        .json()
+        .platforms.every(
+          (item: { capabilityStatus: string; connectionAvailable: boolean }) =>
+            item.capabilityStatus === 'disabled' && !item.connectionAvailable,
+        ),
+    ).toBe(true);
+    expect(denied.statusCode).toBe(403);
+    expect(granted.statusCode).toBe(200);
+    expect(granted.json().platforms[0]).toMatchObject({ consentStatus: 'active' });
+    expect(revoked.statusCode).toBe(200);
+    expect(revoked.json().platforms[0]).toMatchObject({ consentStatus: 'revoked' });
+  });
+
+  it('gives Business members only fixed Reach packages and capability availability', async () => {
+    const ownerToken = await issueToken('business_owner');
+    const creatorToken = await issueToken('creator');
+    const response = await localApp.inject({
+      headers: { authorization: `Bearer ${ownerToken}` },
+      method: 'GET',
+      url: '/v1/business/reach-options',
+    });
+    const denied = await localApp.inject({
+      headers: { authorization: `Bearer ${creatorToken}` },
+      method: 'GET',
+      url: '/v1/business/reach-options',
+    });
+    const serialized = response.body;
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      communityMinimumPercent: 80,
+      packages: [
+        { creatorRewardMultiplierBps: 15_000, level: 'level_1' },
+        { creatorRewardMultiplierBps: 20_000, level: 'level_2' },
+        { creatorRewardMultiplierBps: 30_000, level: 'level_3' },
+      ],
+      rawAudienceFiltersAllowed: false,
+    });
+    expect(response.json().platforms).toEqual([
+      { bookingAvailable: false, capabilityStatus: 'disabled', platform: 'instagram' },
+      { bookingAvailable: false, capabilityStatus: 'disabled', platform: 'tiktok' },
+      { bookingAvailable: false, capabilityStatus: 'disabled', platform: 'youtube' },
+    ]);
+    expect(serialized).not.toContain('estimatedLocalAudienceCount');
+    expect(serialized).not.toContain('evidenceReference');
+    expect(serialized).not.toContain('providerConnectionReference');
+    expect(denied.statusCode).toBe(403);
+  });
 });

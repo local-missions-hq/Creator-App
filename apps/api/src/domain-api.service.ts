@@ -1,4 +1,5 @@
 import { Buffer } from 'node:buffer';
+import { randomUUID } from 'node:crypto';
 
 import { Inject, Injectable } from '@nestjs/common';
 import type {
@@ -7,14 +8,23 @@ import type {
   BusinessCampaignDetail,
   BusinessCampaignPage,
   BusinessCampaignSummary,
+  BusinessReachOptions,
   CreatorProfileStatus,
   CreatorMissionDetail,
   CreatorMissionPage,
   CreatorMissionSummary,
+  CreatorReachOverview,
   MissionApplicationResponse,
   LocalityStatus,
+  ReachCapabilityStatus,
+  SocialPlatform,
 } from '@local-missions/contracts';
-import { MissionApplicationError, MissionApplicationStore } from '@local-missions/db';
+import {
+  MissionApplicationError,
+  MissionApplicationStore,
+  ReachQualificationError,
+  ReachQualificationStore,
+} from '@local-missions/db';
 import type { QueryResultRow } from 'pg';
 import { z } from 'zod';
 
@@ -133,6 +143,116 @@ export class DomainApiService {
     if (!roles.includes(principal.context.role)) {
       throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
     }
+  }
+
+  async getCreatorReach(principal: AuthenticatedPrincipal): Promise<CreatorReachOverview> {
+    this.requireRole(principal, ['creator']);
+    const platforms = ['instagram', 'tiktok', 'youtube'] as const;
+    const state = await this.database.requirePool().query<{
+      consent_status: 'active' | 'revoked' | null;
+      platform: SocialPlatform;
+      status: ReachCapabilityStatus;
+    }>(
+      `SELECT capability.platform, capability.status, consent.status AS consent_status
+         FROM reach_platform_capabilities capability
+         LEFT JOIN reach_analytics_consents consent
+           ON consent.platform = capability.platform AND consent.creator_user_id = $1
+        ORDER BY array_position(
+          ARRAY['instagram','tiktok','youtube']::text[], capability.platform::text
+        )`,
+      [principal.userId],
+    );
+    const byPlatform = new Map(state.rows.map((row) => [row.platform, row]));
+    const store = new ReachQualificationStore(this.database.requirePool());
+    return {
+      communityAccessIndependent: true,
+      platforms: await Promise.all(
+        platforms.map(async (platform) => {
+          const row = byPlatform.get(platform);
+          const qualification = await store.getCreatorQualification({
+            actorUserId: principal.userId,
+            platform,
+          });
+          return {
+            capabilityStatus: row?.status ?? 'disabled',
+            connectionAvailable: row?.status === 'enabled',
+            consentStatus: row?.consent_status ?? null,
+            platform,
+            qualification: qualification
+              ? {
+                  ...qualification,
+                  expiresAt: qualification.expiresAt.toISOString(),
+                  verifiedAt: qualification.verifiedAt.toISOString(),
+                }
+              : null,
+          };
+        }),
+      ),
+    };
+  }
+
+  async grantCreatorReachConsent(
+    principal: AuthenticatedPrincipal,
+    platform: SocialPlatform,
+    correlationId: string,
+  ): Promise<CreatorReachOverview> {
+    this.requireRole(principal, ['creator']);
+    try {
+      await new ReachQualificationStore(this.database.requirePool()).setConsent({
+        actorUserId: principal.userId,
+        consentVersion: 'reach-consent-v1',
+        correlationId,
+        platform,
+        publicId: `rcs_${randomUUID()}`,
+      });
+      return this.getCreatorReach(principal);
+    } catch (error) {
+      this.throwReachProblem(error);
+    }
+  }
+
+  async revokeCreatorReachConsent(
+    principal: AuthenticatedPrincipal,
+    platform: SocialPlatform,
+    correlationId: string,
+  ): Promise<CreatorReachOverview> {
+    this.requireRole(principal, ['creator']);
+    try {
+      await new ReachQualificationStore(this.database.requirePool()).revokeConsent({
+        actorUserId: principal.userId,
+        correlationId,
+        platform,
+      });
+      return this.getCreatorReach(principal);
+    } catch (error) {
+      this.throwReachProblem(error);
+    }
+  }
+
+  async getBusinessReachOptions(principal: AuthenticatedPrincipal): Promise<BusinessReachOptions> {
+    this.requireRole(principal, ['business_owner', 'business_manager']);
+    if (!principal.businessId) throw new ApiProblem('ACCESS_DENIED', 'Access is denied.', 403);
+    const result = await this.database.requirePool().query<{
+      platform: SocialPlatform;
+      status: ReachCapabilityStatus;
+    }>(
+      `SELECT platform, status FROM reach_platform_capabilities
+        ORDER BY array_position(ARRAY['instagram','tiktok','youtube']::text[], platform::text)`,
+    );
+    return {
+      communityMinimumPercent: 80,
+      packages: [
+        { bonusMultiplierBps: 5_000, creatorRewardMultiplierBps: 15_000, level: 'level_1' },
+        { bonusMultiplierBps: 10_000, creatorRewardMultiplierBps: 20_000, level: 'level_2' },
+        { bonusMultiplierBps: 20_000, creatorRewardMultiplierBps: 30_000, level: 'level_3' },
+      ],
+      platforms: result.rows.map((row) => ({
+        bookingAvailable: row.status === 'enabled',
+        capabilityStatus: row.status,
+        platform: row.platform,
+      })),
+      rawAudienceFiltersAllowed: false,
+    };
   }
 
   async listCreatorMissions(
@@ -454,5 +574,18 @@ export class DomainApiService {
       },
       userId: row.id,
     };
+  }
+
+  private throwReachProblem(error: unknown): never {
+    if (error instanceof ReachQualificationError) {
+      throw new ApiProblem(
+        error.httpStatus === 403 ? 'ACCESS_DENIED' : 'STATE_CONFLICT',
+        error.httpStatus === 403
+          ? 'Access is denied.'
+          : 'The request conflicts with current state.',
+        error.httpStatus,
+      );
+    }
+    throw dependencyUnavailable();
   }
 }

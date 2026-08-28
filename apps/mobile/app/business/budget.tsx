@@ -7,6 +7,7 @@ import { AccessiblePressable as Pressable } from '../../components/AccessiblePre
 import { appColors } from '../../components/AppShell';
 import { BusinessWizardShell } from '../../components/BusinessWizardShell';
 import { campaignAudienceBudget, type CampaignAudienceMode } from '../../lib/reach-preview';
+import { useBusinessReachOptions } from '../../lib/use-reach-data';
 
 const paymentStates = [
   {
@@ -36,10 +37,16 @@ const paymentStates = [
 ] as const;
 
 export default function BusinessBudgetScreen() {
+  const { data: reachOptions, source: reachSource } = useBusinessReachOptions();
   const [audienceMode, setAudienceMode] = useState<CampaignAudienceMode>('community');
   const { fontScale, width } = useWindowDimensions();
   const usesExpandedLayout = fontScale >= 1.5 || width < 360;
-  const budget = campaignAudienceBudget(audienceMode);
+  const levelTwo = reachOptions.packages.find((item) => item.level === 'level_2');
+  const instagram = reachOptions.platforms.find((item) => item.platform === 'instagram');
+  const budget = campaignAudienceBudget(
+    audienceMode,
+    levelTwo?.creatorRewardMultiplierBps ?? 20_000,
+  );
   const money = (minor: number) => `$${(minor / 100).toFixed(2)}`;
 
   return (
@@ -112,7 +119,11 @@ export default function BusinessBudgetScreen() {
             At least 80% of every campaign stays reserved for everyday local creators.
           </Text>
         </View>
-        <Text style={styles.previewNote}>What-if preview only · this selection is not saved.</Text>
+        <Text style={styles.previewNote}>
+          What-if preview only · this selection is not saved. Instagram Reach is{' '}
+          {instagram?.bookingAvailable ? 'available' : 'pending provider approval'}
+          {reachSource === 'local-preview' ? ' in this local preview' : ''}.
+        </Text>
       </View>
 
       <View style={styles.breakdownCard}>

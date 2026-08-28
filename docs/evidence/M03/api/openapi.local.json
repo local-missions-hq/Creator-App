@@ -1463,6 +1463,284 @@
         "tags": ["authenticated-v1"]
       }
     },
+    "/v1/business/reach-options": {
+      "get": {
+        "operationId": "DomainController_getBusinessReachOptions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "communityMinimumPercent": {
+                      "const": 80,
+                      "type": "number"
+                    },
+                    "packages": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "bonusMultiplierBps": {
+                            "anyOf": [
+                              {
+                                "const": 5000,
+                                "type": "number"
+                              },
+                              {
+                                "const": 10000,
+                                "type": "number"
+                              },
+                              {
+                                "const": 20000,
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "creatorRewardMultiplierBps": {
+                            "anyOf": [
+                              {
+                                "const": 15000,
+                                "type": "number"
+                              },
+                              {
+                                "const": 20000,
+                                "type": "number"
+                              },
+                              {
+                                "const": 30000,
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "level": {
+                            "enum": ["level_1", "level_2", "level_3"],
+                            "type": "string"
+                          }
+                        },
+                        "required": ["bonusMultiplierBps", "creatorRewardMultiplierBps", "level"],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "platforms": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "bookingAvailable": {
+                            "type": "boolean"
+                          },
+                          "capabilityStatus": {
+                            "enum": ["disabled", "enabled", "outage"],
+                            "type": "string"
+                          },
+                          "platform": {
+                            "enum": ["instagram", "tiktok", "youtube"],
+                            "type": "string"
+                          }
+                        },
+                        "required": ["bookingAvailable", "capabilityStatus", "platform"],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "rawAudienceFiltersAllowed": {
+                      "const": false,
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "communityMinimumPercent",
+                    "packages",
+                    "platforms",
+                    "rawAudienceFiltersAllowed"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "entra-bearer": []
+          }
+        ],
+        "summary": "Read fixed Reach packages and per-platform availability",
+        "tags": ["authenticated-v1"]
+      }
+    },
     "/v1/creator/missions": {
       "get": {
         "operationId": "DomainController_listCreatorMissions",
@@ -2754,6 +3032,1040 @@
           }
         ],
         "summary": "Apply once for an available Community Slot",
+        "tags": ["authenticated-v1"]
+      }
+    },
+    "/v1/creator/reach": {
+      "get": {
+        "operationId": "DomainController_getCreatorReach",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "communityAccessIndependent": {
+                      "const": true,
+                      "type": "boolean"
+                    },
+                    "platforms": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "capabilityStatus": {
+                            "enum": ["disabled", "enabled", "outage"],
+                            "type": "string"
+                          },
+                          "connectionAvailable": {
+                            "type": "boolean"
+                          },
+                          "consentStatus": {
+                            "anyOf": [
+                              {
+                                "enum": ["active", "revoked"],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "platform": {
+                            "enum": ["instagram", "tiktok", "youtube"],
+                            "type": "string"
+                          },
+                          "qualification": {
+                            "anyOf": [
+                              {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "expiresAt": {
+                                    "format": "date-time",
+                                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                                    "type": "string"
+                                  },
+                                  "isGrace": {
+                                    "type": "boolean"
+                                  },
+                                  "platform": {
+                                    "enum": ["instagram", "tiktok", "youtube"],
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "enum": ["current", "outage_grace"],
+                                    "type": "string"
+                                  },
+                                  "tier": {
+                                    "enum": ["level_1", "level_2", "level_3"],
+                                    "type": "string"
+                                  },
+                                  "verifiedAt": {
+                                    "format": "date-time",
+                                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "expiresAt",
+                                  "isGrace",
+                                  "platform",
+                                  "status",
+                                  "tier",
+                                  "verifiedAt"
+                                ],
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "capabilityStatus",
+                          "connectionAvailable",
+                          "consentStatus",
+                          "platform",
+                          "qualification"
+                        ],
+                        "type": "object"
+                      },
+                      "maxItems": 3,
+                      "minItems": 3,
+                      "type": "array"
+                    }
+                  },
+                  "required": ["communityAccessIndependent", "platforms"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "entra-bearer": []
+          }
+        ],
+        "summary": "Read optional per-platform Reach status for the current Creator",
+        "tags": ["authenticated-v1"]
+      }
+    },
+    "/v1/creator/reach/{platform}/consent": {
+      "delete": {
+        "operationId": "DomainController_revokeCreatorReachConsent",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "in": "path",
+            "name": "platform",
+            "required": true,
+            "schema": {
+              "enum": ["instagram", "tiktok", "youtube"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "communityAccessIndependent": {
+                      "const": true,
+                      "type": "boolean"
+                    },
+                    "platforms": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "capabilityStatus": {
+                            "enum": ["disabled", "enabled", "outage"],
+                            "type": "string"
+                          },
+                          "connectionAvailable": {
+                            "type": "boolean"
+                          },
+                          "consentStatus": {
+                            "anyOf": [
+                              {
+                                "enum": ["active", "revoked"],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "platform": {
+                            "enum": ["instagram", "tiktok", "youtube"],
+                            "type": "string"
+                          },
+                          "qualification": {
+                            "anyOf": [
+                              {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "expiresAt": {
+                                    "format": "date-time",
+                                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                                    "type": "string"
+                                  },
+                                  "isGrace": {
+                                    "type": "boolean"
+                                  },
+                                  "platform": {
+                                    "enum": ["instagram", "tiktok", "youtube"],
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "enum": ["current", "outage_grace"],
+                                    "type": "string"
+                                  },
+                                  "tier": {
+                                    "enum": ["level_1", "level_2", "level_3"],
+                                    "type": "string"
+                                  },
+                                  "verifiedAt": {
+                                    "format": "date-time",
+                                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "expiresAt",
+                                  "isGrace",
+                                  "platform",
+                                  "status",
+                                  "tier",
+                                  "verifiedAt"
+                                ],
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "capabilityStatus",
+                          "connectionAvailable",
+                          "consentStatus",
+                          "platform",
+                          "qualification"
+                        ],
+                        "type": "object"
+                      },
+                      "maxItems": 3,
+                      "minItems": 3,
+                      "type": "array"
+                    }
+                  },
+                  "required": ["communityAccessIndependent", "platforms"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "entra-bearer": []
+          }
+        ],
+        "summary": "Revoke optional Reach analytics consent for one platform",
+        "tags": ["authenticated-v1"]
+      },
+      "post": {
+        "operationId": "DomainController_grantCreatorReachConsent",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestId"
+          },
+          {
+            "$ref": "#/components/parameters/CorrelationId"
+          },
+          {
+            "in": "path",
+            "name": "platform",
+            "required": true,
+            "schema": {
+              "enum": ["instagram", "tiktok", "youtube"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "communityAccessIndependent": {
+                      "const": true,
+                      "type": "boolean"
+                    },
+                    "platforms": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "capabilityStatus": {
+                            "enum": ["disabled", "enabled", "outage"],
+                            "type": "string"
+                          },
+                          "connectionAvailable": {
+                            "type": "boolean"
+                          },
+                          "consentStatus": {
+                            "anyOf": [
+                              {
+                                "enum": ["active", "revoked"],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "platform": {
+                            "enum": ["instagram", "tiktok", "youtube"],
+                            "type": "string"
+                          },
+                          "qualification": {
+                            "anyOf": [
+                              {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "expiresAt": {
+                                    "format": "date-time",
+                                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                                    "type": "string"
+                                  },
+                                  "isGrace": {
+                                    "type": "boolean"
+                                  },
+                                  "platform": {
+                                    "enum": ["instagram", "tiktok", "youtube"],
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "enum": ["current", "outage_grace"],
+                                    "type": "string"
+                                  },
+                                  "tier": {
+                                    "enum": ["level_1", "level_2", "level_3"],
+                                    "type": "string"
+                                  },
+                                  "verifiedAt": {
+                                    "format": "date-time",
+                                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "expiresAt",
+                                  "isGrace",
+                                  "platform",
+                                  "status",
+                                  "tier",
+                                  "verifiedAt"
+                                ],
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "capabilityStatus",
+                          "connectionAvailable",
+                          "consentStatus",
+                          "platform",
+                          "qualification"
+                        ],
+                        "type": "object"
+                      },
+                      "maxItems": 3,
+                      "minItems": 3,
+                      "type": "array"
+                    }
+                  },
+                  "required": ["communityAccessIndependent", "platforms"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "correlationId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "ACCESS_DENIED",
+                            "AUTHENTICATION_REQUIRED",
+                            "DEPENDENCY_UNAVAILABLE",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "INTERNAL_ERROR",
+                            "NOT_FOUND",
+                            "RATE_LIMITED",
+                            "STATE_CONFLICT",
+                            "VALIDATION_FAILED",
+                            "VERSION_CONFLICT"
+                          ],
+                          "type": "string"
+                        },
+                        "details": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "pattern": "^[A-Z0-9_]+$",
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 160,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": ["code", "path"],
+                            "type": "object"
+                          },
+                          "maxItems": 25,
+                          "type": "array"
+                        },
+                        "message": {
+                          "maxLength": 240,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"],
+                      "type": "object"
+                    },
+                    "requestId": {
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["correlationId", "error", "requestId"],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "x-correlation-id": {
+                "$ref": "#/components/headers/CorrelationId"
+              },
+              "x-request-id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "entra-bearer": []
+          }
+        ],
+        "summary": "Grant optional read-only Reach analytics consent for one platform",
         "tags": ["authenticated-v1"]
       }
     },
