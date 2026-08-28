@@ -1,0 +1,151 @@
+{
+  "activationStatus": "synthetic_contract_only",
+  "activeWorkflowPresent": false,
+  "checkpoint": "M05-recovery-drill-contract-local-007",
+  "cloudEvidenceClaimed": false,
+  "liveRecoveryClaimed": false,
+  "fixtureRoot": "config/fixtures/recovery-drill",
+  "fixtures": [
+    "postgresql-pitr-complete.valid.json",
+    "blob-retention-complete.valid.json",
+    "container-revision-complete.valid.json",
+    "postgresql-timeout-escalated.valid.json"
+  ],
+  "serviceContracts": {
+    "postgresql": {
+      "mechanism": "point_in_time_restore",
+      "modulePath": "infra/terraform/modules/workload-postgresql/main.tf",
+      "backupRetentionDays": 7,
+      "pointInTimeRestoreRequired": true,
+      "isolatedTargetRequired": true
+    },
+    "blob": {
+      "mechanism": "version_or_soft_delete_recovery",
+      "modulePath": "infra/terraform/modules/workload-storage/main.tf",
+      "softDeleteMinimumDays": 7,
+      "softDeleteMaximumDays": 14,
+      "versioningRequired": true,
+      "privateContainersRequired": true
+    },
+    "container_apps": {
+      "mechanism": "previous_revision_traffic_restore",
+      "modulePath": "infra/terraform/modules/workload-container-apps/main.tf",
+      "revisionMode": "Single",
+      "minimumInactiveRevisions": 1,
+      "immutableImageDigestRequired": true
+    }
+  },
+  "planningTargets": {
+    "draftTargetsAreNotProviderSla": true,
+    "postgresql": {
+      "rpoMinutes": 15,
+      "rtoMinutes": 60,
+      "timeoutMinutes": 75
+    },
+    "blob": {
+      "rpoMinutes": 15,
+      "rtoMinutes": 30,
+      "timeoutMinutes": 45
+    },
+    "container_apps": {
+      "rpoMinutes": 0,
+      "rtoMinutes": 15,
+      "timeoutMinutes": 20
+    }
+  },
+  "migrationContract": {
+    "manifestPath": "packages/db/drizzle/migration-manifest.json",
+    "manifestSha256": "84847eb5ba2ca28a51bedc664cc975d3f2061e1cb20cd73536848e9aaae22c86",
+    "expectedMigrationCount": 20,
+    "hashAlgorithm": "sha256",
+    "forwardOnly": true,
+    "sourceRunbook": "docs/operations/migration-roll-forward.md"
+  },
+  "requiredReconciliationChecks": [
+    "migration_manifest",
+    "row_counts",
+    "public_ids",
+    "status_histories",
+    "audit_records",
+    "privacy_exclusions",
+    "application_readiness"
+  ],
+  "privacyContract": {
+    "syntheticDataOnly": true,
+    "expiredOrDeletedDataMayNotReturnToActiveUse": true,
+    "ordinarySupportRestoreForbidden": true,
+    "privacyExclusionsMustReconcile": true
+  },
+  "failureContract": {
+    "completeRequiresAllChecksMatch": true,
+    "completeRequiresRpoAndRtoWithinTarget": true,
+    "timeoutOrFailureRequiresAttachedIncident": true,
+    "escalationMayNotClaimRecoveryComplete": true,
+    "sourceMutationForbidden": true,
+    "trafficMustRemainDrainedUntilVerified": true
+  },
+  "refusalScenarios": [
+    "schema-version-drift",
+    "non-synthetic-fixture",
+    "unknown-scenario",
+    "unknown-service",
+    "malformed-drill-id",
+    "drill-digest-mismatch",
+    "active-workflow-claimed",
+    "cloud-evidence-claimed",
+    "live-recovery-claimed",
+    "wrong-environment",
+    "non-synthetic-operator",
+    "invalid-start-time",
+    "completion-before-start",
+    "unexpected-root-field",
+    "wrong-source-environment",
+    "non-synthetic-source-reference",
+    "source-mutation-allowed",
+    "target-not-isolated",
+    "target-traffic-open",
+    "same-source-and-target",
+    "planning-rpo-drift",
+    "planning-rto-drift",
+    "planning-timeout-drift",
+    "recovery-point-too-old-complete",
+    "rto-exceeded-complete",
+    "timeout-reported-complete",
+    "failure-reported-complete",
+    "wrong-recovery-mechanism",
+    "recovery-time-before-drill",
+    "recovery-finish-after-drill",
+    "recovery-duration-drift",
+    "postgres-retention-drift",
+    "postgres-pitr-disabled",
+    "blob-versioning-disabled",
+    "blob-soft-delete-too-short",
+    "blob-soft-delete-too-long",
+    "blob-container-public",
+    "container-revision-mode-drift",
+    "container-inactive-revision-missing",
+    "container-image-not-digest",
+    "migration-count-drift",
+    "migration-manifest-hash-drift",
+    "missing-reconciliation-check",
+    "duplicate-reconciliation-check",
+    "unknown-reconciliation-check",
+    "mismatched-digest-reported-match",
+    "reconciliation-mismatch-reported-complete",
+    "expired-data-restored",
+    "expired-data-active-use",
+    "non-synthetic-data-class",
+    "privacy-exclusion-missing",
+    "missing-evidence-reference",
+    "non-synthetic-evidence-reference",
+    "incident-on-clean-complete",
+    "timeout-without-incident",
+    "failure-without-incident",
+    "incident-not-attached",
+    "incident-owner-missing",
+    "incident-review-before-open",
+    "escalation-claims-complete",
+    "credential-shaped-field",
+    "credential-shaped-value"
+  ]
+}

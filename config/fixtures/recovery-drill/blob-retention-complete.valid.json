@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "fixtureStatus": "synthetic_only",
+  "scenario": "blob_retention_complete",
+  "drillId": "synthetic:recovery-drill:blob-retention-complete",
+  "service": "blob",
+  "environment": "synthetic-development",
+  "startedAt": "2026-08-28T15:00:00-04:00",
+  "completedAt": "2026-08-28T15:25:00-04:00",
+  "operator": "synthetic:operator:storage-recovery",
+  "source": {
+    "environment": "synthetic-development-source",
+    "resourceRef": "synthetic:blob:source",
+    "protectionRef": "synthetic:blob:version-policy",
+    "migrationManifestSha256": "84847eb5ba2ca28a51bedc664cc975d3f2061e1cb20cd73536848e9aaae22c86",
+    "migrationCount": 20,
+    "appRevisionDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "objectVersionRef": "synthetic:blob:version:mission-media-previous"
+  },
+  "target": {
+    "environment": "synthetic-development-recovery",
+    "resourceRef": "synthetic:blob:isolated-target",
+    "isolation": "isolated",
+    "sourceMutationAllowed": false,
+    "trafficState": "drained"
+  },
+  "planning": {
+    "rpoMinutes": 15,
+    "rtoMinutes": 30,
+    "timeoutMinutes": 45,
+    "observedRecoveryPointAgeMinutes": 5,
+    "observedRecoveryDurationMinutes": 18
+  },
+  "recovery": {
+    "mechanism": "version_or_soft_delete_recovery",
+    "startedAt": "2026-08-28T15:03:00-04:00",
+    "finishedAt": "2026-08-28T15:21:00-04:00",
+    "status": "succeeded",
+    "selectedRecoveryRef": "synthetic:blob:version:mission-media-previous",
+    "priorArtifactDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "currentArtifactDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "restoredArtifactDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "backupRetentionDays": null,
+    "pointInTimeRestoreEnabled": null,
+    "versioningEnabled": true,
+    "softDeleteRetentionDays": 7,
+    "privateContainer": true,
+    "revisionMode": null,
+    "inactiveRevisionCount": null
+  },
+  "privacyDataClasses": [
+    {
+      "name": "synthetic_mission_media",
+      "retentionStatus": "active",
+      "recovered": true,
+      "activeUseAllowed": true,
+      "syntheticOnly": true
+    },
+    {
+      "name": "synthetic_raw_locality_proof",
+      "retentionStatus": "expired",
+      "recovered": false,
+      "activeUseAllowed": false,
+      "syntheticOnly": true
+    },
+    {
+      "name": "synthetic_raw_customer_phone",
+      "retentionStatus": "deleted",
+      "recovered": false,
+      "activeUseAllowed": false,
+      "syntheticOnly": true
+    }
+  ],
+  "reconciliation": {
+    "status": "matched",
+    "checks": [
+      {
+        "name": "migration_manifest",
+        "beforeDigest": "1111111111111111111111111111111111111111111111111111111111111111",
+        "afterDigest": "1111111111111111111111111111111111111111111111111111111111111111",
+        "status": "match"
+      },
+      {
+        "name": "row_counts",
+        "beforeDigest": "2222222222222222222222222222222222222222222222222222222222222222",
+        "afterDigest": "2222222222222222222222222222222222222222222222222222222222222222",
+        "status": "match"
+      },
+      {
+        "name": "public_ids",
+        "beforeDigest": "3333333333333333333333333333333333333333333333333333333333333333",
+        "afterDigest": "3333333333333333333333333333333333333333333333333333333333333333",
+        "status": "match"
+      },
+      {
+        "name": "status_histories",
+        "beforeDigest": "4444444444444444444444444444444444444444444444444444444444444444",
+        "afterDigest": "4444444444444444444444444444444444444444444444444444444444444444",
+        "status": "match"
+      },
+      {
+        "name": "audit_records",
+        "beforeDigest": "5555555555555555555555555555555555555555555555555555555555555555",
+        "afterDigest": "5555555555555555555555555555555555555555555555555555555555555555",
+        "status": "match"
+      },
+      {
+        "name": "privacy_exclusions",
+        "beforeDigest": "6666666666666666666666666666666666666666666666666666666666666666",
+        "afterDigest": "6666666666666666666666666666666666666666666666666666666666666666",
+        "status": "match"
+      },
+      {
+        "name": "application_readiness",
+        "beforeDigest": "7777777777777777777777777777777777777777777777777777777777777777",
+        "afterDigest": "7777777777777777777777777777777777777777777777777777777777777777",
+        "status": "match"
+      }
+    ]
+  },
+  "evidence": {
+    "contractRef": "synthetic:evidence:recovery-contract",
+    "sourceProtectionRef": "synthetic:evidence:blob-protection",
+    "recoveryExecutionRef": "synthetic:evidence:blob-recovery",
+    "targetVerificationRef": "synthetic:evidence:blob-target",
+    "reconciliationRef": "synthetic:evidence:blob-reconciliation",
+    "logRef": "synthetic:evidence:blob-logs"
+  },
+  "incident": null,
+  "outcome": {
+    "status": "complete",
+    "claim": "synthetic_only",
+    "recoveryComplete": true
+  },
+  "drillDigestSha256": "b99032d6036369ddd01d09c96ae12409f3a22150edd18410974ce265d7c4b3b9"
+}

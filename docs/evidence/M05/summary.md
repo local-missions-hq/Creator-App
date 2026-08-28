@@ -1,10 +1,10 @@
 # M05 Azure foundation evidence
 
-Status: M5 Phase A in progress; static ephemeral run-ledger contract passed with all Azure execution blocked
+Status: M5 Phase A in progress; static recovery-drill contract passed with all Azure execution blocked
 
 Date: 2026-08-28
 
-Checkpoint: `M05-ephemeral-run-ledger-contract-local-006`
+Checkpoint: `M05-recovery-drill-contract-local-007`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
@@ -16,6 +16,10 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - Bound every ledger to the checked synthetic apply/destroy artifact and review digests, full synthetic commit, disposable Terraform root/resource group, cleanup controller, lock, same-day expiry/warning, operation evidence, and separate Terraform-state/live-resource queries.
 - Split the final inventory into the exact 28-resource disposable workload and six expected retained control-plane classes. Completion requires successful destroy, zero state objects, zero independently observed live resources, no orphans, exact retained inventory, and either all tests passed or successful rollback.
 - Added planned local timeout ceilings for apply, tests, rollback, destroy, and reconciliation. Apply/rollback/destroy failure, destroy timeout, orphan, or inventory mismatch must open an attached incident and can never be reported complete.
+- Added four canonical synthetic recovery drills: successful PostgreSQL point-in-time restore, privacy-safe Blob version recovery, successful previous Container Apps revision restore, and a PostgreSQL timeout that remains attached to an open escalation.
+- Bound recovery evidence to the current seven-day PostgreSQL retention/PITR contract, private versioned Blob storage with seven-to-fourteen-day soft delete, one retained inactive Container Apps revision, immutable image digests, and the current 20-entry forward-only migration manifest.
+- Added draft internal RPO/RTO/timeout planning windows for PostgreSQL, Blob, and Container Apps. They are explicitly planning targets rather than Azure guarantees and require future live review and measurement.
+- Required canonical before/after reconciliation for migration manifest, row counts, public IDs, status histories, audit records, privacy exclusions, and application readiness. Expired or deleted privacy-limited data cannot return to active use through recovery.
 
 ## Verification
 
@@ -43,6 +47,14 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - fifty-nine expected refusal scenarios; and
 - separate disposable Terraform-state/live-resource and retained-control-plane inventories.
 
+`pnpm recovery-drill:check` passed:
+
+- four canonical synthetic drills: three complete and one escalated;
+- PostgreSQL PITR, Blob version/soft-delete recovery, and Container Apps prior-revision restore contracts;
+- seven required reconciliation categories;
+- sixty-two expected mutation/refusal scenarios; and
+- zero cloud operations or live recovery claims.
+
 `pnpm terraform:check` continued to pass:
 
 - two independent Terraform roots;
@@ -56,7 +68,11 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - four expiration fixtures; and
 - eight external execution gates retained as blocked.
 
-Backend-disabled `terraform init` and `terraform validate` passed. TFLint 0.63.1 reported zero findings across both roots and all recursive modules. The complete pinned-runtime repository verification passed all nine workspaces, 111 mobile tests, prerequisite/auth/authorization/OIDC/saved-plan/run-ledger/Terraform gates, migration/OpenAPI contracts, and all builds. The final security scan passed 552 text files, and Gitleaks found no leaks in approximately 15.52 MB.
+Backend-disabled `terraform init` and `terraform validate` remained previously verified. TFLint 0.63.1 remained previously verified with zero findings across both roots and all recursive modules. The complete pinned-runtime repository verification passed all nine workspaces, 111 mobile tests, prerequisite/auth/authorization/OIDC/saved-plan/run-ledger/recovery/Terraform gates, the 20-entry migration manifest, OpenAPI contracts, and all builds. The final security scan passed 559 text files, and Gitleaks found no leaks in approximately 15.59 MB.
+
+Recovery-drill machine contract: [`../../../config/recovery-drill.v1.json`](../../../config/recovery-drill.v1.json)
+
+Recovery-drill operations gate: [`../../operations/recovery-drill-gate.md`](../../operations/recovery-drill-gate.md)
 
 Run-ledger machine contract: [`../../../config/ephemeral-run-ledger.v1.json`](../../../config/ephemeral-run-ledger.v1.json)
 
@@ -78,4 +94,4 @@ Command evidence: [`commands.txt`](./commands.txt)
 
 ## Boundary
 
-The run-ledger work is static policy, synthetic fixtures, and local hashing only. No GitHub environment, Azure/Entra identity, federated credential, Azure login, account identifier, provider configuration, credential, subscription, remote backend, live price request, provider-backed refresh/plan, Terraform plan binary, resource, networking activation, import, apply, rollback, destroy, reconciliation query, or cost-incurring action was created or used. Current CI remains non-deploying. The complete and escalated reports are synthetic state-machine examples, not cloud evidence. M5 is not complete, every Azure execution gate is explicitly deferred, and final M4 Entra/provider/native-device proof remains open.
+The recovery-drill work is static policy, synthetic fixtures, local file inspection, and local hashing only. No GitHub environment, Azure/Entra identity, federated credential, Azure login, account identifier, credential, subscription, remote backend, live price request, provider-backed refresh/plan, Terraform plan binary, resource, networking activation, import, apply, restore, rollback, destroy, live query, customer data, or cost-incurring action was created or used. Current CI remains non-deploying. The complete and escalated recovery reports are synthetic contract examples, not cloud evidence or measured Azure RTO/RPO. M5 is not complete, every live Azure recovery and execution gate is explicitly deferred, and final M4 Entra/provider/native-device proof remains open.

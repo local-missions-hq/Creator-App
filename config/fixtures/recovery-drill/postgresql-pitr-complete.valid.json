@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "fixtureStatus": "synthetic_only",
+  "scenario": "postgresql_pitr_complete",
+  "drillId": "synthetic:recovery-drill:postgresql-pitr-complete",
+  "service": "postgresql",
+  "environment": "synthetic-development",
+  "startedAt": "2026-08-28T14:00:00-04:00",
+  "completedAt": "2026-08-28T14:50:00-04:00",
+  "operator": "synthetic:operator:database-recovery",
+  "source": {
+    "environment": "synthetic-development-source",
+    "resourceRef": "synthetic:postgresql:source",
+    "protectionRef": "synthetic:postgresql:backup-policy",
+    "migrationManifestSha256": "84847eb5ba2ca28a51bedc664cc975d3f2061e1cb20cd73536848e9aaae22c86",
+    "migrationCount": 20,
+    "appRevisionDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "objectVersionRef": null
+  },
+  "target": {
+    "environment": "synthetic-development-recovery",
+    "resourceRef": "synthetic:postgresql:isolated-target",
+    "isolation": "isolated",
+    "sourceMutationAllowed": false,
+    "trafficState": "drained"
+  },
+  "planning": {
+    "rpoMinutes": 15,
+    "rtoMinutes": 60,
+    "timeoutMinutes": 75,
+    "observedRecoveryPointAgeMinutes": 10,
+    "observedRecoveryDurationMinutes": 40
+  },
+  "recovery": {
+    "mechanism": "point_in_time_restore",
+    "startedAt": "2026-08-28T14:05:00-04:00",
+    "finishedAt": "2026-08-28T14:45:00-04:00",
+    "status": "succeeded",
+    "selectedRecoveryRef": "synthetic:postgresql:restore-point",
+    "priorArtifactDigest": null,
+    "currentArtifactDigest": null,
+    "restoredArtifactDigest": null,
+    "backupRetentionDays": 7,
+    "pointInTimeRestoreEnabled": true,
+    "versioningEnabled": null,
+    "softDeleteRetentionDays": null,
+    "privateContainer": null,
+    "revisionMode": null,
+    "inactiveRevisionCount": null
+  },
+  "privacyDataClasses": [
+    {
+      "name": "synthetic_mission_core",
+      "retentionStatus": "active",
+      "recovered": true,
+      "activeUseAllowed": true,
+      "syntheticOnly": true
+    }
+  ],
+  "reconciliation": {
+    "status": "matched",
+    "checks": [
+      {
+        "name": "migration_manifest",
+        "beforeDigest": "1111111111111111111111111111111111111111111111111111111111111111",
+        "afterDigest": "1111111111111111111111111111111111111111111111111111111111111111",
+        "status": "match"
+      },
+      {
+        "name": "row_counts",
+        "beforeDigest": "2222222222222222222222222222222222222222222222222222222222222222",
+        "afterDigest": "2222222222222222222222222222222222222222222222222222222222222222",
+        "status": "match"
+      },
+      {
+        "name": "public_ids",
+        "beforeDigest": "3333333333333333333333333333333333333333333333333333333333333333",
+        "afterDigest": "3333333333333333333333333333333333333333333333333333333333333333",
+        "status": "match"
+      },
+      {
+        "name": "status_histories",
+        "beforeDigest": "4444444444444444444444444444444444444444444444444444444444444444",
+        "afterDigest": "4444444444444444444444444444444444444444444444444444444444444444",
+        "status": "match"
+      },
+      {
+        "name": "audit_records",
+        "beforeDigest": "5555555555555555555555555555555555555555555555555555555555555555",
+        "afterDigest": "5555555555555555555555555555555555555555555555555555555555555555",
+        "status": "match"
+      },
+      {
+        "name": "privacy_exclusions",
+        "beforeDigest": "6666666666666666666666666666666666666666666666666666666666666666",
+        "afterDigest": "6666666666666666666666666666666666666666666666666666666666666666",
+        "status": "match"
+      },
+      {
+        "name": "application_readiness",
+        "beforeDigest": "7777777777777777777777777777777777777777777777777777777777777777",
+        "afterDigest": "7777777777777777777777777777777777777777777777777777777777777777",
+        "status": "match"
+      }
+    ]
+  },
+  "evidence": {
+    "contractRef": "synthetic:evidence:recovery-contract",
+    "sourceProtectionRef": "synthetic:evidence:postgresql-protection",
+    "recoveryExecutionRef": "synthetic:evidence:postgresql-restore",
+    "targetVerificationRef": "synthetic:evidence:postgresql-target",
+    "reconciliationRef": "synthetic:evidence:postgresql-reconciliation",
+    "logRef": "synthetic:evidence:postgresql-logs"
+  },
+  "incident": null,
+  "outcome": {
+    "status": "complete",
+    "claim": "synthetic_only",
+    "recoveryComplete": true
+  },
+  "drillDigestSha256": "f2ebb43e0fe97f761471e745ba49f8cf96e54c9dc461fa14d97cf17faf36ccd4"
+}

@@ -176,3 +176,28 @@ pnpm test:gitleaks
 PASS — Gitleaks found no leaks in approximately 15.52 MB.
 
 No GitHub environment, Azure/Entra identity, federated credential, Azure CLI command, Azure login/action, live provider configuration, credential, account/subscription/backend, live price request, provider-backed refresh/plan, Terraform plan binary, resource, networking activation, import, apply, rollback, destroy, live/state reconciliation query, or cost-incurring action was created or used. All ledger actors, identities, references, commits, timestamps, inventory objects, incidents, and outcomes are synthetic. Current CI remains non-deploying. M5 and final M4 external/native gates remain open.
+
+M05-recovery-drill-contract-local-007 — 2026-08-28
+
+Node 24.19.0 and pnpm 11.24.0 were used locally.
+
+pnpm recovery-drill:check
+PASS — validated four canonical synthetic drills (three complete and one escalated), three recovery services, seven reconciliation categories, sixty-two expected refusal cases, draft RPO/RTO/timeout windows, privacy-retention exclusions, and zero cloud operations.
+
+pnpm exec eslint scripts/validate-recovery-drill.mjs
+PASS — the static recovery boundary, digest, timing, service safeguard, migration, reconciliation, privacy, evidence, and escalation validator passed ESLint.
+
+pnpm format:check
+git diff --check
+PASS — repository formatting and patch whitespace checks passed.
+
+pnpm verify
+PASS — formatting, prerequisite/external-auth/authorization/OIDC/saved-plan/run-ledger/recovery/Terraform validation, lint, strict type checks, all repository tests including 111 mobile tests, the 20-entry migration manifest, OpenAPI contracts, and all nine builds passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 559 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks found no leaks in approximately 15.59 MB.
+
+No GitHub environment, Azure/Entra identity, federated credential, Azure CLI command, Azure login/action, credential, account/subscription/backend, live price request, provider-backed refresh/plan, Terraform plan binary, resource, networking activation, import, apply, restore, rollback, destroy, live query, customer data, or cost-incurring action was created or used. All drill actors, resources, backup points, object versions, revisions, timestamps, logs, incidents, evidence, and outcomes are synthetic. Draft RPO/RTO values are planning targets rather than Azure guarantees. Current CI remains non-deploying. M5 and final M4 external/native gates remain open.

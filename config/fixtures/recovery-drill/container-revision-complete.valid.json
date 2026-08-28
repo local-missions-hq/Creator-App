@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "fixtureStatus": "synthetic_only",
+  "scenario": "container_revision_complete",
+  "drillId": "synthetic:recovery-drill:container-revision-complete",
+  "service": "container_apps",
+  "environment": "synthetic-development",
+  "startedAt": "2026-08-28T16:00:00-04:00",
+  "completedAt": "2026-08-28T16:12:00-04:00",
+  "operator": "synthetic:operator:application-recovery",
+  "source": {
+    "environment": "synthetic-development-source",
+    "resourceRef": "synthetic:container-apps:source",
+    "protectionRef": "synthetic:container-apps:revision-policy",
+    "migrationManifestSha256": "84847eb5ba2ca28a51bedc664cc975d3f2061e1cb20cd73536848e9aaae22c86",
+    "migrationCount": 20,
+    "appRevisionDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "objectVersionRef": null
+  },
+  "target": {
+    "environment": "synthetic-development-recovery",
+    "resourceRef": "synthetic:container-apps:isolated-target",
+    "isolation": "isolated",
+    "sourceMutationAllowed": false,
+    "trafficState": "drained"
+  },
+  "planning": {
+    "rpoMinutes": 0,
+    "rtoMinutes": 15,
+    "timeoutMinutes": 20,
+    "observedRecoveryPointAgeMinutes": 0,
+    "observedRecoveryDurationMinutes": 8
+  },
+  "recovery": {
+    "mechanism": "previous_revision_traffic_restore",
+    "startedAt": "2026-08-28T16:02:00-04:00",
+    "finishedAt": "2026-08-28T16:10:00-04:00",
+    "status": "succeeded",
+    "selectedRecoveryRef": "synthetic:container-apps:previous-revision",
+    "priorArtifactDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "currentArtifactDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "restoredArtifactDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "backupRetentionDays": null,
+    "pointInTimeRestoreEnabled": null,
+    "versioningEnabled": null,
+    "softDeleteRetentionDays": null,
+    "privateContainer": null,
+    "revisionMode": "Single",
+    "inactiveRevisionCount": 1
+  },
+  "privacyDataClasses": [
+    {
+      "name": "synthetic_application_revision",
+      "retentionStatus": "active",
+      "recovered": true,
+      "activeUseAllowed": true,
+      "syntheticOnly": true
+    }
+  ],
+  "reconciliation": {
+    "status": "matched",
+    "checks": [
+      {
+        "name": "migration_manifest",
+        "beforeDigest": "1111111111111111111111111111111111111111111111111111111111111111",
+        "afterDigest": "1111111111111111111111111111111111111111111111111111111111111111",
+        "status": "match"
+      },
+      {
+        "name": "row_counts",
+        "beforeDigest": "2222222222222222222222222222222222222222222222222222222222222222",
+        "afterDigest": "2222222222222222222222222222222222222222222222222222222222222222",
+        "status": "match"
+      },
+      {
+        "name": "public_ids",
+        "beforeDigest": "3333333333333333333333333333333333333333333333333333333333333333",
+        "afterDigest": "3333333333333333333333333333333333333333333333333333333333333333",
+        "status": "match"
+      },
+      {
+        "name": "status_histories",
+        "beforeDigest": "4444444444444444444444444444444444444444444444444444444444444444",
+        "afterDigest": "4444444444444444444444444444444444444444444444444444444444444444",
+        "status": "match"
+      },
+      {
+        "name": "audit_records",
+        "beforeDigest": "5555555555555555555555555555555555555555555555555555555555555555",
+        "afterDigest": "5555555555555555555555555555555555555555555555555555555555555555",
+        "status": "match"
+      },
+      {
+        "name": "privacy_exclusions",
+        "beforeDigest": "6666666666666666666666666666666666666666666666666666666666666666",
+        "afterDigest": "6666666666666666666666666666666666666666666666666666666666666666",
+        "status": "match"
+      },
+      {
+        "name": "application_readiness",
+        "beforeDigest": "7777777777777777777777777777777777777777777777777777777777777777",
+        "afterDigest": "7777777777777777777777777777777777777777777777777777777777777777",
+        "status": "match"
+      }
+    ]
+  },
+  "evidence": {
+    "contractRef": "synthetic:evidence:recovery-contract",
+    "sourceProtectionRef": "synthetic:evidence:container-revision-policy",
+    "recoveryExecutionRef": "synthetic:evidence:container-revision-restore",
+    "targetVerificationRef": "synthetic:evidence:container-target",
+    "reconciliationRef": "synthetic:evidence:container-reconciliation",
+    "logRef": "synthetic:evidence:container-logs"
+  },
+  "incident": null,
+  "outcome": {
+    "status": "complete",
+    "claim": "synthetic_only",
+    "recoveryComplete": true
+  },
+  "drillDigestSha256": "542178999b47d9398324f54a05656801a94e6cbd4bd45b09faa40ebddf52bf27"
+}

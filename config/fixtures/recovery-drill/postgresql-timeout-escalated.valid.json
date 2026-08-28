@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "fixtureStatus": "synthetic_only",
+  "scenario": "postgresql_timeout_escalated",
+  "drillId": "synthetic:recovery-drill:postgresql-timeout-escalated",
+  "service": "postgresql",
+  "environment": "synthetic-development",
+  "startedAt": "2026-08-28T17:00:00-04:00",
+  "completedAt": "2026-08-28T18:25:00-04:00",
+  "operator": "synthetic:operator:database-recovery",
+  "source": {
+    "environment": "synthetic-development-source",
+    "resourceRef": "synthetic:postgresql:source-timeout",
+    "protectionRef": "synthetic:postgresql:backup-policy",
+    "migrationManifestSha256": "84847eb5ba2ca28a51bedc664cc975d3f2061e1cb20cd73536848e9aaae22c86",
+    "migrationCount": 20,
+    "appRevisionDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "objectVersionRef": null
+  },
+  "target": {
+    "environment": "synthetic-development-recovery",
+    "resourceRef": "synthetic:postgresql:isolated-timeout-target",
+    "isolation": "isolated",
+    "sourceMutationAllowed": false,
+    "trafficState": "drained"
+  },
+  "planning": {
+    "rpoMinutes": 15,
+    "rtoMinutes": 60,
+    "timeoutMinutes": 75,
+    "observedRecoveryPointAgeMinutes": 10,
+    "observedRecoveryDurationMinutes": 80
+  },
+  "recovery": {
+    "mechanism": "point_in_time_restore",
+    "startedAt": "2026-08-28T17:05:00-04:00",
+    "finishedAt": "2026-08-28T18:25:00-04:00",
+    "status": "timed_out",
+    "selectedRecoveryRef": "synthetic:postgresql:restore-point-timeout",
+    "priorArtifactDigest": null,
+    "currentArtifactDigest": null,
+    "restoredArtifactDigest": null,
+    "backupRetentionDays": 7,
+    "pointInTimeRestoreEnabled": true,
+    "versioningEnabled": null,
+    "softDeleteRetentionDays": null,
+    "privateContainer": null,
+    "revisionMode": null,
+    "inactiveRevisionCount": null
+  },
+  "privacyDataClasses": [
+    {
+      "name": "synthetic_mission_core",
+      "retentionStatus": "active",
+      "recovered": false,
+      "activeUseAllowed": false,
+      "syntheticOnly": true
+    }
+  ],
+  "reconciliation": {
+    "status": "mismatch",
+    "checks": [
+      {
+        "name": "migration_manifest",
+        "beforeDigest": "1111111111111111111111111111111111111111111111111111111111111111",
+        "afterDigest": "1111111111111111111111111111111111111111111111111111111111111111",
+        "status": "match"
+      },
+      {
+        "name": "row_counts",
+        "beforeDigest": "2222222222222222222222222222222222222222222222222222222222222222",
+        "afterDigest": "9999999999999999999999999999999999999999999999999999999999999999",
+        "status": "mismatch"
+      },
+      {
+        "name": "public_ids",
+        "beforeDigest": "3333333333333333333333333333333333333333333333333333333333333333",
+        "afterDigest": "9999999999999999999999999999999999999999999999999999999999999999",
+        "status": "mismatch"
+      },
+      {
+        "name": "status_histories",
+        "beforeDigest": "4444444444444444444444444444444444444444444444444444444444444444",
+        "afterDigest": "9999999999999999999999999999999999999999999999999999999999999999",
+        "status": "mismatch"
+      },
+      {
+        "name": "audit_records",
+        "beforeDigest": "5555555555555555555555555555555555555555555555555555555555555555",
+        "afterDigest": "9999999999999999999999999999999999999999999999999999999999999999",
+        "status": "mismatch"
+      },
+      {
+        "name": "privacy_exclusions",
+        "beforeDigest": "6666666666666666666666666666666666666666666666666666666666666666",
+        "afterDigest": "6666666666666666666666666666666666666666666666666666666666666666",
+        "status": "match"
+      },
+      {
+        "name": "application_readiness",
+        "beforeDigest": "7777777777777777777777777777777777777777777777777777777777777777",
+        "afterDigest": "9999999999999999999999999999999999999999999999999999999999999999",
+        "status": "mismatch"
+      }
+    ]
+  },
+  "evidence": {
+    "contractRef": "synthetic:evidence:recovery-contract",
+    "sourceProtectionRef": "synthetic:evidence:postgresql-protection",
+    "recoveryExecutionRef": "synthetic:evidence:postgresql-timeout",
+    "targetVerificationRef": "synthetic:evidence:postgresql-timeout-target",
+    "reconciliationRef": "synthetic:evidence:postgresql-timeout-reconciliation",
+    "logRef": "synthetic:evidence:postgresql-timeout-logs"
+  },
+  "incident": {
+    "status": "open_attached",
+    "reasonCode": "RECOVERY_TIMEOUT_AND_RECONCILIATION_MISMATCH",
+    "openedAt": "2026-08-28T18:25:00-04:00",
+    "nextReviewAt": "2026-08-28T19:00:00-04:00",
+    "owner": "synthetic:operator:incident-owner",
+    "evidenceRefs": [
+      "synthetic:evidence:postgresql-timeout",
+      "synthetic:evidence:postgresql-timeout-reconciliation"
+    ]
+  },
+  "outcome": {
+    "status": "escalated",
+    "claim": "synthetic_only",
+    "recoveryComplete": false
+  },
+  "drillDigestSha256": "2da24a096d2bf0dd1f4724d225c4567bd7bbe085040125135dcacf904f0cd599"
+}
