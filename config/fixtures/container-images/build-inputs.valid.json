@@ -1,0 +1,12 @@
+{
+  "baseImageReference": "registry.example.test/node@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "buildCommit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "buildTime": "2026-08-28T18:30:00Z",
+  "buildVersion": "0.1.0",
+  "imageTags": {
+    "api": "local-missions/api:sha-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "dashboard": "local-missions/dashboard:sha-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "worker": "local-missions/worker:sha-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "fixtureStatus": "synthetic_only"
+}

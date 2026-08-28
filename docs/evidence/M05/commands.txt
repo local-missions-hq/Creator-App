@@ -238,3 +238,30 @@ pnpm test:gitleaks
 PASS — Gitleaks found no leaks in approximately 15.60 MB.
 
 No GitHub/Azure/Entra resource, environment, identity, credential, account, subscription, backend, live price request, provider-backed refresh/plan, plan binary, apply, restore, rollback, destroy, live query, network, customer data, or cloud cost was created or used. All resource, identity, digest, endpoint, cost, and approval values remain synthetic and unapproved. Current CI remains non-deploying. M5 and final M4 external/native gates remain open.
+
+M05-container-image-contract-local-009 — 2026-08-28
+
+Node 24.19.0 and pnpm 11.24.0 were used locally.
+
+pnpm container:check
+PASS — built all nine workspaces, assembled three temporary production-only bundles from an isolated offline pnpm workspace, passed four local runtime checks, passed thirty-five refusal scenarios, retained seven external gates, removed the bundles, and performed zero Docker builds or registry operations.
+
+The first packaging command stopped before validation because pnpm required a noninteractive module-state reconciliation after package publication fields changed; one frozen offline install restored the pinned workspace. Early focused assertions then exposed command-string whitespace, canonical ISO build-time formatting, and normal `SIGTERM`/exit-143 server shutdown representations; the validator was corrected without weakening the runtime checks. The initial legacy pnpm deploy also changed the source workspace module mode, so deployment was moved into an isolated temporary offline workspace. A subsequent `pnpm format:check` proved the source install remained usable without reinstall or purge.
+
+pnpm exec eslint scripts/validate-container-build-inputs.mjs scripts/validate-container-images.mjs apps/worker/src/main.ts apps/dashboard/next.config.ts
+PASS — the build-input validator, container contract validator, worker lifecycle, and dashboard standalone configuration passed ESLint.
+
+pnpm verify
+PASS — formatting, prerequisites, external-auth, authorization, OIDC, saved-plan, run-ledger, recovery, Terraform, lint, strict type checks, all repository tests including 111 mobile tests, the 20-entry migration manifest, OpenAPI contracts, all nine builds, and the three-bundle container contract passed under pinned Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 569 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks found no leaks in approximately 15.66 MB.
+
+pnpm format:check
+git diff --check
+PASS — repository formatting and patch whitespace passed after temporary bundle cleanup.
+
+No Docker build, image pull, package/container registry request, image scan/sign/push, GitHub/Azure/Entra creation or activation, credential, account, subscription, backend, live price request, provider-backed plan, apply, restore, rollback, destroy, live query, networking, customer data, or cost was used. The Node base reference, commit, time, version, image tags, repositories, and provenance fixture are synthetic and do not claim an image exists. Current CI remains non-deploying. M5 and final M4 external/native gates remain open.

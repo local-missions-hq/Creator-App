@@ -225,7 +225,7 @@ run "mock_enabled_resource_group_contract" {
       output.workload_resource_safeguards.container_apps.api_role_count == 4 &&
       output.workload_resource_safeguards.container_apps.dashboard_role_count == 1 &&
       join(",", output.workload_resource_safeguards.container_apps.dashboard_role_names) == "AcrPull" &&
-      join(",", output.workload_resource_safeguards.container_apps.dashboard_environment_names) == "NEXT_PUBLIC_API_URL,NEXT_PUBLIC_APP_ENV" &&
+      join(",", output.workload_resource_safeguards.container_apps.dashboard_environment_names) == "API_BASE_URL,APP_ENV" &&
       output.workload_resource_safeguards.container_apps.dashboard_api_url_https &&
       output.workload_resource_safeguards.container_apps.worker_role_count == 4 &&
       output.workload_resource_safeguards.container_apps.dashboard_has_ingress &&

@@ -19,8 +19,8 @@ locals {
   })
 
   dashboard_environment = {
-    NEXT_PUBLIC_API_URL = "https://${azurerm_container_app.api.latest_revision_fqdn}"
-    NEXT_PUBLIC_APP_ENV = "development"
+    API_BASE_URL = "https://${azurerm_container_app.api.latest_revision_fqdn}"
+    APP_ENV      = "development"
   }
 
   api_roles = {

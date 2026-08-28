@@ -34,7 +34,7 @@ output "safeguards" {
     api_min_replicas                  = var.scale.api_min_replicas
     api_role_count                    = length(azurerm_role_assignment.api)
     dashboard_environment_names       = sort(keys(local.dashboard_environment))
-    dashboard_api_url_https           = startswith(local.dashboard_environment.NEXT_PUBLIC_API_URL, "https://")
+    dashboard_api_url_https           = startswith(local.dashboard_environment.API_BASE_URL, "https://")
     dashboard_has_ingress             = true
     dashboard_ingress_allowlist_count = length(var.allowed_ipv4_cidrs)
     dashboard_max_replicas            = var.scale.dashboard_max_replicas

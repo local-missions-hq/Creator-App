@@ -8,4 +8,6 @@ The separate saved-plan producer-consumer, digest, sanitization, cost, approval,
 
 The later apply/test/rollback/destroy/reconcile lifecycle and truthful clean-versus-escalated report live in `config/ephemeral-run-ledger.v1.json` and are checked by `pnpm run-ledger:check` using synthetic ledgers only.
 
+The API, dashboard, and worker image-packaging boundary lives in `config/container-image-contract.v1.json` and is checked by `pnpm container:check`. That local gate builds production bundles and smokes them directly with the pinned Node runtime, but deliberately does not run Docker, pull a base image, contact a registry, scan/sign/push an image, or activate deployment CI. The future workflow must supply a reviewed digest-pinned Node 24.19.0 base and bind resulting image digests to the reviewed saved plan.
+
 Do not activate the template until the external subject-preview, identity, scope, environment-protection, action-pin, plan/cost, and explicit approval gates in `docs/operations/github-azure-oidc-plan-gate.md` all have evidence.

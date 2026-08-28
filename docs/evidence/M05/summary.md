@@ -1,10 +1,10 @@
 # M05 Azure foundation evidence
 
-Status: M5 Phase A in progress; static dashboard workload contract passed with all Azure execution blocked
+Status: M5 Phase A in progress; local container image contract passed with all registry and Azure execution blocked
 
 Date: 2026-08-28
 
-Checkpoint: `M05-dashboard-workload-module-local-008`
+Checkpoint: `M05-container-image-contract-local-009`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
@@ -12,8 +12,12 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 
 - Preserved the retained/disposable Terraform roots, exact AzureRM 5.0.1 package lock, static OIDC and saved-plan contracts, recovery contract, and non-deploying active CI while every external activation gate remains blocked.
 - Added a separately named dashboard Container App and user-assigned identity behind the disabled development root. The dashboard receives only one resource-scoped ACR pull role, uses an immutable image digest, exposes HTTPS-only ingress through the existing reviewed CIDR allowlist, and scales from zero to one candidate replica.
-- Added non-secret `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_APP_ENV` runtime references and aligned the dashboard environment example with the application variable name. The API URL is derived from the API Container App FQDN rather than a credential or hard-coded live endpoint.
+- Added non-secret server-runtime `API_BASE_URL` and `APP_ENV` references and aligned the dashboard environment example with the application variable names. The API URL is derived from the API Container App FQDN rather than a credential or hard-coded build-time endpoint.
 - Rebound the exact mock inventory from 28 to 31 resources: three Container Apps, three user-assigned identities, nine role assignments, and the unchanged supporting workload. Saved-plan review digests and all three run-ledger digests were regenerated from their canonical synthetic payloads.
+- Added separate API, dashboard, and worker Dockerfiles that accept no default base image. A future build must supply a reviewed Node 24.19.0 Linux image by SHA-256 digest plus a full commit, whole-second UTC build time, and numeric semantic version before package installation begins.
+- Required frozen pnpm 11.24.0 installs, restricted source copies, production-only offline deploy bundles, numeric `10001:10001` ownership, OCI provenance labels, exact runtime commands, API/dashboard health checks, and no secret build arguments. The dashboard now emits monorepo-aware Next.js standalone output.
+- Limited API, worker, and shared package publication surfaces to compiled `dist` output plus database migrations. The worker now stays alive as a Container App process until `SIGINT` or `SIGTERM`, then records and completes a clean shutdown.
+- Added a local validator that creates an isolated temporary offline workspace, assembles three production bundles, runs four API/dashboard/worker runtime checks, proves 35 mutation/refusal scenarios, removes every temporary bundle, and leaves the source workspace install unchanged. The active non-deploying CI runs this gate through `pnpm verify` without invoking Docker or a registry.
 - Added a 23-state, 29-transition run ledger from approved saved plan through apply, eleven required test gates, continue or application rollback, reviewed destroy, independent reconciliation, and the only two truthful terminal states: complete or escalated.
 - Added three canonical SHA-256-bound synthetic ledgers: a clean continuation, a critical-test failure with successful revision rollback and teardown, and a destroy timeout where an independent live query finds one orphan and the incident stays attached/escalated.
 - Bound every ledger to the checked synthetic apply/destroy artifact and review digests, full synthetic commit, disposable Terraform root/resource group, cleanup controller, lock, same-day expiry/warning, operation evidence, and separate Terraform-state/live-resource queries.
@@ -71,7 +75,19 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - four expiration fixtures; and
 - eight external execution gates retained as blocked.
 
-Backend-disabled `terraform init`, validation, and mock-provider tests passed through the repository gate without Azure credentials or a provider configuration. TFLint 0.63.1 reported zero findings across both roots and all recursive modules. The complete pinned-runtime repository verification passed all nine workspaces, 111 mobile tests, prerequisite/auth/authorization/OIDC/saved-plan/run-ledger/recovery/Terraform gates, the 20-entry migration manifest, OpenAPI contracts, and all builds. The final security scan passed 560 text files, and Gitleaks found no leaks in approximately 15.60 MB.
+`pnpm container:check` passed:
+
+- three production bundles: API pnpm deploy, dashboard Next.js standalone, and worker pnpm deploy;
+- four local runtime checks covering API liveness, API build provenance, dashboard rendering, and worker stay-alive/clean shutdown;
+- thirty-five expected refusal scenarios for activation claims, mutable base/tag/provenance, root or broad-copy Dockerfiles, secrets, missing labels, unlocked installs, online deploys, and package drift;
+- seven external base-image/registry/scan/sign/plan/deploy gates retained as blocked; and
+- zero container builds, image pulls, registry contacts, published images, signatures, or cloud operations.
+
+Backend-disabled `terraform init`, validation, and mock-provider tests passed through the repository gate without Azure credentials or a provider configuration. TFLint 0.63.1 reported zero findings across both roots and all recursive modules. The complete pinned-runtime repository verification passed all nine workspaces, 111 mobile tests, prerequisite/auth/authorization/OIDC/saved-plan/run-ledger/recovery/Terraform/container gates, the 20-entry migration manifest, OpenAPI contracts, all builds, and all three local production-bundle smokes. The final security scan passed 569 text files, and Gitleaks found no leaks in approximately 15.66 MB.
+
+Container image machine contract: [`../../../config/container-image-contract.v1.json`](../../../config/container-image-contract.v1.json)
+
+Container image operations gate: [`../../operations/container-image-gate.md`](../../operations/container-image-gate.md)
 
 Recovery-drill machine contract: [`../../../config/recovery-drill.v1.json`](../../../config/recovery-drill.v1.json)
 
@@ -97,4 +113,4 @@ Command evidence: [`commands.txt`](./commands.txt)
 
 ## Boundary
 
-The dashboard and recovery work is static Terraform policy, mock-provider planning, synthetic fixtures, local file inspection, and local hashing only. No GitHub environment, Azure/Entra identity, federated credential, Azure login, account identifier, credential, subscription, remote backend, live price request, provider-backed refresh/plan, Terraform plan binary, resource, networking activation, import, apply, restore, rollback, destroy, live query, customer data, or cost-incurring action was created or used. Current CI remains non-deploying. Resource counts, cost examples, identities, endpoints, and recovery reports are synthetic contract examples rather than cloud evidence, approved prices, or measured Azure RTO/RPO. M5 is not complete, every live Azure recovery and execution gate is explicitly deferred, and final M4 Entra/provider/native-device proof remains open.
+The container, dashboard, and recovery work is static policy, local compilation, temporary offline production bundling, localhost process smoke, mock-provider planning, synthetic fixtures, local file inspection, and local hashing only. No container build, base-image pull, package/container registry request, image scan, image signature, image publication, GitHub environment, Azure/Entra identity, federated credential, Azure login, account identifier, credential, subscription, remote backend, live price request, provider-backed refresh/plan, Terraform plan binary, resource, networking activation, import, apply, restore, rollback, destroy, live query, customer data, or cost-incurring action was created or used. Current CI remains non-deploying. Resource counts, cost examples, identities, endpoints, tags, and recovery reports are synthetic contract examples rather than image or cloud evidence, approved prices, or measured Azure RTO/RPO. M5 is not complete, every live image/Azure recovery and execution gate is explicitly deferred, and final M4 Entra/provider/native-device proof remains open.

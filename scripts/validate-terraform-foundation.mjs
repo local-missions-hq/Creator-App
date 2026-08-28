@@ -423,7 +423,7 @@ function assertMockWorkloadPlan(plan) {
     JSON.stringify(resourceSafeguards.container_apps?.dashboard_role_names) ===
       JSON.stringify(['AcrPull']),
     JSON.stringify(resourceSafeguards.container_apps?.dashboard_environment_names) ===
-      JSON.stringify(['NEXT_PUBLIC_API_URL', 'NEXT_PUBLIC_APP_ENV']),
+      JSON.stringify(['API_BASE_URL', 'APP_ENV']),
     resourceSafeguards.container_apps?.dashboard_api_url_https === true,
     resourceSafeguards.container_apps?.dashboard_has_ingress === true,
     resourceSafeguards.container_apps?.dashboard_ingress_allowlist_count === 1,

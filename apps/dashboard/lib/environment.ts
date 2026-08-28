@@ -1,3 +1,3 @@
-export function environmentLabel(value = process.env.NEXT_PUBLIC_APP_ENV) {
+export function environmentLabel(value = process.env.APP_ENV) {
   return value?.trim() || 'local';
 }

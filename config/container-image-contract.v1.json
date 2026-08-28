@@ -1,0 +1,86 @@
+{
+  "activationStatus": "local_contract_only",
+  "baseImagePolicy": {
+    "argument": "NODE_IMAGE",
+    "defaultReferenceForbidden": true,
+    "nodeVersion": "24.19.0",
+    "referencePattern": "^[a-z0-9][a-z0-9._/-]*@sha256:[a-f0-9]{64}$"
+  },
+  "buildExecution": {
+    "containerBuildExecuted": false,
+    "externalRegistryContacted": false,
+    "imagePublished": false,
+    "imageSigned": false,
+    "localBundleAndRuntimeSmokeOnly": true
+  },
+  "checkpoint": "M05-container-image-contract-local-009",
+  "externalGates": [
+    "Reviewed Node 24.19.0 Linux base image digest and provenance",
+    "Approved container registry authentication and repository targets",
+    "Approved immutable commit tag and generated image digest manifest",
+    "Container vulnerability and malware scan with reviewed findings",
+    "Keyless image signature and provenance attestation",
+    "Explicit saved-plan binding to the reviewed image digests",
+    "Approved registry push and ephemeral Azure deployment"
+  ],
+  "images": [
+    {
+      "bundleKind": "pnpm_deploy",
+      "command": ["node", "dist/main.js"],
+      "dockerfile": "apps/api/Dockerfile",
+      "healthPath": "/health/live",
+      "id": "api",
+      "package": "@local-missions/api",
+      "port": 4000,
+      "repository": "local-missions/api",
+      "runtimeUser": "10001:10001"
+    },
+    {
+      "bundleKind": "next_standalone",
+      "command": ["node", "server.js"],
+      "dockerfile": "apps/dashboard/Dockerfile",
+      "healthPath": "/",
+      "id": "dashboard",
+      "package": "@local-missions/dashboard",
+      "port": 3000,
+      "repository": "local-missions/dashboard",
+      "runtimeUser": "10001:10001"
+    },
+    {
+      "bundleKind": "pnpm_deploy",
+      "command": ["node", "dist/main.js"],
+      "dockerfile": "apps/worker/Dockerfile",
+      "healthPath": null,
+      "id": "worker",
+      "package": "@local-missions/worker",
+      "port": null,
+      "repository": "local-missions/worker",
+      "runtimeUser": "10001:10001"
+    }
+  ],
+  "packageManager": "pnpm@11.24.0",
+  "provenancePolicy": {
+    "buildCommitPattern": "^[a-f0-9]{40}$",
+    "buildTimePattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+    "buildVersionPattern": "^\\d+\\.\\d+\\.\\d+$",
+    "immutableTagPattern": "^sha-[a-f0-9]{40}$",
+    "requiredOciLabels": [
+      "org.opencontainers.image.created",
+      "org.opencontainers.image.revision",
+      "org.opencontainers.image.title",
+      "org.opencontainers.image.version"
+    ]
+  },
+  "runtimePolicy": {
+    "copyUsesNumericOwnership": true,
+    "dockerfileContext": ".",
+    "frozenLockfile": true,
+    "productionDependenciesOnly": true,
+    "remoteBuildForbidden": true,
+    "runtimeGroup": 10001,
+    "runtimeUser": 10001,
+    "secretBuildArgumentsForbidden": true,
+    "sourceAndTestFilesExcluded": true
+  },
+  "schemaVersion": 1
+}
