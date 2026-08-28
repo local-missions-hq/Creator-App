@@ -15,8 +15,8 @@
     "backendKey": "local-missions/dev-workload.tfstate",
     "targetResourceGroup": "rg-local-missions-dev-example",
     "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
-    "targetInventorySha256": "1ccd6f0ef7b9dfded940f21904d300f81693dc9e57240dd28008f1e87892e3b1",
-    "workloadResourceCount": 28,
+    "targetInventorySha256": "455671e530e0af5a956e8040743af27b168bd828e9dd5412287b7c76933c385a",
+    "workloadResourceCount": 31,
     "retainedTargetCount": 0
   },
   "producer": {
@@ -27,14 +27,14 @@
     "producedAt": "2026-08-28T14:00:00-04:00"
   },
   "planSummary": {
-    "create": 28,
+    "create": 31,
     "update": 0,
     "delete": 0,
     "replace": 0,
     "destructiveChanges": false,
-    "sanitizedText": "Plan: 28 to add, 0 to change, 0 to destroy.",
+    "sanitizedText": "Plan: 31 to add, 0 to change, 0 to destroy.",
     "sanitizedJson": {
-      "create": 28,
+      "create": 31,
       "update": 0,
       "delete": 0,
       "replace": 0
@@ -44,9 +44,9 @@
     "status": "synthetic_fixture_only",
     "source": "synthetic_fixture_only",
     "currency": "USD",
-    "estimatedRunCostMinor": 1250,
+    "estimatedRunCostMinor": 1400,
     "approvedCeilingMinor": 1500,
-    "estimatedMonthlyCostMinor": 6000,
+    "estimatedMonthlyCostMinor": 6500,
     "estimatedAt": "2026-08-28T14:10:00-04:00",
     "livePriceApproved": false,
     "reviewedBy": "synthetic:actor:cost-reviewer",
@@ -61,7 +61,7 @@
     "reference": "synthetic:review:apply:001",
     "reviewedBy": "synthetic:actor:plan-reviewer",
     "reviewedAt": "2026-08-28T14:20:00-04:00",
-    "reviewPayloadSha256": "93f7f1342d72104a53a47396d4c68b35c5378b78b06094cfd02e56439980b5fc"
+    "reviewPayloadSha256": "aafbbd7e8fb328e914ea4f63f21f38d98de6ffc48e5ea0b083e6dda10c9e37fd"
   },
   "approval": {
     "kind": "apply",
@@ -69,14 +69,14 @@
     "reference": "synthetic:approval:apply:001",
     "approvedBy": "synthetic:actor:apply-approver",
     "approvedAt": "2026-08-28T14:30:00-04:00",
-    "reviewPayloadSha256": "93f7f1342d72104a53a47396d4c68b35c5378b78b06094cfd02e56439980b5fc"
+    "reviewPayloadSha256": "aafbbd7e8fb328e914ea4f63f21f38d98de6ffc48e5ea0b083e6dda10c9e37fd"
   },
   "consumer": {
     "identityReference": "AZURE_APPLY_CLIENT_ID",
     "environment": "azure-development-apply",
     "command": "terraform apply -input=false dev-workload.tfplan",
     "expectedArtifactSha256": "3801717dc87b4467e37574c436c81be4644ebae5fefbadd74bafaab128ae52d1",
-    "expectedReviewPayloadSha256": "93f7f1342d72104a53a47396d4c68b35c5378b78b06094cfd02e56439980b5fc",
+    "expectedReviewPayloadSha256": "aafbbd7e8fb328e914ea4f63f21f38d98de6ffc48e5ea0b083e6dda10c9e37fd",
     "consumedAt": "2026-08-28T14:35:00-04:00",
     "transientArtifactDeleted": true
   }

@@ -168,8 +168,8 @@ function assertSourceBoundary() {
     join(terraformDirectory, 'modules/workload-container-apps/main.tf'),
     'utf8',
   );
-  if ((containerAppsSource.match(/@sha256:\$\{var\.images\.[^}]+\}/g) ?? []).length !== 2) {
-    fail('API and worker image references must both use immutable SHA-256 digests.');
+  if ((containerAppsSource.match(/@sha256:\$\{var\.images\.[^}]+\}/g) ?? []).length !== 3) {
+    fail('API, dashboard, and worker image references must all use immutable SHA-256 digests.');
   }
 
   const providerRoot = manifest.roots.find(
@@ -288,6 +288,8 @@ function assertWorkloadPlan(plan) {
     apiMaxReplicas: 'api_max_replicas',
     apiMinReplicas: 'api_min_replicas',
     containerRegistrySku: 'container_registry_sku',
+    dashboardMaxReplicas: 'dashboard_max_replicas',
+    dashboardMinReplicas: 'dashboard_min_replicas',
     logRetentionDays: 'log_retention_days',
     postgresBackupRetentionDays: 'postgres_backup_retention_days',
     postgresSkuName: 'postgres_sku_name',
@@ -375,6 +377,8 @@ function assertMockWorkloadPlan(plan) {
     safeguards.retained_and_disposable_are_distinct === true,
     safeguards.scale?.api_min_replicas === expected.apiMinReplicas,
     safeguards.scale?.api_max_replicas === expected.apiMaxReplicas,
+    safeguards.scale?.dashboard_min_replicas === expected.dashboardMinReplicas,
+    safeguards.scale?.dashboard_max_replicas === expected.dashboardMaxReplicas,
     safeguards.scale?.worker_min_replicas === expected.workerMinReplicas,
     safeguards.scale?.worker_max_replicas === expected.workerMaxReplicas,
     safeguards.network?.minimum_tls_version === expected.minimumTlsVersion,
@@ -413,8 +417,18 @@ function assertMockWorkloadPlan(plan) {
     resourceSafeguards.key_vault?.default_network_action === 'Deny',
     resourceSafeguards.telemetry?.workspace_local_auth === false,
     resourceSafeguards.telemetry?.application_insights_local_auth === false,
-    resourceSafeguards.container_apps?.managed_identity_count === 2,
+    resourceSafeguards.container_apps?.managed_identity_count === 3,
     resourceSafeguards.container_apps?.api_role_count === 4,
+    resourceSafeguards.container_apps?.dashboard_role_count === 1,
+    JSON.stringify(resourceSafeguards.container_apps?.dashboard_role_names) ===
+      JSON.stringify(['AcrPull']),
+    JSON.stringify(resourceSafeguards.container_apps?.dashboard_environment_names) ===
+      JSON.stringify(['NEXT_PUBLIC_API_URL', 'NEXT_PUBLIC_APP_ENV']),
+    resourceSafeguards.container_apps?.dashboard_api_url_https === true,
+    resourceSafeguards.container_apps?.dashboard_has_ingress === true,
+    resourceSafeguards.container_apps?.dashboard_ingress_allowlist_count === 1,
+    resourceSafeguards.container_apps?.dashboard_min_replicas === 0,
+    resourceSafeguards.container_apps?.dashboard_max_replicas === 1,
     resourceSafeguards.container_apps?.worker_role_count === 4,
     resourceSafeguards.container_apps?.image_references_use_digests === true,
     resourceSafeguards.container_apps?.inline_secret_blocks === 0,

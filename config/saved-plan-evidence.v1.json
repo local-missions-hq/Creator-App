@@ -73,7 +73,7 @@
     "exactTerraformRoot": "infra/terraform/environments/dev",
     "resourceGroupPattern": "^rg-local-missions-dev-[a-z0-9]{6,12}$",
     "retainedTargetCount": 0,
-    "workloadResourceCount": 28
+    "workloadResourceCount": 31
   },
   "timeContract": {
     "cutoffHourAmericaNewYork": 23,

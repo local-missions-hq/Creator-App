@@ -335,7 +335,7 @@ function assertContractCoherence(candidate = contract) {
   );
   assert(
     containerAppsModule.includes('revision_mode                = "Single"') &&
-      containerAppsModule.match(/max_inactive_revisions\s+= 1/g)?.length === 2 &&
+      containerAppsModule.match(/max_inactive_revisions\s+= 1/g)?.length === 3 &&
       containerAppsModule.includes('@sha256:'),
     'Container Apps module no longer retains the reviewed rollback boundary.',
   );

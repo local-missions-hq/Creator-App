@@ -1,7 +1,7 @@
 {
   "activationStatus": "local_contract_only",
   "azureCompletionClaimed": false,
-  "checkpoint": "M05-workload-resource-modules-local-003",
+  "checkpoint": "M05-dashboard-workload-module-local-008",
   "expirationPolicy": {
     "cutoffHourAmericaNewYork": 23,
     "fixtures": [
@@ -66,12 +66,12 @@
       "azurerm_storage_container",
       "azurerm_user_assigned_identity"
     ],
-    "enabledPlanResourceChanges": 28,
+    "enabledPlanResourceChanges": 31,
     "providerSource": "hashicorp/azurerm",
     "providerVersion": "5.0.1",
     "plannedResourceTypeCounts": {
       "azurerm_application_insights": 1,
-      "azurerm_container_app": 2,
+      "azurerm_container_app": 3,
       "azurerm_container_app_environment": 1,
       "azurerm_container_registry": 1,
       "azurerm_key_vault": 1,
@@ -81,12 +81,12 @@
       "azurerm_postgresql_flexible_server_database": 1,
       "azurerm_postgresql_flexible_server_firewall_rule": 1,
       "azurerm_resource_group": 1,
-      "azurerm_role_assignment": 8,
+      "azurerm_role_assignment": 9,
       "azurerm_servicebus_namespace": 1,
       "azurerm_servicebus_queue": 1,
       "azurerm_storage_account": 1,
       "azurerm_storage_container": 3,
-      "azurerm_user_assigned_identity": 2
+      "azurerm_user_assigned_identity": 3
     },
     "rootId": "workload-dev",
     "syntheticIdentityReferences": [
@@ -128,6 +128,10 @@
     },
     {
       "fixture": "fixtures/invalid-scale.tfvars.json",
+      "marker": "Scale contract"
+    },
+    {
+      "fixture": "fixtures/invalid-dashboard.tfvars.json",
       "marker": "Scale contract"
     },
     {
@@ -192,6 +196,8 @@
     "apiMaxReplicas": 1,
     "apiMinReplicas": 0,
     "containerRegistrySku": "Basic",
+    "dashboardMaxReplicas": 1,
+    "dashboardMinReplicas": 0,
     "logRetentionDays": 30,
     "postgresBackupRetentionDays": 7,
     "postgresSkuName": "B_Standard_B1ms",
@@ -205,6 +211,8 @@
     "apiMaxReplicas": 1,
     "apiMinReplicas": 0,
     "containerAccessType": "private",
+    "dashboardMaxReplicas": 1,
+    "dashboardMinReplicas": 0,
     "geoRedundantBackup": false,
     "minimumTlsVersion": "TLS1_2",
     "postgresAllowAll": false,
@@ -215,7 +223,7 @@
     "workerMinReplicas": 0
   },
   "workloadResourceInventory": {
-    "containerApps": 13,
+    "containerApps": 16,
     "keyVault": 1,
     "postgresql": 4,
     "registry": 1,
@@ -223,7 +231,7 @@
     "serviceBus": 2,
     "storage": 4,
     "telemetry": 2,
-    "total": 28
+    "total": 31
   },
   "terraformVersion": "1.15.7"
 }

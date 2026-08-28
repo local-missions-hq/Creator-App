@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "fixtureStatus": "synthetic_only",
   "scenario": "continue_complete",
-  "ledgerDigestSha256": "b9c37c54bc00b130c65636141f2504fdd4648decd8d7e9943a0096b05e909e3e",
+  "ledgerDigestSha256": "5fcd416ccaa6b6a8cd35b3b1e35aa5a32a2768bd1c9809c1a5edc4a05ca14e9b",
   "run": {
     "runId": "synthetic:ephemeral-run:continue:001",
     "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -19,9 +19,9 @@
   },
   "planBindings": {
     "applyArtifactSha256": "3801717dc87b4467e37574c436c81be4644ebae5fefbadd74bafaab128ae52d1",
-    "applyReviewPayloadSha256": "93f7f1342d72104a53a47396d4c68b35c5378b78b06094cfd02e56439980b5fc",
+    "applyReviewPayloadSha256": "aafbbd7e8fb328e914ea4f63f21f38d98de6ffc48e5ea0b083e6dda10c9e37fd",
     "destroyArtifactSha256": "f171666bbb73dedeb37e39cacf5d77f92fe1e1cdc4dd4a9c448c2fbd676689c4",
-    "destroyReviewPayloadSha256": "fa5851ffb25b0dafbf34df709aa1a17abca2542e8081960907067794b70ff1bd"
+    "destroyReviewPayloadSha256": "440af182f9506fcc7fbe2982ca62800a1b45c7a44fd9335cfa82d40778ae5c3a"
   },
   "evidence": {
     "apply": {
@@ -81,9 +81,9 @@
   },
   "inventories": {
     "disposableBefore": {
-      "total": 28,
+      "total": 31,
       "typeCounts": {
-        "containerApps": 13,
+        "containerApps": 16,
         "keyVault": 1,
         "postgresql": 4,
         "registry": 1,

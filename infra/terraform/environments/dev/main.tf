@@ -35,8 +35,10 @@ locals {
     application_insights      = "appi-local-missions-dev-${var.resource_name_suffix}"
     container_app_environment = "cae-local-missions-dev-${var.resource_name_suffix}"
     api_container_app         = "ca-lm-api-dev-${var.resource_name_suffix}"
+    dashboard_container_app   = "ca-lm-dashboard-dev-${var.resource_name_suffix}"
     worker_container_app      = "ca-lm-worker-dev-${var.resource_name_suffix}"
     api_identity              = "id-local-missions-api-dev-${var.resource_name_suffix}"
+    dashboard_identity        = "id-local-missions-dashboard-dev-${var.resource_name_suffix}"
     worker_identity           = "id-local-missions-worker-dev-${var.resource_name_suffix}"
   }
 }
@@ -162,15 +164,17 @@ module "workload_container_apps" {
   count  = var.azure_resource_creation_enabled ? 1 : 0
   source = "../../modules/workload-container-apps"
 
-  environment_name     = local.resource_names.container_app_environment
-  api_app_name         = local.resource_names.api_container_app
-  worker_app_name      = local.resource_names.worker_container_app
-  api_identity_name    = local.resource_names.api_identity
-  worker_identity_name = local.resource_names.worker_identity
-  resource_group_name  = var.workload_resource_group_name
-  location             = var.location
-  tags                 = local.required_tags
-  allowed_ipv4_cidrs   = var.network_contract.allowed_ipv4_cidrs
+  environment_name        = local.resource_names.container_app_environment
+  api_app_name            = local.resource_names.api_container_app
+  dashboard_app_name      = local.resource_names.dashboard_container_app
+  worker_app_name         = local.resource_names.worker_container_app
+  api_identity_name       = local.resource_names.api_identity
+  dashboard_identity_name = local.resource_names.dashboard_identity
+  worker_identity_name    = local.resource_names.worker_identity
+  resource_group_name     = var.workload_resource_group_name
+  location                = var.location
+  tags                    = local.required_tags
+  allowed_ipv4_cidrs      = var.network_contract.allowed_ipv4_cidrs
 
   log_analytics_workspace_id = module.workload_telemetry[0].log_analytics_workspace_id
   registry = {

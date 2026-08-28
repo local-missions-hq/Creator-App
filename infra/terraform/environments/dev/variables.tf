@@ -229,6 +229,8 @@ variable "low_cost_defaults" {
   type = object({
     api_min_replicas               = number
     api_max_replicas               = number
+    dashboard_min_replicas         = number
+    dashboard_max_replicas         = number
     worker_min_replicas            = number
     worker_max_replicas            = number
     postgres_sku_name              = string
@@ -241,6 +243,8 @@ variable "low_cost_defaults" {
   default = {
     api_min_replicas               = 0
     api_max_replicas               = 1
+    dashboard_min_replicas         = 0
+    dashboard_max_replicas         = 1
     worker_min_replicas            = 0
     worker_max_replicas            = 1
     postgres_sku_name              = "B_Standard_B1ms"
@@ -257,6 +261,9 @@ variable "low_cost_defaults" {
       var.low_cost_defaults.api_min_replicas == 0 &&
       var.low_cost_defaults.api_max_replicas >= 1 &&
       var.low_cost_defaults.api_max_replicas <= 2 &&
+      var.low_cost_defaults.dashboard_min_replicas == 0 &&
+      var.low_cost_defaults.dashboard_max_replicas >= 1 &&
+      var.low_cost_defaults.dashboard_max_replicas <= 2 &&
       var.low_cost_defaults.worker_min_replicas == 0 &&
       var.low_cost_defaults.worker_max_replicas >= 1 &&
       var.low_cost_defaults.worker_max_replicas <= 2 &&
@@ -274,31 +281,38 @@ variable "low_cost_defaults" {
 }
 
 variable "scale_contract" {
-  description = "Conservative planning-only replica bounds for the API and worker."
+  description = "Conservative planning-only replica bounds for the API, dashboard, and worker."
   type = object({
-    api_min_replicas    = number
-    api_max_replicas    = number
-    worker_min_replicas = number
-    worker_max_replicas = number
+    api_min_replicas       = number
+    api_max_replicas       = number
+    dashboard_min_replicas = number
+    dashboard_max_replicas = number
+    worker_min_replicas    = number
+    worker_max_replicas    = number
   })
   default = {
-    api_min_replicas    = 0
-    api_max_replicas    = 1
-    worker_min_replicas = 0
-    worker_max_replicas = 1
+    api_min_replicas       = 0
+    api_max_replicas       = 1
+    dashboard_min_replicas = 0
+    dashboard_max_replicas = 1
+    worker_min_replicas    = 0
+    worker_max_replicas    = 1
   }
   nullable = false
 
   validation {
     condition = (
       var.scale_contract.api_min_replicas == 0 &&
+      var.scale_contract.dashboard_min_replicas == 0 &&
       var.scale_contract.worker_min_replicas == 0 &&
       var.scale_contract.api_max_replicas >= 1 &&
       var.scale_contract.api_max_replicas <= 2 &&
+      var.scale_contract.dashboard_max_replicas >= 1 &&
+      var.scale_contract.dashboard_max_replicas <= 2 &&
       var.scale_contract.worker_max_replicas >= 1 &&
       var.scale_contract.worker_max_replicas <= 2
     )
-    error_message = "Scale contract requires zero minimum replicas and one-to-two replica ceilings."
+    error_message = "Scale contract requires API, dashboard, and worker at zero minimum replicas with one-to-two replica ceilings."
   }
 }
 
@@ -443,16 +457,20 @@ variable "identity_references_revalidated" {
 variable "image_contract" {
   description = "Immutable image repository and digest references; tags and credentials are forbidden."
   type = object({
-    api_repository    = string
-    api_digest        = string
-    worker_repository = string
-    worker_digest     = string
+    api_repository       = string
+    api_digest           = string
+    dashboard_repository = string
+    dashboard_digest     = string
+    worker_repository    = string
+    worker_digest        = string
   })
   default = {
-    api_repository    = "local-missions/api"
-    api_digest        = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    worker_repository = "local-missions/worker"
-    worker_digest     = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    api_repository       = "local-missions/api"
+    api_digest           = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    dashboard_repository = "local-missions/dashboard"
+    dashboard_digest     = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    worker_repository    = "local-missions/worker"
+    worker_digest        = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   }
   nullable = false
 
@@ -460,6 +478,8 @@ variable "image_contract" {
     condition = (
       can(regex("^[a-z0-9][a-z0-9._/-]{2,127}$", var.image_contract.api_repository)) &&
       can(regex("^[0-9a-f]{64}$", var.image_contract.api_digest)) &&
+      can(regex("^[a-z0-9][a-z0-9._/-]{2,127}$", var.image_contract.dashboard_repository)) &&
+      can(regex("^[0-9a-f]{64}$", var.image_contract.dashboard_digest)) &&
       can(regex("^[a-z0-9][a-z0-9._/-]{2,127}$", var.image_contract.worker_repository)) &&
       can(regex("^[0-9a-f]{64}$", var.image_contract.worker_digest))
     )
@@ -468,7 +488,7 @@ variable "image_contract" {
 }
 
 variable "artifact_references_revalidated" {
-  description = "True only after both immutable image digests are built, scanned, and reviewed."
+  description = "True only after all three immutable image digests are built, scanned, and reviewed."
   type        = bool
   default     = false
   nullable    = false

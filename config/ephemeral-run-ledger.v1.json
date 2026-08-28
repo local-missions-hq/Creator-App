@@ -84,7 +84,7 @@
   },
   "inventoryContract": {
     "disposableTypeCountsSource": "terraform-foundation-workload-resource-inventory",
-    "expectedDisposableTotalBeforeDestroy": 28,
+    "expectedDisposableTotalBeforeDestroy": 31,
     "expectedDisposableTotalAfterCleanDestroy": 0,
     "retainedClasses": [
       "terraform-state-backend",

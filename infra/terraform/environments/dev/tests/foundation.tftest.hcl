@@ -70,8 +70,8 @@ run "local_disposable_workload_contract" {
   }
 
   assert {
-    condition     = output.low_cost_defaults.api_max_replicas == 1 && output.low_cost_defaults.worker_max_replicas == 1
-    error_message = "The local fixture must retain one-replica API and worker ceilings."
+    condition     = output.low_cost_defaults.api_max_replicas == 1 && output.low_cost_defaults.dashboard_max_replicas == 1 && output.low_cost_defaults.worker_max_replicas == 1
+    error_message = "The local fixture must retain one-replica API, dashboard, and worker ceilings."
   }
 
   assert {
@@ -120,13 +120,13 @@ run "mock_enabled_resource_group_contract" {
 
   assert {
     condition = (
-      output.workload_resource_inventory.total == 28 &&
+      output.workload_resource_inventory.total == 31 &&
       output.workload_resource_inventory.by_module.resource_group == 1 &&
       output.workload_resource_inventory.by_module.storage == 4 &&
       output.workload_resource_inventory.by_module.postgresql == 4 &&
-      output.workload_resource_inventory.by_module.container_apps == 13
+      output.workload_resource_inventory.by_module.container_apps == 16
     )
-    error_message = "The mock-enabled plan must contain the exact 28-resource disposable workload inventory."
+    error_message = "The mock-enabled plan must contain the exact 31-resource disposable workload inventory."
   }
 
   assert {
@@ -148,7 +148,9 @@ run "mock_enabled_resource_group_contract" {
       output.workload_safeguards.environment == "development" &&
       output.workload_safeguards.retained_and_disposable_are_distinct &&
       output.workload_safeguards.scale.api_min_replicas == 0 &&
-      output.workload_safeguards.scale.api_max_replicas == 1
+      output.workload_safeguards.scale.api_max_replicas == 1 &&
+      output.workload_safeguards.scale.dashboard_min_replicas == 0 &&
+      output.workload_safeguards.scale.dashboard_max_replicas == 1
     )
     error_message = "Environment, ownership, and scale safeguards drifted."
   }
@@ -219,14 +221,22 @@ run "mock_enabled_resource_group_contract" {
 
   assert {
     condition = (
-      output.workload_resource_safeguards.container_apps.managed_identity_count == 2 &&
+      output.workload_resource_safeguards.container_apps.managed_identity_count == 3 &&
       output.workload_resource_safeguards.container_apps.api_role_count == 4 &&
+      output.workload_resource_safeguards.container_apps.dashboard_role_count == 1 &&
+      join(",", output.workload_resource_safeguards.container_apps.dashboard_role_names) == "AcrPull" &&
+      join(",", output.workload_resource_safeguards.container_apps.dashboard_environment_names) == "NEXT_PUBLIC_API_URL,NEXT_PUBLIC_APP_ENV" &&
+      output.workload_resource_safeguards.container_apps.dashboard_api_url_https &&
       output.workload_resource_safeguards.container_apps.worker_role_count == 4 &&
+      output.workload_resource_safeguards.container_apps.dashboard_has_ingress &&
+      output.workload_resource_safeguards.container_apps.dashboard_ingress_allowlist_count == 1 &&
+      output.workload_resource_safeguards.container_apps.dashboard_min_replicas == 0 &&
+      output.workload_resource_safeguards.container_apps.dashboard_max_replicas == 1 &&
       output.workload_resource_safeguards.container_apps.image_references_use_digests &&
       output.workload_resource_safeguards.container_apps.inline_secret_blocks == 0 &&
       output.workload_resource_safeguards.container_apps.registry_password_references == 0 &&
       !output.workload_resource_safeguards.container_apps.worker_has_ingress
     )
-    error_message = "Container Apps must use separate managed identities, scoped RBAC, digest images, and no inline secrets."
+    error_message = "API, dashboard, and worker Container Apps must use separate managed identities, scoped RBAC, digest images, and no inline secrets."
   }
 }

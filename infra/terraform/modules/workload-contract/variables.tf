@@ -25,23 +25,28 @@ variable "retained_resource_group_names" {
 
 variable "scale_contract" {
   type = object({
-    api_min_replicas    = number
-    api_max_replicas    = number
-    worker_min_replicas = number
-    worker_max_replicas = number
+    api_min_replicas       = number
+    api_max_replicas       = number
+    dashboard_min_replicas = number
+    dashboard_max_replicas = number
+    worker_min_replicas    = number
+    worker_max_replicas    = number
   })
   nullable = false
 
   validation {
     condition = (
       var.scale_contract.api_min_replicas == 0 &&
+      var.scale_contract.dashboard_min_replicas == 0 &&
       var.scale_contract.worker_min_replicas == 0 &&
       var.scale_contract.api_max_replicas >= 1 &&
       var.scale_contract.api_max_replicas <= 2 &&
+      var.scale_contract.dashboard_max_replicas >= 1 &&
+      var.scale_contract.dashboard_max_replicas <= 2 &&
       var.scale_contract.worker_max_replicas >= 1 &&
       var.scale_contract.worker_max_replicas <= 2
     )
-    error_message = "Workload scale must keep zero minimum replicas and one-to-two replica ceilings."
+    error_message = "Workload scale must keep API, dashboard, and worker at zero minimum replicas with one-to-two replica ceilings."
   }
 }
 
