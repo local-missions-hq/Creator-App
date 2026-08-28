@@ -1,6 +1,6 @@
 import { Ionicons } from './DecorativeIcon';
-import { Link, type Href, usePathname } from 'expo-router';
-import type { PropsWithChildren } from 'react';
+import { Link, type Href, usePathname, useRouter } from 'expo-router';
+import { type PropsWithChildren, useEffect } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { AccessiblePressable as Pressable } from './AccessiblePressable';
 
+import { authorizeMobileRoute, availableModes, type MobileMode } from '../lib/auth-session';
+import { useMobileAuthSession } from '../lib/auth-session-context';
 import { appColors } from './theme';
 
 export { appColors } from './theme';
@@ -121,8 +123,72 @@ export function RoleTabBar({ mode }: Readonly<{ mode: TabMode }>) {
 
 export function AppShell({ children, mode, showTabs = false, title }: AppShellProps) {
   const accent = mode === 'business' ? appColors.orange : appColors.teal;
+  const pathname = usePathname();
+  const router = useRouter();
+  const auth = useMobileAuthSession();
   const { width } = useWindowDimensions();
   const showPreviewBadge = width >= 375;
+  const routeMode: MobileMode = mode === 'venue staff' ? 'venue_staff' : mode;
+  const authorization = authorizeMobileRoute(auth.state, pathname);
+  const modes =
+    auth.state.phase === 'authenticated' ? availableModes(auth.state.session.roles) : [];
+  const switchTarget =
+    mode === 'creator' && modes.includes('business')
+      ? 'business'
+      : mode === 'business' && modes.includes('creator')
+        ? 'creator'
+        : undefined;
+
+  useEffect(() => {
+    if (
+      authorization.allowed &&
+      auth.state.phase === 'authenticated' &&
+      auth.state.session.selectedMode !== routeMode
+    ) {
+      void auth.selectMode(routeMode).catch(() => undefined);
+    }
+  }, [auth, authorization.allowed, routeMode]);
+
+  const switchMode = async () => {
+    if (!switchTarget) return;
+    await auth.selectMode(switchTarget);
+    router.replace(switchTarget === 'creator' ? '/creator/discover' : '/business/dashboard');
+  };
+
+  if (!authorization.allowed) {
+    const blocked = authorization.reason === 'account-blocked';
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.accessGate}>
+          <View style={styles.accessGateIcon}>
+            <Ionicons
+              color={blocked ? appColors.orange : appColors.teal}
+              name={blocked ? 'lock-closed-outline' : 'shield-outline'}
+              size={28}
+            />
+          </View>
+          <Text style={styles.accessGateTitle}>
+            {blocked ? 'Account access is paused' : 'Sign in required'}
+          </Text>
+          <Text style={styles.accessGateBody}>
+            {blocked
+              ? 'This account state cannot open private Creator, Business, or Venue Staff data.'
+              : 'Private role data opens only after the server confirms this identity and role.'}
+          </Text>
+          <Link asChild href={routeMode === 'business' ? '/business/sign-in' : '/creator/sign-in'}>
+            <Pressable
+              accessibilityLabel="Return to secure sign in"
+              accessibilityRole="button"
+              style={styles.accessGateButton}
+              testID="protected-route-sign-in"
+            >
+              <Text style={styles.accessGateButtonText}>Return to sign in</Text>
+            </Pressable>
+          </Link>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -147,6 +213,28 @@ export function AppShell({ children, mode, showTabs = false, title }: AppShellPr
             </View>
           ) : null}
         </View>
+        {switchTarget ? (
+          <View style={styles.modeSwitcherRow}>
+            <View style={styles.modeSwitcherCopy}>
+              <Ionicons color={accent} name="person-circle-outline" size={20} />
+              <Text style={styles.modeSwitcherText}>
+                One account · {mode === 'creator' ? 'Creator' : 'Business'} workspace
+              </Text>
+            </View>
+            <Pressable
+              accessibilityLabel={`Switch to ${switchTarget} mode`}
+              accessibilityRole="button"
+              onPress={() => void switchMode()}
+              style={styles.modeSwitcherButton}
+              testID={`switch-to-${switchTarget}-mode`}
+            >
+              <Ionicons color={appColors.ink} name="swap-horizontal" size={17} />
+              <Text style={styles.modeSwitcherButtonText}>
+                {switchTarget === 'creator' ? 'Creator' : 'Business'}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
         <Text maxFontSizeMultiplier={1.45} style={styles.title}>
           {title}
         </Text>
@@ -180,6 +268,30 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   previewText: { color: appColors.muted, fontSize: 8, fontWeight: '800', letterSpacing: 0.5 },
+  modeSwitcherRow: {
+    alignItems: 'center',
+    backgroundColor: appColors.card,
+    borderColor: appColors.line,
+    borderRadius: 15,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'space-between',
+    marginTop: 14,
+    padding: 9,
+  },
+  modeSwitcherCopy: { alignItems: 'center', flex: 1, flexDirection: 'row', gap: 7 },
+  modeSwitcherText: { color: appColors.muted, flex: 1, fontSize: 9, fontWeight: '700' },
+  modeSwitcherButton: {
+    alignItems: 'center',
+    backgroundColor: appColors.canvas,
+    borderRadius: 11,
+    flexDirection: 'row',
+    gap: 4,
+    minHeight: 34,
+    paddingHorizontal: 9,
+  },
+  modeSwitcherButtonText: { color: appColors.ink, fontSize: 9, fontWeight: '900' },
   title: {
     color: appColors.ink,
     fontSize: 32,
@@ -188,6 +300,46 @@ const styles = StyleSheet.create({
     lineHeight: 37,
     marginTop: 22,
   },
+  accessGate: {
+    alignItems: 'center',
+    backgroundColor: appColors.card,
+    borderColor: appColors.line,
+    borderRadius: 24,
+    borderWidth: 1,
+    margin: 22,
+    marginTop: 80,
+    padding: 28,
+  },
+  accessGateIcon: {
+    alignItems: 'center',
+    backgroundColor: appColors.tealSoft,
+    borderRadius: 28,
+    height: 56,
+    justifyContent: 'center',
+    width: 56,
+  },
+  accessGateTitle: {
+    color: appColors.ink,
+    fontSize: 23,
+    fontWeight: '900',
+    marginTop: 18,
+    textAlign: 'center',
+  },
+  accessGateBody: {
+    color: appColors.muted,
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 9,
+    textAlign: 'center',
+  },
+  accessGateButton: {
+    backgroundColor: appColors.teal,
+    borderRadius: 14,
+    marginTop: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 13,
+  },
+  accessGateButtonText: { color: appColors.onAccent, fontSize: 13, fontWeight: '900' },
   tabBar: {
     backgroundColor: appColors.card,
     borderTopColor: appColors.line,

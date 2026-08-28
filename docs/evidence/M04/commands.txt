@@ -86,6 +86,47 @@ ENVIRONMENT NOTE — the repository pins Node 24.19.x. The shell exposed Node 25
 
 No Entra, Azure, Stripe, social provider, notification provider, phone, payment, message, external account, or real customer action occurred.
 
+M04-mobile-auth-session-local-003 — 2026-08-28
+
+pnpm --filter @local-missions/mobile exec expo install expo-secure-store --pnpm
+PARTIAL SUCCESS — installed the Expo SDK-compatible `expo-secure-store` 57.0.2 package and lockfile entry; Expo could not edit the dynamic TypeScript config automatically.
+RESOLUTION — added `expo-secure-store` to `app.config.ts` plugins explicitly, then resolved the public Expo config successfully.
+
+pnpm --filter @local-missions/mobile test
+INITIAL FAIL — the storage test imported React Native's Flow entrypoint through `Platform`, which the repository's Node Vitest transform intentionally does not compile.
+RESOLUTION — moved platform selection to the React Native context boundary and kept the storage implementation/tests platform-neutral.
+
+pnpm --filter @local-missions/mobile exec vitest run lib/auth-session.test.ts lib/auth-session-storage.test.ts lib/account-actions.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/mobile-auth-session-junit.xml
+INITIAL FAIL — the new unreadable-keychain test used a synchronous mock for an asynchronous clear boundary, exposing an unsafe chained `.catch` assumption in the fail-closed cleanup path.
+RESOLUTION — changed cleanup to an awaited `try/catch`, so unreadable protected state remains anonymous even when cleanup itself is unavailable.
+
+pnpm --filter @local-missions/mobile test
+pnpm --filter @local-missions/mobile lint
+pnpm --filter @local-missions/mobile typecheck
+PASS — all 52 mobile tests, mobile lint, and strict TypeScript passed; thirteen focused auth/storage/logout tests cover the new checkpoint.
+
+pnpm --filter @local-missions/mobile exec expo config --type public
+PASS — the resolved config includes `expo-secure-store`, the localmissions return scheme, and the development iOS bundle identifier.
+
+pnpm --filter @local-missions/mobile build
+PASS — Expo produced the web export with the native SecureStore package present and the web/local-preview adapter remaining memoryless.
+
+pnpm --filter @local-missions/mobile exec vitest run lib/auth-session.test.ts lib/auth-session-storage.test.ts lib/account-actions.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/mobile-auth-session-junit.xml
+PASS — retained thirteen focused tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+VISUAL — at 390 × 844, the visible browser showed the Creator Account & Safety switcher/recent-auth state and the Business dashboard reverse switcher with no critical horizontal clipping. It switched Creator → Business, previewed fresh recent auth, signed out to public home, and re-entered safe Creator preview without provider/network mutation. Retained screenshots: `screenshots/mobile-auth-creator-session.png` and `screenshots/mobile-auth-business-mode.png`.
+
+pnpm verify
+PASS — formatting, prerequisites, lint, strict type checks, unit tests, OpenAPI/migration contracts, production local-marker exclusion, and all nine builds passed with 52 mobile tests.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 414 text files.
+
+pnpm test:gitleaks
+PASS — no leaks found in approximately 14.08 MB.
+
+No Entra, Azure, Stripe, identity/social provider, phone, payment, message, external account, or real customer action occurred.
+
 M04-account-mutations-local-002b — 2026-08-28
 
 pnpm --filter @local-missions/contracts test

@@ -3,6 +3,7 @@ import { type Href, useRouter } from 'expo-router';
 import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AccessiblePressable as Pressable } from './AccessiblePressable';
 
+import { useMobileAuthSession } from '../lib/auth-session-context';
 import { appColors } from './theme';
 
 type Provider = {
@@ -33,6 +34,7 @@ export function SignInScreen({
   role,
 }: SignInScreenProps) {
   const router = useRouter();
+  const auth = useMobileAuthSession();
 
   const showLocalBoundary = (provider: string) => {
     Alert.alert(
@@ -103,6 +105,26 @@ export function SignInScreen({
             </Pressable>
           ))}
         </View>
+
+        {auth.dataMode === 'local-preview' ? (
+          <Pressable
+            accessibilityHint="Uses synthetic memory-only state and does not contact an identity provider"
+            accessibilityLabel={`Open the ${role} local preview`}
+            accessibilityRole="button"
+            onPress={() => {
+              auth.startLocalPreview(role);
+              router.replace(role === 'creator' ? '/creator/discover' : '/business/dashboard');
+            }}
+            style={styles.previewSessionButton}
+            testID={`${role}-open-local-preview`}
+          >
+            <Ionicons color={accent} name="phone-portrait-outline" size={21} />
+            <View style={styles.previewSessionCopy}>
+              <Text style={styles.previewSessionTitle}>Open safe local preview</Text>
+              <Text style={styles.previewSessionDetail}>Memory only · no token · no provider</Text>
+            </View>
+          </Pressable>
+        ) : null}
 
         <View style={styles.securityNote}>
           <Ionicons color={accent} name="shield-checkmark-outline" size={25} />
@@ -208,6 +230,18 @@ const styles = StyleSheet.create({
   providerText: { color: colors.ink, fontSize: 16, fontWeight: '700' },
   primaryProviderText: { color: colors.card },
   pressed: { opacity: 0.75, transform: [{ scale: 0.99 }] },
+  previewSessionButton: {
+    alignItems: 'center',
+    backgroundColor: colors.tealSoft,
+    borderRadius: 16,
+    flexDirection: 'row',
+    gap: 11,
+    marginTop: 13,
+    padding: 13,
+  },
+  previewSessionCopy: { flex: 1 },
+  previewSessionTitle: { color: colors.ink, fontSize: 13, fontWeight: '900' },
+  previewSessionDetail: { color: colors.muted, fontSize: 10, marginTop: 2 },
   securityNote: {
     alignItems: 'center',
     flexDirection: 'row',

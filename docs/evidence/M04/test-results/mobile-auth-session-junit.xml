@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="13" failures="0" errors="0" time="0.008348749">
+    <testsuite name="lib/account-actions.test.ts" timestamp="2026-08-28T13:37:40.499Z" hostname="local-development-host" tests="2" failures="0" errors="0" skipped="0" time="0.002046291">
+        <testcase classname="lib/account-actions.test.ts" name="account session logout coordinator &gt; clears sensitive local account state after server revocation" time="0.00117275">
+        </testcase>
+        <testcase classname="lib/account-actions.test.ts" name="account session logout coordinator &gt; still clears local state when remote revocation cannot be confirmed" time="0.00039425">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/auth-session-storage.test.ts" timestamp="2026-08-28T13:37:40.499Z" hostname="local-development-host" tests="3" failures="0" errors="0" skipped="0" time="0.002408542">
+        <testcase classname="lib/auth-session-storage.test.ts" name="mobile session storage boundaries &gt; keeps web/local preview memoryless with no token or metadata persistence" time="0.000748167">
+        </testcase>
+        <testcase classname="lib/auth-session-storage.test.ts" name="mobile session storage boundaries &gt; stores native refresh material only through device-bound SecureStore options" time="0.000970875">
+        </testcase>
+        <testcase classname="lib/auth-session-storage.test.ts" name="mobile session storage boundaries &gt; deletes malformed protected state instead of partially restoring it" time="0.000195667">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/auth-session.test.ts" timestamp="2026-08-28T13:37:40.500Z" hostname="local-development-host" tests="8" failures="0" errors="0" skipped="0" time="0.003893916">
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; restores a valid protected cold-start session and normalizes a stale selected mode" time="0.001718667">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; clears expired protected state before exposing private routes" time="0.000363708">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; fails closed and attempts cleanup when protected cold-start storage cannot be read" time="0.000157125">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; clears and blocks a disabled account during cold start" time="0.00011275">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; clears and blocks a deletion_requested account during cold start" time="0.0000765">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; authorizes public routes but enforces the complete Creator, Business, and Venue role matrix" time="0.000241709">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; switches only among server-resolved modes and keeps the access token out of persisted output" time="0.000470584">
+        </testcase>
+        <testcase classname="lib/auth-session.test.ts" name="mobile auth session lifecycle &gt; keeps recent-auth proof purpose-specific, five-minute, and memory-only" time="0.000224458">
+        </testcase>
+    </testsuite>
+</testsuites>

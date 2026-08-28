@@ -1,9 +1,10 @@
 import { Ionicons } from '../../components/DecorativeIcon';
-import { Link, type Href } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Link, type Href, useRouter } from 'expo-router';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { AccessiblePressable as Pressable } from '../../components/AccessiblePressable';
 
 import { AppShell, appColors } from '../../components/AppShell';
+import { useMobileAuthSession } from '../../lib/auth-session-context';
 import { useAccountOverview } from '../../lib/use-account-data';
 
 const providerPresentation = {
@@ -73,6 +74,15 @@ const accountItems: Array<{
 
 export default function CreatorAccountScreen() {
   const { data, source } = useAccountOverview();
+  const auth = useMobileAuthSession();
+  const router = useRouter();
+  const recentIdentityAuth = auth.hasRecentAuth('identity_link');
+
+  const signOut = async () => {
+    const result = await auth.signOut();
+    if (result.warning) Alert.alert('Signed out on this device', result.warning);
+    router.replace('/');
+  };
 
   return (
     <AppShell mode="creator" showTabs title="Account & safety">
@@ -147,6 +157,28 @@ export default function CreatorAccountScreen() {
           <Text style={styles.secureText}>SECURE</Text>
         </View>
       </View>
+      <View style={styles.recentAuthCard}>
+        <View style={styles.recentAuthCopy}>
+          <Text style={styles.recentAuthTitle}>Recent sign-in for sensitive changes</Text>
+          <Text style={styles.recentAuthDetail}>
+            {recentIdentityAuth
+              ? 'Preview proof is fresh for five minutes · never stored'
+              : 'Required before adding/removing sign-in methods or deleting the account'}
+          </Text>
+        </View>
+        <Pressable
+          accessibilityLabel="Preview recent sign-in state"
+          accessibilityRole="button"
+          disabled={source === 'api' || recentIdentityAuth}
+          onPress={() => auth.previewRecentAuth('identity_link')}
+          style={[styles.recentAuthButton, recentIdentityAuth && styles.recentAuthButtonDone]}
+          testID="creator-preview-recent-auth"
+        >
+          <Text style={styles.recentAuthButtonText}>
+            {recentIdentityAuth ? 'FRESH' : source === 'api' ? 'PROVIDER' : 'PREVIEW'}
+          </Text>
+        </Pressable>
+      </View>
       <Pressable
         accessibilityLabel="Add another sign-in method"
         accessibilityRole="button"
@@ -167,11 +199,9 @@ export default function CreatorAccountScreen() {
       <Pressable
         accessibilityLabel="Sign out this session"
         accessibilityRole="button"
-        disabled={source === 'local-preview' || data.sessions.length === 0}
-        style={[
-          styles.sessionActionButton,
-          (source === 'local-preview' || data.sessions.length === 0) && styles.previewButton,
-        ]}
+        disabled={data.sessions.length === 0}
+        onPress={() => void signOut()}
+        style={[styles.sessionActionButton, data.sessions.length === 0 && styles.previewButton]}
         testID="creator-sign-out-session"
       >
         <Ionicons color={appColors.orange} name="log-out-outline" size={20} />
@@ -179,7 +209,7 @@ export default function CreatorAccountScreen() {
           <Text style={styles.addMethodTitle}>Sign out this session</Text>
           <Text style={styles.addMethodDetail}>
             {source === 'local-preview'
-              ? 'Preview only · no local session is revoked'
+              ? 'Clears this memory-only preview · no provider is contacted'
               : 'Clears protected account data after server revocation'}
           </Text>
         </View>
@@ -338,6 +368,26 @@ const styles = StyleSheet.create({
     marginTop: 8,
     padding: 12,
   },
+  recentAuthCard: {
+    alignItems: 'center',
+    backgroundColor: appColors.warningSoft,
+    borderRadius: 14,
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+    padding: 11,
+  },
+  recentAuthCopy: { flex: 1 },
+  recentAuthTitle: { color: appColors.ink, fontSize: 10, fontWeight: '900' },
+  recentAuthDetail: { color: appColors.muted, fontSize: 8, lineHeight: 12, marginTop: 2 },
+  recentAuthButton: {
+    backgroundColor: appColors.card,
+    borderRadius: 10,
+    paddingHorizontal: 9,
+    paddingVertical: 8,
+  },
+  recentAuthButtonDone: { backgroundColor: appColors.successSoft },
+  recentAuthButtonText: { color: appColors.ink, fontSize: 8, fontWeight: '900' },
   previewButton: { opacity: 0.82 },
   addMethodCopy: { flex: 1 },
   addMethodTitle: { color: appColors.ink, fontSize: 12, fontWeight: '900' },

@@ -4,7 +4,7 @@ Status: M4 in progress; phone-free account lifecycle, authenticated read/UI, and
 
 Date: 2026-08-28
 
-Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`
+Checkpoints: `M04-account-lifecycle-local-001`, `M04-account-read-ui-local-002a`, `M04-account-mutations-local-002b`, `M04-mobile-auth-session-local-003`
 
 Environment baseline: Node 24.19.0 and pnpm 11.24.0. The mutation continuation used pnpm 11.24.0 with shell Node 25.9.0 and an engine warning. PostgreSQL 17 Alpine ran on loopback Docker.
 
@@ -65,4 +65,20 @@ Six focused account-lifecycle tests and all 98 database integration tests pass. 
 
 JUnit evidence: [`test-results/account-mutations-api-junit.xml`](./test-results/account-mutations-api-junit.xml), [`test-results/account-mutations-db-junit.xml`](./test-results/account-mutations-db-junit.xml)
 
-The native SecureStore-backed mobile session implementation, real Entra verifier/registrations, provider cancellation and email-code flows, complete role/resource authorization matrix, and physical-device system-browser/deep-link execution remain open M4 gates.
+Real Entra verifier/registrations, provider cancellation and email-code flows, PKCE callback execution, and physical-device system-browser/deep-link proof remain open M4 gates.
+
+## Root mobile auth/session context and role switching
+
+- Added one app-root auth/session provider with restoring, anonymous, authenticated, expired, and blocked account states. Expired, disabled, deletion-requested, malformed, and roleless protected state is cleared before private routes can render.
+- Added Expo SecureStore `57.0.2` and its config plugin. Native session/refresh material uses a this-device-only, after-first-unlock keychain boundary. The browser/local-preview adapter is memoryless and persists no token, session, role, identity, recent-auth, or cache state.
+- Added explicit route and resource rules for Creator, Business, Venue Staff, and root account surfaces. A mode switch changes navigation and invalidates role-scoped caches but cannot create a role not returned by the server.
+- Added an obvious generated-image-aligned Creator/Business switcher to the shared shell, a five-minute nonpersistent recent-auth preview on Account & Safety, a safe local-preview entry on both sign-in views, and working logout/local purge.
+- Updated account, mission, and Reach hooks to consume the single session source, access token only in memory, and cache epoch rather than independently inventing auth state.
+
+Thirteen focused session/storage/logout tests and all 52 mobile tests pass. `pnpm verify` passes all nine workspaces, including formatting, prerequisites, lint, strict TypeScript, contracts, and builds. Resolved Expo config and web export pass. The security scan passes 414 text files, and Gitleaks finds no leak in approximately 14.08 MB. A visible 390 × 844 browser run switched Creator to Business, activated recent-auth preview, signed out to the public home, and re-entered the Creator preview. The two retained screenshots were visually inspected and show no critical horizontal clipping.
+
+JUnit evidence: [`test-results/mobile-auth-session-junit.xml`](./test-results/mobile-auth-session-junit.xml)
+
+Visual evidence: [`screenshots/mobile-auth-creator-session.png`](./screenshots/mobile-auth-creator-session.png), [`screenshots/mobile-auth-business-mode.png`](./screenshots/mobile-auth-business-mode.png)
+
+No Entra, Azure, Stripe, identity/social provider, phone, payment, message, external account, or real customer data was used. Real PKCE/system-browser/deep-link/provider execution and the physical-device gate remain open.
