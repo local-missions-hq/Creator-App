@@ -25,6 +25,13 @@ const session: PersistedMobileSession = {
   sessionPublicId: 'ses_synthetic_storage_001',
   userPublicId: 'usr_synthetic_storage_001',
   version: 1,
+  workspaces: [
+    {
+      name: 'Synthetic Storage Business',
+      publicId: 'biz_synthetic_storage_001',
+      role: 'business_owner',
+    },
+  ],
 };
 
 describe('mobile session storage boundaries', () => {

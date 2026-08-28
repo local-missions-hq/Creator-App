@@ -10,6 +10,7 @@ import {
   hasRecentAuthentication,
   persistedSessionFromRuntime,
   restoreMobileSession,
+  selectBusinessWorkspace,
   selectMobileMode,
   type MobileAuthState,
   type MobileSessionStorage,
@@ -26,7 +27,15 @@ const futureSession: PersistedMobileSession = {
   sessionPublicId: 'ses_synthetic_restore_001',
   userPublicId: 'usr_synthetic_restore_001',
   version: 1,
+  workspaces: [
+    {
+      name: 'Synthetic Restore Business',
+      publicId: 'biz_synthetic_restore_001',
+      role: 'business_owner',
+    },
+  ],
   workspacePublicId: 'biz_synthetic_restore_001',
+  workspaceRole: 'business_owner',
 };
 const syntheticHeaderSessionPublicId = ['ses', 'synthetic', 'headers', '001'].join('_');
 
@@ -147,6 +156,13 @@ describe('mobile auth session lifecycle', () => {
       apiAuthorizationContextForSession({
         ...createLocalPreviewSession('business'),
         roles: ['creator', 'business_manager'],
+        workspaces: [
+          {
+            name: 'Synthetic Orlando Business',
+            publicId: 'biz_synthetic_orlando_001',
+            role: 'business_manager',
+          },
+        ],
         workspaceRole: 'business_manager',
       }),
     ).toEqual({
@@ -172,6 +188,32 @@ describe('mobile auth session lifecycle', () => {
         selectedMode: 'venue_staff',
       }),
     ).toThrow(/not available/);
+  });
+
+  it('requires and applies an explicit server-resolved Business workspace choice', () => {
+    const preview = createLocalPreviewSession('business');
+    const unselected: MobileAuthState = {
+      phase: 'authenticated',
+      session: { ...preview, workspacePublicId: undefined, workspaceRole: undefined },
+    };
+    expect(() =>
+      apiAuthorizationContextForSession(
+        unselected.phase === 'authenticated' ? unselected.session : preview,
+      ),
+    ).toThrow(/selected business workspace/);
+
+    const selected = selectBusinessWorkspace(unselected, 'biz_synthetic_lake_eola_001');
+    expect(selected).toMatchObject({
+      phase: 'authenticated',
+      session: {
+        selectedMode: 'business',
+        workspacePublicId: 'biz_synthetic_lake_eola_001',
+        workspaceRole: 'business_manager',
+      },
+    });
+    expect(() => selectBusinessWorkspace(unselected, 'biz_invented_workspace_001')).toThrow(
+      /does not have that Business workspace/,
+    );
   });
 
   it('builds explicit API headers and rejects contradictory role context', () => {

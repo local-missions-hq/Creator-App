@@ -1,12 +1,10 @@
 import { Ionicons } from './DecorativeIcon';
 import { type Href, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AccessiblePressable as Pressable } from './AccessiblePressable';
 
 import { useMobileAuthSession } from '../lib/auth-session-context';
 import type { OidcProviderIntent } from '../lib/oidc-client';
-import { createLocalOidcPreview } from '../lib/oidc-preview';
 import { appColors } from './theme';
 
 type Provider = {
@@ -39,24 +37,75 @@ export function SignInScreen({
 }: SignInScreenProps) {
   const router = useRouter();
   const auth = useMobileAuthSession();
-  const [preparedProvider, setPreparedProvider] = useState<string>();
-  const [preparationFailed, setPreparationFailed] = useState(false);
-
-  const prepareLocalBoundary = async (provider: Provider) => {
-    if (auth.dataMode !== 'local-preview') {
-      setPreparationFailed(true);
-      setPreparedProvider(undefined);
-      return;
-    }
-    try {
-      await createLocalOidcPreview(provider.provider);
-      setPreparedProvider(provider.label);
-      setPreparationFailed(false);
-    } catch {
-      setPreparedProvider(undefined);
-      setPreparationFailed(true);
-    }
+  const signInBusy = ['exchanging', 'opening_browser', 'preparing'].includes(
+    auth.signInState.phase,
+  );
+  const activeProviderIntent =
+    auth.signInState.phase === 'idle' ? undefined : auth.signInState.provider;
+  const activeProvider = providers.find((provider) => provider.provider === activeProviderIntent);
+  const goToSignedInRoute = () =>
+    router.replace(role === 'creator' ? '/creator/discover' : '/business/dashboard');
+  const beginProviderSignIn = async (provider: Provider) => {
+    const result = await auth.beginSignIn(provider.provider, role);
+    if (result.status === 'authenticated') goToSignedInRoute();
   };
+
+  const statePresentation = (() => {
+    switch (auth.signInState.phase) {
+      case 'preparing':
+        return {
+          badge: 'SECURE',
+          detail: 'Creating a one-use PKCE request',
+          icon: 'shield-checkmark-outline' as const,
+          title: `Securing ${activeProvider?.label ?? 'sign-in'}`,
+        };
+      case 'opening_browser':
+        return {
+          badge: 'WAITING',
+          detail: 'Finish or cancel in the protected system browser',
+          icon: 'open-outline' as const,
+          title: 'Waiting for browser',
+        };
+      case 'exchanging':
+        return {
+          badge: 'VERIFYING',
+          detail: 'Checking the return and starting your Local Missions session',
+          icon: 'shield-checkmark-outline' as const,
+          title: 'Verifying your account',
+        };
+      case 'request_ready':
+        return {
+          badge: 'READY',
+          detail: 'PKCE + state + nonce prepared · no browser or provider opened',
+          icon: 'shield-checkmark-outline' as const,
+          title: `${activeProvider?.label ?? 'Secure'} request ready`,
+        };
+      case 'cancelled':
+        return {
+          badge: 'CANCELED',
+          detail: 'Nothing was changed. You can safely try again.',
+          error: true,
+          icon: 'close-circle-outline' as const,
+          title: 'Sign-in canceled',
+        };
+      case 'error':
+        return {
+          badge: 'BLOCKED',
+          detail:
+            auth.signInState.code === 'configuration_unavailable'
+              ? 'External sign-in is not configured · no provider opened'
+              : 'The secure sign-in could not finish. No password was shared.',
+          error: true,
+          icon: 'alert-circle-outline' as const,
+          title:
+            auth.signInState.code === 'configuration_unavailable'
+              ? 'Sign-in not configured'
+              : 'Sign-in needs another try',
+        };
+      default:
+        return undefined;
+    }
+  })();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -100,11 +149,13 @@ export function SignInScreen({
               accessibilityHint={`Prepares a protected ${provider.label} browser request without opening a provider in local preview`}
               accessibilityLabel={`Continue with ${provider.label}`}
               accessibilityRole="button"
+              disabled={signInBusy}
               key={provider.label}
-              onPress={() => void prepareLocalBoundary(provider)}
+              onPress={() => void beginProviderSignIn(provider)}
               style={({ pressed }) => [
                 styles.providerButton,
                 provider.primary && styles.primaryProvider,
+                signInBusy && styles.disabled,
                 pressed && styles.pressed,
               ]}
               testID={`${role}-sign-in-${provider.label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
@@ -121,34 +172,77 @@ export function SignInScreen({
           ))}
         </View>
 
-        {preparedProvider || preparationFailed ? (
+        {statePresentation ? (
           <View
-            accessibilityLabel={
-              preparedProvider
-                ? `${preparedProvider} secure browser request ready. No provider was opened.`
-                : 'Secure browser request unavailable. No provider was opened.'
-            }
-            style={[styles.oidcState, preparationFailed && styles.oidcStateError]}
+            accessibilityLabel={`${statePresentation.title}. ${statePresentation.detail}`}
+            style={[styles.oidcState, statePresentation.error && styles.oidcStateError]}
             testID={`${role}-oidc-boundary-state`}
           >
-            <Ionicons
-              color={preparationFailed ? colors.orange : colors.success}
-              name={preparationFailed ? 'alert-circle-outline' : 'shield-checkmark-outline'}
-              size={23}
-            />
+            {signInBusy ? (
+              <ActivityIndicator color={accent} size="small" />
+            ) : (
+              <Ionicons
+                color={statePresentation.error ? colors.orange : colors.success}
+                name={statePresentation.icon}
+                size={23}
+              />
+            )}
             <View style={styles.oidcStateCopy}>
-              <Text style={styles.oidcStateTitle}>
-                {preparationFailed
-                  ? 'Secure request unavailable'
-                  : `${preparedProvider} request ready`}
-              </Text>
-              <Text style={styles.oidcStateDetail}>
-                {preparationFailed
-                  ? 'Configuration failed closed · no browser opened'
-                  : 'PKCE + state + nonce prepared · no browser or provider opened'}
-              </Text>
+              <Text style={styles.oidcStateTitle}>{statePresentation.title}</Text>
+              <Text style={styles.oidcStateDetail}>{statePresentation.detail}</Text>
             </View>
-            <Text style={styles.oidcStateBadge}>{preparationFailed ? 'BLOCKED' : 'READY'}</Text>
+            <Text style={styles.oidcStateBadge}>{statePresentation.badge}</Text>
+          </View>
+        ) : null}
+
+        {auth.signInState.phase === 'cancelled' || auth.signInState.phase === 'error' ? (
+          <Pressable
+            accessibilityLabel={`Retry with ${activeProvider?.label ?? 'the selected provider'}`}
+            accessibilityRole="button"
+            onPress={() => {
+              const provider = activeProvider ?? providers[0];
+              if (provider) void beginProviderSignIn(provider);
+            }}
+            style={styles.retryButton}
+            testID={`${role}-sign-in-retry`}
+          >
+            <Ionicons color={accent} name="refresh-outline" size={18} />
+            <Text style={[styles.retryText, { color: accent }]}>Try again</Text>
+          </Pressable>
+        ) : null}
+
+        {auth.signInState.phase === 'workspace_required' ? (
+          <View style={styles.workspacePanel} testID={`${role}-workspace-selection`}>
+            <Text style={styles.workspaceEyebrow}>CHOOSE A BUSINESS</Text>
+            <Text style={styles.workspaceTitle}>Which workspace are you entering?</Text>
+            <Text style={styles.workspaceDetail}>
+              Your role and campaign access change with this choice. You can switch later.
+            </Text>
+            <View style={styles.workspaceList}>
+              {auth.signInState.workspaces.map((workspace) => (
+                <Pressable
+                  accessibilityLabel={`Continue to ${workspace.name}`}
+                  accessibilityRole="button"
+                  key={workspace.publicId}
+                  onPress={() => {
+                    void auth.chooseWorkspace(workspace.publicId).then(goToSignedInRoute);
+                  }}
+                  style={({ pressed }) => [styles.workspaceButton, pressed && styles.pressed]}
+                  testID={`business-workspace-${workspace.publicId}`}
+                >
+                  <View style={[styles.workspaceIcon, { backgroundColor: accent }]}>
+                    <Ionicons color={colors.card} name="storefront-outline" size={20} />
+                  </View>
+                  <View style={styles.workspaceCopy}>
+                    <Text style={styles.workspaceName}>{workspace.name}</Text>
+                    <Text style={styles.workspaceRole}>
+                      {workspace.role === 'business_owner' ? 'Owner' : 'Manager'}
+                    </Text>
+                  </View>
+                  <Ionicons color={colors.muted} name="chevron-forward" size={19} />
+                </Pressable>
+              ))}
+            </View>
           </View>
         ) : null}
 
@@ -157,11 +251,12 @@ export function SignInScreen({
             accessibilityHint="Uses synthetic memory-only state and does not contact an identity provider"
             accessibilityLabel={`Open the ${role} local preview`}
             accessibilityRole="button"
+            disabled={signInBusy}
             onPress={() => {
               auth.startLocalPreview(role);
-              router.replace(role === 'creator' ? '/creator/discover' : '/business/dashboard');
+              if (role === 'creator') goToSignedInRoute();
             }}
-            style={styles.previewSessionButton}
+            style={[styles.previewSessionButton, signInBusy && styles.disabled]}
             testID={`${role}-open-local-preview`}
           >
             <Ionicons color={accent} name="phone-portrait-outline" size={21} />
@@ -275,6 +370,7 @@ const styles = StyleSheet.create({
   primaryProvider: { backgroundColor: colors.ink, borderColor: colors.ink },
   providerText: { color: colors.ink, fontSize: 16, fontWeight: '700' },
   primaryProviderText: { color: colors.card },
+  disabled: { opacity: 0.5 },
   pressed: { opacity: 0.75, transform: [{ scale: 0.99 }] },
   oidcState: {
     alignItems: 'center',
@@ -290,6 +386,46 @@ const styles = StyleSheet.create({
   oidcStateTitle: { color: colors.ink, fontSize: 12, fontWeight: '900' },
   oidcStateDetail: { color: colors.muted, fontSize: 9, lineHeight: 13, marginTop: 2 },
   oidcStateBadge: { color: colors.ink, fontSize: 8, fontWeight: '900' },
+  retryButton: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 7,
+    paddingHorizontal: 13,
+  },
+  retryText: { fontSize: 12, fontWeight: '900' },
+  workspacePanel: {
+    backgroundColor: colors.card,
+    borderColor: colors.line,
+    borderRadius: 18,
+    borderWidth: 1,
+    marginTop: 14,
+    padding: 16,
+  },
+  workspaceEyebrow: { color: colors.teal, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  workspaceTitle: { color: colors.ink, fontSize: 18, fontWeight: '900', marginTop: 5 },
+  workspaceDetail: { color: colors.muted, fontSize: 11, lineHeight: 16, marginTop: 4 },
+  workspaceList: { gap: 9, marginTop: 13 },
+  workspaceButton: {
+    alignItems: 'center',
+    backgroundColor: colors.canvas,
+    borderRadius: 14,
+    flexDirection: 'row',
+    gap: 10,
+    minHeight: 58,
+    padding: 10,
+  },
+  workspaceIcon: {
+    alignItems: 'center',
+    borderRadius: 12,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  workspaceCopy: { flex: 1 },
+  workspaceName: { color: colors.ink, fontSize: 13, fontWeight: '900' },
+  workspaceRole: { color: colors.muted, fontSize: 10, marginTop: 2 },
   previewSessionButton: {
     alignItems: 'center',
     backgroundColor: colors.tealSoft,

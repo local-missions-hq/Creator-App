@@ -17,11 +17,29 @@ function isPersistedSession(value: unknown): value is PersistedMobileSession {
   if (!value || typeof value !== 'object') return false;
   const record = value as Partial<PersistedMobileSession>;
   const roles = record.roles ?? [];
+  const workspaces = record.workspaces ?? [];
   const allowedRoles = new Set(['business_manager', 'business_owner', 'creator', 'venue_staff']);
   const workspaceRoleValid =
     record.workspaceRole === undefined ||
     ((record.workspaceRole === 'business_manager' || record.workspaceRole === 'business_owner') &&
       roles.includes(record.workspaceRole));
+  const workspacesValid =
+    Array.isArray(record.workspaces) &&
+    workspaces.every(
+      (workspace) =>
+        workspace &&
+        typeof workspace === 'object' &&
+        typeof workspace.name === 'string' &&
+        workspace.name.length > 0 &&
+        workspace.name.length <= 200 &&
+        /^biz_[a-z0-9_]{8,100}$/.test(workspace.publicId) &&
+        (workspace.role === 'business_owner' || workspace.role === 'business_manager') &&
+        roles.includes(workspace.role),
+    ) &&
+    new Set(workspaces.map((workspace) => workspace.publicId)).size === workspaces.length;
+  const selectedWorkspace = workspaces.find(
+    (workspace) => workspace.publicId === record.workspacePublicId,
+  );
   return (
     record.version === 1 &&
     ['active', 'deletion_requested', 'disabled'].includes(record.accountStatus ?? '') &&
@@ -41,7 +59,9 @@ function isPersistedSession(value: unknown): value is PersistedMobileSession {
       /^[A-Za-z0-9._~-]{16,8000}$/.test(record.refreshCredential)) &&
     (record.workspacePublicId === undefined ||
       /^biz_[a-z0-9_]{8,100}$/.test(record.workspacePublicId)) &&
-    workspaceRoleValid
+    workspaceRoleValid &&
+    workspacesValid &&
+    (record.workspacePublicId === undefined || selectedWorkspace?.role === record.workspaceRole)
   );
 }
 

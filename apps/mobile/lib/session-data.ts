@@ -10,13 +10,11 @@ type ServerSessionBootstrap =
   operations['SessionController_bootstrap']['responses'][200]['content']['application/json'];
 
 function mobileProjection(value: ServerSessionBootstrap): MobileSessionBootstrap {
-  const workspace = value.workspaces[0];
-  const workspaceRole =
-    workspace?.role === 'owner'
-      ? ('business_owner' as const)
-      : workspace?.role === 'manager'
-        ? ('business_manager' as const)
-        : undefined;
+  const workspaces = value.workspaces.map((workspace) => ({
+    name: workspace.name,
+    publicId: workspace.publicId,
+    role: workspace.role === 'owner' ? ('business_owner' as const) : ('business_manager' as const),
+  }));
   return {
     accountStatus: value.accountStatus,
     expiresAt: value.expiresAt,
@@ -24,8 +22,7 @@ function mobileProjection(value: ServerSessionBootstrap): MobileSessionBootstrap
     roles: value.roles,
     sessionPublicId: value.sessionPublicId,
     userPublicId: value.userPublicId,
-    ...(workspace ? { workspacePublicId: workspace.publicId } : {}),
-    ...(workspaceRole ? { workspaceRole } : {}),
+    workspaces,
   };
 }
 

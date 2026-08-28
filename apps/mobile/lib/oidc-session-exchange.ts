@@ -5,6 +5,7 @@ import {
   persistedSessionFromRuntime,
   type AuthenticatedMobileSession,
   type MobileAccountStatus,
+  type MobileBusinessWorkspace,
   type MobileMode,
   type MobileRole,
   type MobileSessionStorage,
@@ -51,6 +52,7 @@ export type MobileSessionBootstrap = {
   roles: MobileRole[];
   sessionPublicId: string;
   userPublicId: string;
+  workspaces: MobileBusinessWorkspace[];
   workspacePublicId?: string;
   workspaceRole?: 'business_manager' | 'business_owner';
 };
@@ -141,6 +143,8 @@ function safeBootstrap(value: MobileSessionBootstrap, now = new Date()): MobileS
   const hasBusinessRole = value.roles.some(
     (role) => role === 'business_manager' || role === 'business_owner',
   );
+  const workspaces = Array.isArray(value.workspaces) ? value.workspaces : [];
+  const workspaceIds = workspaces.map((workspace) => workspace.publicId);
   if (
     value.accountStatus !== 'active' ||
     !allowedProviders.has(value.provider) ||
@@ -152,11 +156,25 @@ function safeBootstrap(value: MobileSessionBootstrap, now = new Date()): MobileS
     !publicIdPatterns.session.test(value.sessionPublicId) ||
     !publicIdPatterns.user.test(value.userPublicId) ||
     modes.length === 0 ||
+    !Array.isArray(value.workspaces) ||
+    workspaces.some(
+      (workspace) =>
+        !publicIdPatterns.workspace.test(workspace.publicId) ||
+        workspace.name.length < 1 ||
+        workspace.name.length > 200 ||
+        !value.roles.includes(workspace.role),
+    ) ||
+    new Set(workspaceIds).size !== workspaceIds.length ||
     (value.workspacePublicId !== undefined &&
       !publicIdPatterns.workspace.test(value.workspacePublicId)) ||
     (value.workspaceRole !== undefined && !value.roles.includes(value.workspaceRole)) ||
     (value.workspaceRole !== undefined && value.workspacePublicId === undefined) ||
-    (hasBusinessRole && (!value.workspacePublicId || !value.workspaceRole))
+    (hasBusinessRole && workspaces.length === 0) ||
+    (value.workspacePublicId !== undefined &&
+      !workspaces.some(
+        (workspace) =>
+          workspace.publicId === value.workspacePublicId && workspace.role === value.workspaceRole,
+      ))
   ) {
     throw new OidcSessionExchangeError('OIDC_SESSION_INVALID');
   }
@@ -173,8 +191,13 @@ function runtimeSession(input: {
   accessTokenExpiresAt: string;
   bootstrap: MobileSessionBootstrap;
   preferredMode?: MobileMode;
+  preferredWorkspacePublicId?: string;
   refreshCredential?: string;
 }): AuthenticatedMobileSession {
+  const selectedWorkspace =
+    input.bootstrap.workspaces.find(
+      (workspace) => workspace.publicId === input.preferredWorkspacePublicId,
+    ) ?? (input.bootstrap.workspaces.length === 1 ? input.bootstrap.workspaces[0] : undefined);
   return {
     ...input.bootstrap,
     accessToken: input.accessToken,
@@ -183,6 +206,12 @@ function runtimeSession(input: {
     selectedMode: selectMode(input.bootstrap, input.preferredMode),
     source: 'api',
     version: 1,
+    ...(selectedWorkspace
+      ? {
+          workspacePublicId: selectedWorkspace.publicId,
+          workspaceRole: selectedWorkspace.role,
+        }
+      : {}),
   };
 }
 
@@ -253,7 +282,9 @@ export async function completeOidcMobileSession(input: {
   idTokenVerifier: OidcIdTokenVerifier;
   now?: Date;
   preferredMode?: MobileMode;
+  preferredWorkspacePublicId?: string;
   redirectUri: string;
+  sessionIdRandomBytes?: (length: number) => Promise<Uint8Array>;
   storage: MobileSessionStorage;
   tokenEndpoint: OidcTokenEndpoint;
 }): Promise<
@@ -277,7 +308,7 @@ export async function completeOidcMobileSession(input: {
       idToken: tokenSet.idToken!,
       now: input.now,
     });
-    const requestedSessionPublicId = await createMobileSessionPublicId();
+    const requestedSessionPublicId = await createMobileSessionPublicId(input.sessionIdRandomBytes);
     const bootstrap = safeBootstrap(
       await input.bootstrap.bootstrap({
         accessToken: tokenSet.accessToken,
@@ -296,6 +327,7 @@ export async function completeOidcMobileSession(input: {
       ).toISOString(),
       bootstrap,
       preferredMode: input.preferredMode,
+      preferredWorkspacePublicId: input.preferredWorkspacePublicId,
       refreshCredential: tokenSet.refreshCredential,
     });
     await input.storage.save(persistedSessionFromRuntime(session));
@@ -343,6 +375,7 @@ export async function refreshOidcMobileSession(input: {
       ).toISOString(),
       bootstrap,
       preferredMode: input.current.selectedMode,
+      preferredWorkspacePublicId: input.current.workspacePublicId,
       refreshCredential: tokenSet.refreshCredential ?? input.current.refreshCredential,
     });
     await input.storage.save(persistedSessionFromRuntime(session));

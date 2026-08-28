@@ -77,6 +77,13 @@ function bootstrap(overrides: Partial<MobileSessionBootstrapBoundary> = {}) {
     userPublicId: 'usr_synthetic_exchange_001',
     workspacePublicId: 'biz_synthetic_exchange_001',
     workspaceRole: 'business_owner' as const,
+    workspaces: [
+      {
+        name: 'Synthetic Exchange Business',
+        publicId: 'biz_synthetic_exchange_001',
+        role: 'business_owner' as const,
+      },
+    ],
   };
   return {
     bootstrap: vi.fn(async ({ sessionPublicId }) => ({ ...projection, sessionPublicId })),
@@ -334,6 +341,13 @@ describe('OIDC code exchange to protected mobile session', () => {
       version: 1 as const,
       workspacePublicId: 'biz_synthetic_exchange_001',
       workspaceRole: 'business_owner' as const,
+      workspaces: [
+        {
+          name: 'Synthetic Exchange Business',
+          publicId: 'biz_synthetic_exchange_001',
+          role: 'business_owner' as const,
+        },
+      ],
     };
     const refreshed = await refreshOidcMobileSession({
       bootstrap: bootstrap(),
@@ -380,6 +394,7 @@ describe('OIDC code exchange to protected mobile session', () => {
       source: 'api' as const,
       userPublicId: 'usr_synthetic_exchange_001',
       version: 1 as const,
+      workspaces: [],
     };
     const wrongBootstrap = bootstrap({
       refresh: vi.fn().mockResolvedValue({
@@ -389,6 +404,7 @@ describe('OIDC code exchange to protected mobile session', () => {
         roles: ['creator'],
         sessionPublicId: 'ses_another_session_0001',
         userPublicId: 'usr_synthetic_exchange_001',
+        workspaces: [],
       }),
     });
     await expect(

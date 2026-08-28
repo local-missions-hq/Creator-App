@@ -360,3 +360,28 @@ docker compose down --volumes --remove-orphans
 PASS — destroyed the disposable Creator App PostgreSQL container, database volume, and Compose network. The unrelated `post-proof-demo-local-postgis` container remained running on `127.0.0.1:55438`.
 
 No Entra/provider endpoint, external JWKS, authorization code, real token, real identity, Azure, Stripe, physical phone, payment, message, external account, customer action, or customer data was used.
+
+M04-mobile-auth-orchestration-local-009 — 2026-08-28
+
+Node 24.19.0 and pnpm 11.24.0 were selected from the pinned local runtime for every verification command below.
+
+pnpm --filter @local-missions/mobile typecheck
+pnpm --filter @local-missions/mobile test
+PASS — strict TypeScript and all 84 mobile tests passed, including six orchestration tests.
+
+pnpm --filter @local-missions/mobile exec vitest run lib/auth-orchestration.test.ts lib/auth-session.test.ts lib/auth-session-storage.test.ts lib/oidc-session-exchange.test.ts lib/session-data.test.ts --reporter=junit --outputFile=../../docs/evidence/M04/test-results/mobile-auth-orchestration-junit.xml
+PASS — retained 33 orchestration, duplicate-tap, cancellation/error, cold-start refresh, workspace-selection, protected-storage, exchange, and server-projection tests with zero failures/errors; machine hostname replaced by local-development-host.
+
+Visible in-app browser verification at 390 × 844
+PASS — Creator Apple preparation remained on localhost with one visible tab and rendered the request-ready/no-provider state. Business local preview required an explicit choice between two synthetic workspaces; selecting Lake Eola Cafe routed to the dashboard and changed the greeting to the selected workspace.
+
+pnpm verify
+PASS — formatting, prerequisites, lint, strict type checks, all unit tests, reviewed API/migration contracts, production local-marker exclusion, and all nine builds passed.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 439 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks found no leaks in approximately 14.44 MB.
+
+No Entra/provider endpoint, external JWKS, authorization code, real token, refresh credential, real identity, Azure, Stripe, physical phone, payment, message, external account, customer action, or customer data was used.

@@ -6,6 +6,11 @@ export type MobileApiAuthorizationContext = {
   businessPublicId?: string;
   role: MobileApiRole;
 };
+export type MobileBusinessWorkspace = {
+  name: string;
+  publicId: string;
+  role: 'business_manager' | 'business_owner';
+};
 export type RecentAuthPurpose =
   'account_deletion' | 'identity_link' | 'identity_unlink' | 'payout_change';
 
@@ -19,6 +24,7 @@ export type PersistedMobileSession = {
   sessionPublicId: string;
   userPublicId: string;
   version: 1;
+  workspaces: MobileBusinessWorkspace[];
   workspacePublicId?: string;
   workspaceRole?: 'business_manager' | 'business_owner';
 };
@@ -123,12 +129,24 @@ export function createLocalPreviewSession(
     accountStatus: 'active',
     expiresAt: '2099-01-01T00:00:00.000Z',
     provider: 'apple',
-    roles: ['creator', 'business_owner', 'venue_staff'],
+    roles: ['creator', 'business_manager', 'business_owner', 'venue_staff'],
     selectedMode,
     sessionPublicId: 'ses_synthetic_preview_001',
     source: 'local-preview',
     userPublicId: 'usr_synthetic_preview_001',
     version: 1,
+    workspaces: [
+      {
+        name: 'Demo Family Fun Center',
+        publicId: 'biz_synthetic_orlando_001',
+        role: 'business_owner',
+      },
+      {
+        name: 'Lake Eola Cafe',
+        publicId: 'biz_synthetic_lake_eola_001',
+        role: 'business_manager',
+      },
+    ],
     workspacePublicId: 'biz_synthetic_orlando_001',
     workspaceRole: 'business_owner',
   };
@@ -148,15 +166,15 @@ export function apiAuthorizationContextForSession(
     if (!session.workspacePublicId) {
       throw new Error('Business API access requires a selected business workspace.');
     }
-    const availableBusinessRoles = session.roles.filter(
-      (role): role is 'business_manager' | 'business_owner' =>
-        role === 'business_manager' || role === 'business_owner',
+    const selectedWorkspace = session.workspaces.find(
+      (workspace) => workspace.publicId === session.workspacePublicId,
     );
-    const workspaceRole =
-      session.workspaceRole ??
-      (availableBusinessRoles.length === 1 ? availableBusinessRoles[0] : undefined);
-    if (workspaceRole && availableBusinessRoles.includes(workspaceRole)) {
-      return { businessPublicId: session.workspacePublicId, role: workspaceRole };
+    if (
+      selectedWorkspace &&
+      selectedWorkspace.role === session.workspaceRole &&
+      session.roles.includes(selectedWorkspace.role)
+    ) {
+      return { businessPublicId: selectedWorkspace.publicId, role: selectedWorkspace.role };
     }
     throw new Error('Business API access requires the selected workspace role.');
   }
@@ -201,6 +219,28 @@ export function selectMobileMode(
     throw new Error('The signed-in account does not have that mode.');
   }
   return { ...state, session: { ...state.session, selectedMode } };
+}
+
+export function selectBusinessWorkspace(
+  state: MobileAuthState,
+  workspacePublicId: string,
+): MobileAuthState {
+  if (state.phase !== 'authenticated') return state;
+  const workspace = state.session.workspaces.find(
+    (candidate) => candidate.publicId === workspacePublicId,
+  );
+  if (!workspace || !state.session.roles.includes(workspace.role)) {
+    throw new Error('The signed-in account does not have that Business workspace.');
+  }
+  return {
+    ...state,
+    session: {
+      ...state.session,
+      selectedMode: 'business',
+      workspacePublicId: workspace.publicId,
+      workspaceRole: workspace.role,
+    },
+  };
 }
 
 export function grantRecentAuthentication(
@@ -276,6 +316,7 @@ export function persistedSessionFromRuntime(
     sessionPublicId: session.sessionPublicId,
     userPublicId: session.userPublicId,
     version: 1,
+    workspaces: session.workspaces.map((workspace) => ({ ...workspace })),
     workspacePublicId: session.workspacePublicId,
     workspaceRole: session.workspaceRole,
   };

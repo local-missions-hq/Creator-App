@@ -33,11 +33,16 @@ describe('mobile Local Missions session adapter', () => {
     });
     expect(result).toMatchObject({
       roles: ['creator', 'business_owner'],
-      workspacePublicId: 'biz_synthetic_orlando_001',
-      workspaceRole: 'business_owner',
+      workspaces: [
+        {
+          name: 'Demo Family Fun Center',
+          publicId: 'biz_synthetic_orlando_001',
+          role: 'business_owner',
+        },
+      ],
     });
     expect(JSON.stringify(result)).not.toContain(accessToken);
-    expect(result).not.toHaveProperty('workspaces');
+    expect(result).not.toHaveProperty('workspacePublicId');
   });
 
   it('refreshes only the requested Local Missions session and rejects malformed access tokens', async () => {

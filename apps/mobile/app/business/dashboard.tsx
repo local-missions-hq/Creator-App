@@ -6,6 +6,7 @@ import { AccessiblePressable as Pressable } from '../../components/AccessiblePre
 
 import { AppShell, appColors } from '../../components/AppShell';
 import { StatePreviewSheet } from '../../components/StatePreviewSheet';
+import { useMobileAuthSession } from '../../lib/auth-session-context';
 import { useBusinessCampaigns } from '../../lib/use-mission-data';
 
 const metrics = [
@@ -46,12 +47,19 @@ const checklist = [
 ] as const;
 
 export default function BusinessDashboardScreen() {
+  const auth = useMobileAuthSession();
   const { data: campaignPage, source } = useBusinessCampaigns();
   const campaign = campaignPage.data[0];
   const [stateSheetOpen, setStateSheetOpen] = useState(false);
+  const authenticatedSession =
+    auth.state.phase === 'authenticated' ? auth.state.session : undefined;
+  const businessName =
+    authenticatedSession?.workspaces.find(
+      (workspace) => workspace.publicId === authenticatedSession.workspacePublicId,
+    )?.name ?? 'Your business';
 
   return (
-    <AppShell mode="business" showTabs title="Good morning, Demo Family Fun Center">
+    <AppShell mode="business" showTabs title={`Good morning, ${businessName}`}>
       <View style={styles.statusRow}>
         <View style={styles.approvedBadge}>
           <Ionicons color={appColors.success} name="checkmark-circle" size={17} />
