@@ -30,6 +30,14 @@ const accountItems: Array<{
     title: 'Payout setup',
   },
   {
+    detail: 'Optional per-platform tiers · Community access never depends on this',
+    href: '/creator/reach',
+    icon: 'megaphone-outline',
+    status: 'OPTIONAL',
+    testID: 'creator-account-reach',
+    title: 'Reach analytics',
+  },
+  {
     detail: 'Mission terms, privacy notices, and optional permissions',
     href: '/creator/consent',
     icon: 'document-text-outline',

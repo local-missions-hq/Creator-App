@@ -1,10 +1,12 @@
 import { Ionicons } from '../../components/DecorativeIcon';
 import { Link } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { AccessiblePressable as Pressable } from '../../components/AccessiblePressable';
 
 import { appColors } from '../../components/AppShell';
 import { BusinessWizardShell } from '../../components/BusinessWizardShell';
+import { campaignAudienceBudget, type CampaignAudienceMode } from '../../lib/reach-preview';
 
 const paymentStates = [
   {
@@ -34,8 +36,11 @@ const paymentStates = [
 ] as const;
 
 export default function BusinessBudgetScreen() {
+  const [audienceMode, setAudienceMode] = useState<CampaignAudienceMode>('community');
   const { fontScale, width } = useWindowDimensions();
   const usesExpandedLayout = fontScale >= 1.5 || width < 360;
+  const budget = campaignAudienceBudget(audienceMode);
+  const money = (minor: number) => `$${(minor / 100).toFixed(2)}`;
 
   return (
     <BusinessWizardShell step={3} title="Budget & funding">
@@ -44,15 +49,103 @@ export default function BusinessBudgetScreen() {
         review.
       </Text>
 
+      <View style={styles.audienceCard}>
+        <View style={styles.audienceHeader}>
+          <View style={styles.audienceIcon}>
+            <Ionicons color={appColors.orange} name="people-outline" size={24} />
+          </View>
+          <View style={styles.audienceCopy}>
+            <Text style={styles.cardTitle}>Choose the campaign mix</Text>
+            <Text style={styles.audienceIntro}>
+              Reach is a fixed, higher-paid add-on—not a follower minimum.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.audienceOptions}>
+          <Pressable
+            accessibilityLabel="Use ten Community Slots at 50 dollars each"
+            accessibilityRole="button"
+            accessibilityState={{ selected: audienceMode === 'community' }}
+            onPress={() => setAudienceMode('community')}
+            style={[
+              styles.audienceOption,
+              audienceMode === 'community' && styles.audienceOptionSelected,
+            ]}
+            testID="business-audience-all-community"
+          >
+            <View style={styles.optionTitleRow}>
+              <Text style={styles.optionTitle}>10 Community</Text>
+              {audienceMode === 'community' ? (
+                <Ionicons color={appColors.teal} name="checkmark-circle" size={20} />
+              ) : null}
+            </View>
+            <Text style={styles.optionMeta}>$50 each · no follower minimum</Text>
+            <Text style={styles.optionTotal}>$575 total due</Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityLabel="Use eight Community Slots and two Level 2 Instagram Reach Slots"
+            accessibilityRole="button"
+            accessibilityState={{ selected: audienceMode === 'mixed' }}
+            onPress={() => setAudienceMode('mixed')}
+            style={[
+              styles.audienceOption,
+              audienceMode === 'mixed' && styles.audienceOptionSelected,
+            ]}
+            testID="business-audience-community-reach"
+          >
+            <View style={styles.optionTitleRow}>
+              <Text style={styles.optionTitle}>8 Community + 2 Reach</Text>
+              {audienceMode === 'mixed' ? (
+                <Ionicons color={appColors.teal} name="checkmark-circle" size={20} />
+              ) : null}
+            </View>
+            <Text style={styles.optionMeta}>Instagram Level 2 · $100 each</Text>
+            <Text style={styles.optionTotal}>$690 total due</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.fairnessRow}>
+          <Ionicons color={appColors.teal} name="shield-checkmark-outline" size={21} />
+          <Text style={styles.fairnessText}>
+            At least 80% of every campaign stays reserved for everyday local creators.
+          </Text>
+        </View>
+        <Text style={styles.previewNote}>What-if preview only · this selection is not saved.</Text>
+      </View>
+
       <View style={styles.breakdownCard}>
         <Text style={styles.cardTitle}>Funding breakdown</Text>
         <View style={[styles.moneyRow, usesExpandedLayout && styles.moneyRowExpanded]}>
           <View style={styles.moneyCopy}>
-            <Text style={styles.moneyLabel}>Creator Reward Pool</Text>
-            <Text style={styles.moneyMeta}>10 Community Slots × $50</Text>
+            <Text style={styles.moneyLabel}>Community rewards</Text>
+            <Text style={styles.moneyMeta}>{budget.communitySlots} Community Slots × $50</Text>
           </View>
           <Text style={[styles.moneyValue, usesExpandedLayout && styles.moneyValueExpanded]}>
-            $500.00
+            {money(budget.communityRewardMinor)}
+          </Text>
+        </View>
+        {budget.reachSlots > 0 ? (
+          <View style={[styles.moneyRow, usesExpandedLayout && styles.moneyRowExpanded]}>
+            <View style={styles.moneyCopy}>
+              <Text style={styles.moneyLabel}>Reach rewards</Text>
+              <Text style={styles.moneyMeta}>
+                {budget.reachSlots} Instagram Level 2 × $100 ($50 base + $50 bonus)
+              </Text>
+            </View>
+            <Text style={[styles.moneyValue, usesExpandedLayout && styles.moneyValueExpanded]}>
+              {money(budget.reachRewardMinor)}
+            </Text>
+          </View>
+        ) : null}
+        <View style={[styles.moneyRow, usesExpandedLayout && styles.moneyRowExpanded]}>
+          <View style={styles.moneyCopy}>
+            <Text style={styles.moneyLabel}>Creator Reward Pool</Text>
+            <Text style={styles.moneyMeta}>Full cash rewards reserved for completed slots</Text>
+          </View>
+          <Text style={[styles.moneyValue, usesExpandedLayout && styles.moneyValueExpanded]}>
+            {money(budget.creatorRewardPoolMinor)}
           </Text>
         </View>
         <View style={[styles.moneyRow, usesExpandedLayout && styles.moneyRowExpanded]}>
@@ -61,13 +154,13 @@ export default function BusinessBudgetScreen() {
             <Text style={styles.moneyMeta}>Transparent 15%</Text>
           </View>
           <Text style={[styles.moneyValue, usesExpandedLayout && styles.moneyValueExpanded]}>
-            $75.00
+            {money(budget.platformFeeMinor)}
           </Text>
         </View>
         <View style={[styles.totalRow, usesExpandedLayout && styles.totalRowExpanded]}>
           <Text style={styles.totalLabel}>Total Due</Text>
           <Text style={[styles.totalValue, usesExpandedLayout && styles.totalValueExpanded]}>
-            $575.00
+            {money(budget.totalDueMinor)}
           </Text>
         </View>
       </View>
@@ -145,6 +238,49 @@ export default function BusinessBudgetScreen() {
 
 const styles = StyleSheet.create({
   intro: { color: appColors.muted, fontSize: 13, lineHeight: 19, marginTop: 17 },
+  audienceCard: {
+    backgroundColor: appColors.card,
+    borderColor: appColors.line,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginTop: 14,
+    padding: 15,
+  },
+  audienceHeader: { alignItems: 'center', flexDirection: 'row', gap: 10 },
+  audienceIcon: {
+    alignItems: 'center',
+    backgroundColor: appColors.orangeSoft,
+    borderRadius: 22,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  audienceCopy: { flex: 1 },
+  audienceIntro: { color: appColors.muted, fontSize: 9, lineHeight: 14, marginTop: 2 },
+  audienceOptions: { gap: 9, marginTop: 13 },
+  audienceOption: {
+    borderColor: appColors.line,
+    borderRadius: 16,
+    borderWidth: 1,
+    minHeight: 82,
+    padding: 12,
+  },
+  audienceOptionSelected: { backgroundColor: appColors.tealSoft, borderColor: appColors.teal },
+  optionTitleRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  optionTitle: { color: appColors.ink, fontSize: 14, fontWeight: '900' },
+  optionMeta: { color: appColors.muted, fontSize: 9, marginTop: 4 },
+  optionTotal: { color: appColors.orange, fontSize: 11, fontWeight: '900', marginTop: 6 },
+  fairnessRow: {
+    alignItems: 'center',
+    backgroundColor: appColors.tealSoft,
+    borderRadius: 14,
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 11,
+    padding: 10,
+  },
+  fairnessText: { color: appColors.teal, flex: 1, fontSize: 9, lineHeight: 14 },
+  previewNote: { color: appColors.muted, fontSize: 8, marginTop: 7, textAlign: 'center' },
   breakdownCard: {
     backgroundColor: appColors.card,
     borderColor: appColors.line,
