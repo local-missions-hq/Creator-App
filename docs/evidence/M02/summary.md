@@ -24,6 +24,8 @@ Devices: iPhone SE (3rd generation), iPhone 17 Pro, and iPhone 17 Pro Max Simula
 - Full instructions restate the funded `$50` reward, included experience, mission window, two clips, five photos, upload deadline, content rights, location boundary, and check-in continuation before the visit.
 - Creator Account & Safety now links to annual locality, Stripe-hosted payout setup, consent history, support, and deletion review. Address-change invalidation removes the old business-visible badge/band, while payout and locality remain separate.
 - Optional Reach consent can be previewed and revoked without affecting Community access or accepted rewards. Support and deletion both terminate in explicit local-only states without sending or removing anything.
+- Creator Account now opens a dedicated per-platform Reach preview. Instagram, TikTok, and YouTube remain independent; selecting a platform updates an illustrative 90-day Level 2 result, tier-only Business disclosure, read-only consent/verification explanation, and reversible local consent state. The screen repeatedly states that Community Slots need no follower minimum and that no provider is enabled or contacted.
+- Business Budget now offers a local what-if comparison between `10 Community` and `8 Community + 2 Reach`. The mixed selection visibly reconciles `$400` Community rewards, `$200` for two Level 2 Instagram rewards, a `$600` Creator Reward Pool, `$90` platform fee, and `$690` Total Due while preserving the 80% Community floor.
 - The restricted employee web console now includes a synthetic overview, objective Admin review queue, append-only audit timeline, and Support/dispute workspace. Public IDs replace broad personal-data browsing, locality proof and payout details remain hidden, and ordinary operations cannot edit ledger history or control finance exceptions.
 - Native role-specific tab bars now anchor the primary iPhone destinations. Creator tabs are Discover, Missions, Earnings, and Account; Business tabs are Home, Applicants, Review, and Results. Venue Staff remains a restricted single-purpose surface, and no employee/admin destination appears in the app.
 - Creator mission filtering now opens as a native bottom sheet. Draft choices can be dismissed without committing; Apply returns a visible two-match summary and synchronized timing, coarse-distance, and mission-fit chips to Discover.
@@ -144,8 +146,16 @@ Standard iPhone 17 Pro Light and Dark screenshots were captured directly from th
 - [Admin audit timeline — mobile width](./screenshots/web/admin-audit-timeline-mobile.png)
 - [Support and dispute workspace — desktop](./screenshots/web/support-disputes-desktop.png)
 - [Support and dispute workspace — mobile width](./screenshots/web/support-disputes-mobile.png)
+- [Creator Reach setup — mobile width](./screenshots/web/creator-reach-mobile.png)
+- [Creator TikTok consent preview — mobile width](./screenshots/web/creator-reach-consent-mobile.png)
+- [Creator Reach setup — desktop width](./screenshots/web/creator-reach-desktop.png)
+- [Business campaign mix — mobile width](./screenshots/web/business-reach-budget-mobile.png)
+- [Business mixed Reach budget — mobile width](./screenshots/web/business-reach-budget-mixed-mobile.png)
+- [Business campaign mix — desktop width](./screenshots/web/business-reach-budget-desktop.png)
 
 The controlled browser loaded all four local routes, navigated through their actual links, identified the correct active section on every destination, and reported no browser-console errors or horizontal page overflow. Desktop evidence is `1440 × 925`; mobile-width evidence is `390 × 925`. The first mobile capture exposed a partially hidden navigation label, so the navigation was changed to a two-by-two grid and all mobile screenshots were recaptured.
+
+The Reach UI follow-up loaded both Expo routes at `393 × 852` and `1024 × 900` with HTTP 200, no console errors, and no failed requests. Interactive browser inspection selected TikTok, previewed and reversed optional consent, selected the mixed Business campaign, and confirmed every displayed amount and accessibility label updated. These are responsive React Native web captures, not new native-Simulator screenshots; the physical-device VoiceOver gate remains unchanged.
 
 ## Visual comparison result
 
@@ -156,6 +166,8 @@ The inspected standard-size iPhone views show no horizontal overflow or clipped 
 ## Product-safety checks
 
 - Community Slots are labeled as follower-free; Reach remains an optional separately paid offer.
+- Reach qualification is platform-specific and optional. The Creator preview never combines audiences, and the Business preview receives a platform/tier package rather than a raw count or arbitrary follower field.
+- The Business mix keeps 8 of 10 slots Community and prices each Level 2 Instagram Reach creator at `$50 base + $50 bonus`; the 15% fee applies transparently to the complete Creator Reward Pool.
 - Locality is represented as `Orlando-area verified` and a coarse `4–6 miles` band, never an address or ZIP.
 - The app uses funded/reward-pool language and does not claim to provide legal escrow.
 - Creator compensation, business fees, content-use term, disclosure requirement, and non-guaranteed application status are shown plainly.

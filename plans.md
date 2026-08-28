@@ -58,12 +58,14 @@ Participant/Creator iPhone views:
 - [x] Submission timeline and one bounded revision-request view.
 - [x] Earnings view with `Funded → Pending review → Available → Paid` preview states.
 - [x] Profile, annual locality verification, payout setup, consent history, support, and account-deletion views.
+- [x] Optional per-platform Reach setup preview with independent Instagram/TikTok/YouTube selection, tier-only Business disclosure, local-only consent/revocation states, and explicit Community protection.
 
 Business iPhone views:
 
 - [x] Business setup and location-verification preview.
 - [x] Business dashboard with campaign summary and launch checklist.
 - [x] Complete the clickable campaign creation wizard, including brief, deliverables, rights, budget, review, synthetic admin approval, and local-only Fund and Publish states.
+- [x] Community-versus-Reach campaign-mix preview with the 80% Community floor, fixed tier pricing, Creator Reward Pool, 15% fee, and Total Due recalculated without an arbitrary follower filter.
 - [x] Applicants and capacity.
 - [x] Submission review and revision decision.
 - [x] Campaign results and Local Pass attribution.
