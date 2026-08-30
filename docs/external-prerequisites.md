@@ -1,8 +1,10 @@
 # External prerequisite register
 
-Status: Inventory complete; accounts and approvals remain external gates  
-Owner model: named roles only; no personal contact details or credentials  
-Last reviewed: 2026-08-26
+Status: Inventory complete; accounts and approvals remain external gates
+
+Owner model: named accountable humans and roles only; no personal contact details or credentials
+
+Last reviewed: 2026-08-30
 
 This register identifies everything Local Missions must obtain outside the repository before the corresponding distribution or live-service milestone. A recorded prerequisite is not authorization to create, configure, fund, or connect it.
 
@@ -24,14 +26,14 @@ service.
 
 ## Azure ownership and cost prerequisites
 
-| Key                             | Planned value or safe placeholder                                                                    | Accountable role                 | Required before               | Current status and proof gate                                                                                          |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `AZURE_PRIMARY_REGION`          | `eastus2` candidate for the Orlando pilot                                                            | Technical owner                  | First reviewed Terraform plan | Candidate only; revalidate service/SKU availability, latency, compliance, and price immediately before planning        |
-| `AZURE_COST_OWNER_ROLE`         | Finance owner                                                                                        | Finance owner                    | Any Azure resource creation   | Role identified; a named person and subscription scope must be approved outside the repo                               |
-| `AZURE_COST_ALERT_DESTINATION`  | `azure-cost-alerts@localmissions.example`                                                            | Finance owner + Operations owner | Any Azure resource creation   | Reserved placeholder only; replace with a monitored verified destination before apply                                  |
-| `AZURE_EPHEMERAL_BUDGET_POLICY` | Low-cost development budget, alerts, earlier-of-eight-hours-or-11-PM expiry, same-day scoped destroy | Finance owner + Technical owner  | Any ephemeral workload apply  | Policy frozen in ADR-047 through ADR-049; numeric budget and externally scoped destroy identity still require approval |
+| Key                             | Planned value or safe placeholder                                                                      | Accountable role                     | Required before                   | Current status and proof gate                                                                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AZURE_PRIMARY_REGION`          | `eastus2` selected for the first ephemeral development plan                                            | Blake Tindol, Technical owner        | First reviewed Terraform plan     | Public catalog/region/SKU review passed 2026-08-30; subscription policy, quota, offer, and current availability still require Azure access and approval |
+| `AZURE_COST_OWNER_ROLE`         | Blake Tindol, Finance and cost owner                                                                   | Blake Tindol                         | Any Azure resource creation       | Accountable human assigned; exact subscription scope and budget approval remain external                                                                |
+| `AZURE_COST_ALERT_DESTINATION`  | `azure-cost-alerts@localmissions.example`                                                              | Blake Tindol, Operations owner       | Any Azure resource creation       | Reserved placeholder only; replace with a monitored verified destination before provider-backed planning or apply                                       |
+| `AZURE_EPHEMERAL_BUDGET_POLICY` | Proposed `$5` per run, `$25` monthly, 50%/80%/100% actual and forecast alerts, same-day scoped destroy | Blake Tindol, Cost + Technical owner | Any provider-backed workload plan | Proposal recorded; approval, monitored delivery, subscription budget, and scoped cleanup identity remain blocked                                        |
 
-The candidate region is a planning default, not a permanent deployment decision. No Terraform environment may silently fall back to a different region or create billable resources until region, subscription, budget, alert destination, expiry, and destroy ownership are all recorded in the execution evidence.
+The first-plan region is a reviewed planning selection, not a permanent deployment decision or proof that a subscription can deploy every SKU. The public review and estimate are recorded in [`operations/azure-public-service-cost-review.md`](./operations/azure-public-service-cost-review.md). No Terraform environment may silently fall back to a different region or create billable resources until region, subscription, budget, alert destination, expiry, and destroy ownership are all recorded in the execution evidence.
 
 ## Reserved domain and email placeholders
 

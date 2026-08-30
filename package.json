@@ -10,6 +10,7 @@
     "pnpm": ">=11.24.0 <12"
   },
   "scripts": {
+    "azure-cost:check": "node scripts/validate-azure-public-cost-review.mjs",
     "azure-oidc:check": "node scripts/validate-azure-oidc-plan-gate.mjs",
     "build": "turbo run build",
     "container:check": "pnpm build && node scripts/validate-container-images.mjs",
@@ -38,7 +39,7 @@
     "test:gitleaks": "gitleaks dir . --redact --no-banner",
     "test:security": "node scripts/security-check.mjs",
     "terraform:check": "node scripts/validate-terraform-foundation.mjs",
-    "verify": "pnpm format:check && pnpm prerequisites:check && pnpm external-auth:check && pnpm authorization:check && pnpm azure-oidc:check && pnpm saved-plan:check && pnpm run-ledger:check && pnpm recovery-drill:check && pnpm terraform:check && pnpm m5:preflight && pnpm lint && pnpm typecheck && pnpm test && pnpm contracts:check && pnpm container:check",
+    "verify": "pnpm format:check && pnpm prerequisites:check && pnpm external-auth:check && pnpm authorization:check && pnpm azure-oidc:check && pnpm saved-plan:check && pnpm run-ledger:check && pnpm recovery-drill:check && pnpm terraform:check && pnpm azure-cost:check && pnpm m5:preflight && pnpm lint && pnpm typecheck && pnpm test && pnpm contracts:check && pnpm container:check",
     "local:up": "docker compose up -d",
     "local:down": "docker compose down",
     "local:destroy": "docker compose down --volumes --remove-orphans",

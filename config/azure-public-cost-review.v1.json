@@ -1,0 +1,388 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "M05-public-azure-service-cost-review-011",
+  "reviewStatus": "public_catalog_review_complete_approval_pending",
+  "reviewedAt": "2026-08-30T14:19:59Z",
+  "validThrough": "2026-09-06T14:19:59Z",
+  "currency": "USD",
+  "candidateRegion": {
+    "armName": "eastus2",
+    "displayName": "East US 2",
+    "selectedForFirstEphemeralPlan": true,
+    "publicCatalogMetersPresent": true,
+    "postgresRegionDocumentationPresent": true,
+    "subscriptionAvailabilityVerified": false,
+    "quotaVerified": false,
+    "policyVerified": false,
+    "requiresSubscriptionScopedRevalidationBeforePlan": true
+  },
+  "ownerAssignments": {
+    "platformOwner": {
+      "accountableHuman": "Blake Tindol",
+      "role": "Founder and technical owner",
+      "status": "assigned"
+    },
+    "costOwner": {
+      "accountableHuman": "Blake Tindol",
+      "role": "Finance and cost owner",
+      "status": "assigned"
+    },
+    "alertResponseOwner": {
+      "accountableHuman": "Blake Tindol",
+      "role": "Operations owner",
+      "status": "assigned_destination_unverified"
+    },
+    "technicalOnCallOwner": {
+      "accountableHuman": "Blake Tindol",
+      "role": "Technical on-call owner",
+      "status": "assigned"
+    },
+    "planProducer": {
+      "actor": "Codex",
+      "actorType": "automated_agent",
+      "accountableHuman": "Blake Tindol",
+      "status": "assigned"
+    },
+    "independentPlanReviewer": {
+      "accountableHuman": "Blake Tindol",
+      "independentFromProducer": true,
+      "role": "Plan and cost approver",
+      "status": "assigned_approval_pending"
+    }
+  },
+  "budgetProposal": {
+    "currency": "USD",
+    "perEightHourRunCeilingUsd": 5,
+    "monthlyBudgetUsd": 25,
+    "actualAlertPercentages": [50, 80, 100],
+    "forecastAlertPercentages": [50, 80, 100],
+    "actualAlertAmountsUsd": [12.5, 20, 25],
+    "forecastAlertAmountsUsd": [12.5, 20, 25],
+    "alertDestinationReference": "external_monitored_destination_required",
+    "alertDeliveryVerified": false,
+    "approved": false,
+    "approvalReference": ""
+  },
+  "estimate": {
+    "workloadHours": 8,
+    "monthHoursForProration": 730,
+    "assumedBlobDataGb": 1,
+    "assumedBillableLogIngestionGb": 0.5,
+    "assumedExternalContainerAppRequests": 1000000,
+    "assumeContainerAppsFreeGrantUnavailable": true,
+    "assumeLogAnalyticsFreeGrantUnavailable": true,
+    "lineItems": [
+      {
+        "id": "postgresql-flexible-server",
+        "calculation": "8h B1MS compute plus 32 GB storage prorated over 730h; backup remains within the included 32 GB allowance",
+        "estimatedUsd": 0.176329
+      },
+      {
+        "id": "container-apps-consumption",
+        "calculation": "three 0.25 vCPU/0.5 GiB replicas active for 8h plus 1M external requests, ignoring the monthly free grant",
+        "estimatedUsd": 1.048
+      },
+      {
+        "id": "service-bus-standard",
+        "calculation": "eight hourly Standard base units",
+        "estimatedUsd": 0.107528
+      },
+      {
+        "id": "container-registry-basic",
+        "calculation": "one full Basic registry day; up to 10 GiB is included",
+        "estimatedUsd": 0.1666
+      },
+      {
+        "id": "storage-v2-hot-lrs",
+        "calculation": "1 GB prorated storage plus one 10K block each of container/list, write, read, and other operations",
+        "estimatedUsd": 0.108202
+      },
+      {
+        "id": "key-vault-standard",
+        "calculation": "one 10K block of Standard operations",
+        "estimatedUsd": 0.03
+      },
+      {
+        "id": "log-analytics-and-application-insights",
+        "calculation": "0.5 GB at pay-as-you-go ingestion with the 5 GB monthly free tier treated as unavailable; 30-day analytics retention adds no modeled charge",
+        "estimatedUsd": 1.38
+      }
+    ],
+    "rawEightHourEstimateUsd": 3.016659,
+    "roundedEightHourEstimateUsd": 3.02,
+    "uncertaintyBufferUsd": 1.98,
+    "perEightHourRunCeilingUsd": 5,
+    "excludedUntilProviderPlan": [
+      "subscription-specific offers, discounts, taxes, quotas, and policy",
+      "internet or inter-region egress",
+      "unexpected retry, restore, or delayed-destroy runtime",
+      "retained state backend, budget, alert, identity, DNS, and policy resources",
+      "container build, vulnerability scan, signature, registry push, and image transfer",
+      "provider-side resource dependencies not visible in the static Terraform contract"
+    ]
+  },
+  "serviceDecisions": [
+    {
+      "id": "postgresql",
+      "service": "Azure Database for PostgreSQL Flexible Server",
+      "terraformChoice": "PostgreSQL 16 B_Standard_B1ms, 32 GiB, seven-day local backup retention, no HA or geo backup",
+      "decision": "retain",
+      "reason": "Burstable B1ms is documented for development and proof-of-concept workloads; East US 2 supports the documented Intel compute family; 32 GiB is the minimum reviewed storage size.",
+      "meters": [
+        {
+          "skuName": "B1MS",
+          "meterName": "B1MS",
+          "retailPrice": 0.017,
+          "unitOfMeasure": "1 Hour",
+          "tierMinimumUnits": 0
+        },
+        {
+          "skuName": "Storage",
+          "meterName": "Storage Data Stored",
+          "retailPrice": 0.115,
+          "unitOfMeasure": "1 GB/Month",
+          "tierMinimumUnits": 0
+        },
+        {
+          "skuName": "Backup Storage LRS",
+          "meterName": "Backup Storage LRS Data Stored",
+          "retailPrice": 0.095,
+          "unitOfMeasure": "1 GB/Month",
+          "tierMinimumUnits": 0
+        }
+      ]
+    },
+    {
+      "id": "container-apps",
+      "service": "Azure Container Apps",
+      "terraformChoice": "Consumption environment; API, dashboard, and worker each 0.25 vCPU/0.5 GiB and zero-to-one replica",
+      "decision": "retain",
+      "reason": "Consumption is billed by active resource use and external requests, scales to zero, and avoids a dedicated-plan management charge in the reviewed Phase A shape.",
+      "meters": [
+        {
+          "skuName": "Standard",
+          "meterName": "Standard vCPU Active Usage",
+          "retailPrice": 0.000024,
+          "unitOfMeasure": "1 Second",
+          "tierMinimumUnits": 0
+        },
+        {
+          "skuName": "Standard",
+          "meterName": "Standard Memory Active Usage",
+          "retailPrice": 0.000003,
+          "unitOfMeasure": "1 GiB Second",
+          "tierMinimumUnits": 0
+        },
+        {
+          "skuName": "Standard",
+          "meterName": "Standard Requests",
+          "retailPrice": 0.4,
+          "unitOfMeasure": "1M",
+          "tierMinimumUnits": 0
+        }
+      ]
+    },
+    {
+      "id": "service-bus",
+      "service": "Azure Service Bus",
+      "terraformChoice": "Standard namespace with one duplicate-detecting queue",
+      "decision": "retain",
+      "reason": "Basic does not support the required duplicate detection; Standard does.",
+      "meters": [
+        {
+          "skuName": "Standard",
+          "meterName": "Standard Base Unit",
+          "retailPrice": 0.013441,
+          "unitOfMeasure": "1/Hour",
+          "tierMinimumUnits": 0
+        }
+      ]
+    },
+    {
+      "id": "container-registry",
+      "service": "Azure Container Registry",
+      "terraformChoice": "Basic registry with managed-identity pull and no administrator credentials",
+      "decision": "retain",
+      "reason": "Basic is the cost-optimized development tier, supports Microsoft Entra authentication, and includes 10 GiB storage.",
+      "meters": [
+        {
+          "skuName": "Basic",
+          "meterName": "Basic Registry Unit",
+          "retailPrice": 0.1666,
+          "unitOfMeasure": "1/Day",
+          "tierMinimumUnits": 0
+        }
+      ]
+    },
+    {
+      "id": "storage",
+      "service": "Azure Blob Storage",
+      "terraformChoice": "StorageV2 Standard Hot LRS with private containers, OAuth-only access, versioning, and seven-day soft delete",
+      "decision": "retain",
+      "reason": "Hot LRS is the lowest-complexity single-region development shape while the contract keeps anonymous and shared-key access disabled.",
+      "meters": [
+        {
+          "skuName": "Hot LRS",
+          "meterName": "Hot LRS Data Stored",
+          "retailPrice": 0.0184,
+          "unitOfMeasure": "1 GB/Month",
+          "tierMinimumUnits": 0
+        },
+        {
+          "skuName": "Hot LRS",
+          "meterName": "LRS List and Create Container Operations",
+          "retailPrice": 0.05,
+          "unitOfMeasure": "10K",
+          "tierMinimumUnits": 0
+        },
+        {
+          "skuName": "Hot LRS",
+          "meterName": "Hot LRS Write Operations",
+          "retailPrice": 0.05,
+          "unitOfMeasure": "10K",
+          "tierMinimumUnits": 0
+        },
+        {
+          "skuName": "Hot LRS",
+          "meterName": "Hot Read Operations",
+          "retailPrice": 0.004,
+          "unitOfMeasure": "10K",
+          "tierMinimumUnits": 0
+        },
+        {
+          "skuName": "Hot LRS",
+          "meterName": "All Other Operations",
+          "retailPrice": 0.004,
+          "unitOfMeasure": "10K",
+          "tierMinimumUnits": 0
+        }
+      ]
+    },
+    {
+      "id": "key-vault",
+      "service": "Azure Key Vault",
+      "terraformChoice": "Standard RBAC-only vault with no Terraform-managed secret values",
+      "decision": "retain",
+      "reason": "The Standard transaction meter covers the reviewed secret-reference boundary without premium HSM features.",
+      "meters": [
+        {
+          "skuName": "Standard",
+          "meterName": "Operations",
+          "retailPrice": 0.03,
+          "unitOfMeasure": "10K",
+          "tierMinimumUnits": 0
+        }
+      ]
+    },
+    {
+      "id": "telemetry",
+      "service": "Azure Monitor Log Analytics and workspace-based Application Insights",
+      "terraformChoice": "PerGB2018 workspace, 0.5 GB daily cap, 30-day retention, workspace-based Application Insights",
+      "decision": "retain",
+      "reason": "Workspace-based Application Insights is billed through Log Analytics; the reviewed cap and retention bound the disposable test workload.",
+      "meters": [
+        {
+          "skuName": "Analytics Logs",
+          "meterName": "Analytics Logs Data Ingestion",
+          "retailPrice": 0,
+          "unitOfMeasure": "1 GB",
+          "tierMinimumUnits": 0
+        },
+        {
+          "skuName": "Analytics Logs",
+          "meterName": "Analytics Logs Data Ingestion",
+          "retailPrice": 2.76,
+          "unitOfMeasure": "1 GB",
+          "tierMinimumUnits": 5
+        },
+        {
+          "skuName": "Analytics Logs",
+          "meterName": "Analytics Logs Data Retention",
+          "retailPrice": 0.12,
+          "unitOfMeasure": "1 GB/Month",
+          "tierMinimumUnits": 0
+        }
+      ]
+    }
+  ],
+  "sources": {
+    "retailPriceApi": {
+      "endpoint": "https://prices.azure.com/api/retail/prices",
+      "apiVersion": "2023-01-01-preview",
+      "currency": "USD",
+      "filters": [
+        "armRegionName eq 'eastus2' and serviceName eq 'Azure Database for PostgreSQL'",
+        "armRegionName eq 'eastus2' and serviceName eq 'Azure Container Apps'",
+        "armRegionName eq 'eastus2' and serviceName eq 'Service Bus'",
+        "armRegionName eq 'eastus2' and serviceName eq 'Container Registry'",
+        "armRegionName eq 'eastus2' and serviceName eq 'Storage' and skuName eq 'Hot LRS'",
+        "armRegionName eq 'eastus2' and serviceName eq 'Key Vault'",
+        "armRegionName eq 'eastus2' and serviceName eq 'Log Analytics'",
+        "armRegionName eq 'eastus2' and serviceName eq 'Application Insights'"
+      ]
+    },
+    "officialDocumentation": [
+      "https://learn.microsoft.com/en-us/rest/api/cost-management/retail-prices/azure-retail-prices",
+      "https://learn.microsoft.com/en-us/azure/container-apps/billing",
+      "https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/overview",
+      "https://learn.microsoft.com/en-us/azure/postgresql/compute-storage/concepts-compute",
+      "https://learn.microsoft.com/en-us/azure/postgresql/backup-restore/concepts-backup-restore",
+      "https://learn.microsoft.com/en-us/azure/service-bus-messaging/duplicate-detection",
+      "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-skus",
+      "https://learn.microsoft.com/en-us/azure/storage/common/storage-redundancy",
+      "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs",
+      "https://learn.microsoft.com/en-us/azure/key-vault/general/overview"
+    ]
+  },
+  "currentExecution": {
+    "publicRetailPriceApiQueried": true,
+    "azureAuthenticated": false,
+    "subscriptionInspected": false,
+    "subscriptionOfferPriceRequested": false,
+    "remoteBackendInitialized": false,
+    "providerBackedPlanExecuted": false,
+    "terraformMutationExecuted": false,
+    "azureResourcesCreated": false,
+    "cloudCostIncurred": false,
+    "registryContacted": false,
+    "customerDataUsed": false
+  },
+  "approvalGate": {
+    "status": "pending_user_approval",
+    "nextAction": "subscription-scoped pre-plan validation and provider-backed saved Terraform plan",
+    "requiresAzureAuthentication": true,
+    "requiresSubscriptionRead": true,
+    "requiresRemoteBackendDecision": true,
+    "requiresIdentityAndArtifactReferences": true,
+    "applyAuthorized": false,
+    "destroyAuthorized": false
+  },
+  "refusalScenarios": [
+    "region-drift",
+    "review-window-too-long",
+    "subscription-availability-claimed",
+    "owner-missing",
+    "producer-reviewer-not-independent",
+    "budget-over-ceiling",
+    "budget-approved-without-reference",
+    "alert-delivery-claimed",
+    "service-missing",
+    "service-choice-drift",
+    "meter-evidence-drift",
+    "price-total-drift",
+    "run-ceiling-too-low",
+    "unauthorized-azure-authentication",
+    "subscription-inspection-claimed",
+    "subscription-price-request-claimed",
+    "remote-backend-claimed",
+    "provider-plan-claimed",
+    "terraform-mutation-claimed",
+    "azure-resource-creation-claimed",
+    "cloud-cost-claimed",
+    "registry-contact-claimed",
+    "customer-data-claimed",
+    "apply-authorization-claimed",
+    "destroy-authorization-claimed",
+    "non-microsoft-documentation-source"
+  ]
+}

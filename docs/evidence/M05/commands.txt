@@ -295,3 +295,31 @@ pnpm test:gitleaks
 PASS — Gitleaks found no leaks in approximately 15.69 MB.
 
 No Docker build, image pull, registry request, image scan/sign/push, GitHub/Azure/Entra creation or activation, credential, account, subscription, backend, live price request, provider-backed plan, Terraform plan/state/cache artifact, apply, restore, rollback, destroy, live query, networking, customer data, or cloud cost was used. M5 and final M4 external/native gates remain open.
+
+M05-public-azure-service-cost-review-011 — 2026-08-30
+
+Node 24.19.0 and pnpm 11.24.0 were selected from the pinned local runtimes.
+
+Microsoft public Retail Prices API and Microsoft Learn documentation review
+PASS — East US 2 returned the required public retail meters for PostgreSQL Flexible Server, Container Apps, Service Bus, Container Registry, Storage, Key Vault, Log Analytics, and Application Insights. No authentication, tenant, subscription, account-specific offer, registry, or resource endpoint was used.
+
+pnpm azure-cost:check
+PASS — validated seven service groups, exact Terraform-default coherence, official sources, a seven-day review window, accountable owner assignments, `$3.02` raw estimate, `$5.00` buffered run ceiling, `$25.00` unapproved monthly proposal, and twenty-six exercised refusals while Azure approval remains pending.
+
+pnpm exec eslint scripts/validate-azure-public-cost-review.mjs
+pnpm format:check
+git diff --check
+PASS — the new validator, repository formatting, and patch whitespace checks passed.
+
+pnpm verify
+INITIAL TOOLING STOP — the first outer pnpm 11.24.0 invocation inherited a pnpm 11.19.0 shim for nested scripts and stopped at the engine gate before tests.
+RESOLUTION — placed the existing pnpm 11.24.0 executable and Node 24.19.0 first in PATH, then reran the complete gate.
+PASS — formatting, prerequisites, external auth, authorization, OIDC, saved-plan, run-ledger, recovery, Terraform, public cost review, M5 preflight, all nine workspace lint/type/test/contract/build gates, 111 mobile tests, the 20-entry migration manifest, OpenAPI contracts, and all three local production-bundle smokes passed.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 575 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks found no leaks in approximately 15.74 MB.
+
+The review queried only Microsoft's public unauthenticated pricing/catalog and documentation endpoints. No Azure CLI command, login, tenant, subscription, quota, policy, account-specific offer, credential, remote backend, provider-backed Terraform plan, Terraform plan binary, registry, identity, networking, resource, customer data, or cost-incurring action was used. The `$25.00` budget and alert thresholds are proposals, the alert destination is unverified, and apply/destroy remain unauthorized. This is the stop point before Azure access.

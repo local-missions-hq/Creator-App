@@ -1,10 +1,10 @@
 # M05 Azure foundation evidence
 
-Status: M5 Phase A local preflight passed; all registry and Azure execution remains blocked
+Status: public Azure service/cost review passed; Azure subscription access and execution remain blocked
 
-Date: 2026-08-28
+Date: 2026-08-30
 
-Checkpoint: `M05-local-preflight-audit-010`
+Checkpoint: `M05-public-azure-service-cost-review-011`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
@@ -29,6 +29,10 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - Bound recovery evidence to the current seven-day PostgreSQL retention/PITR contract, private versioned Blob storage with seven-to-fourteen-day soft delete, one retained inactive Container Apps revision, immutable image digests, and the current 20-entry forward-only migration manifest.
 - Added draft internal RPO/RTO/timeout planning windows for PostgreSQL, Blob, and Container Apps. They are explicitly planning targets rather than Azure guarantees and require future live review and measurement.
 - Required canonical before/after reconciliation for migration manifest, row counts, public IDs, status histories, audit records, privacy exclusions, and application readiness. Expired or deleted privacy-limited data cannot return to active use through recovery.
+- Queried Microsoft's public unauthenticated Retail Prices API for East US 2 and retained the seven service groups already bounded by the Terraform contract: PostgreSQL Flexible Server, Container Apps, Service Bus, Container Registry, Blob Storage, Key Vault, and Azure Monitor/Application Insights.
+- Assigned Blake Tindol as accountable platform, cost, alert-response, technical-on-call, and independent plan-review owner, with Codex as the automated plan producer. No personal contact, credential, tenant, subscription, or account identifier was recorded.
+- Captured a conservative `$3.02` eight-hour public-retail estimate, added a `$1.98` uncertainty reserve, and proposed a `$5.00` per-run ceiling plus a `$25.00` monthly budget with 50%/80%/100% actual and forecast alerts. Approval and a real monitored destination remain pending.
+- Added a static dated cost-review manifest and validator with twenty-six exercised refusal scenarios. It requires a fresh review after seven days and refuses subscription availability, alert delivery, approval, Azure authentication, provider planning, mutation, resource, registry, customer-data, or cost claims.
 
 ## Verification
 
@@ -77,6 +81,14 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - four expiration fixtures; and
 - eight external execution gates retained as blocked.
 
+`pnpm azure-cost:check` passed:
+
+- seven reviewed service groups aligned with the Terraform defaults;
+- East US 2 public regional meters and current official Microsoft documentation;
+- exact `$3.02` raw arithmetic, `$5.00` buffered run ceiling, and `$25.00` unapproved monthly proposal;
+- accountable owner assignments and pending independent review; and
+- twenty-six exercised refusal scenarios with zero Azure subscription or provider access claims.
+
 `pnpm container:check` passed:
 
 - three production bundles: API pnpm deploy, dashboard Next.js standalone, and worker pnpm deploy;
@@ -93,7 +105,7 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - forty-five exercised mutation/refusal scenarios; and
 - zero Azure, registry, provider-backed planning, remote-backend, Terraform-mutation, customer-data, or cloud-cost claims.
 
-Backend-disabled `terraform init`, validation, and mock-provider tests passed through the repository gate without Azure credentials or a provider configuration. TFLint 0.63.1 reported zero findings across both roots and all recursive modules. The complete pinned-runtime repository verification passed all nine workspaces, 111 mobile tests, prerequisite/auth/authorization/OIDC/saved-plan/run-ledger/recovery/Terraform/preflight/container gates, the 20-entry migration manifest, OpenAPI contracts, all builds, and all three local production-bundle smokes. The final security scan passed 572 text files, and Gitleaks found no leaks in approximately 15.69 MB.
+Backend-disabled `terraform init`, validation, and mock-provider tests passed through the repository gate without Azure credentials or a provider configuration. TFLint 0.63.1 reported zero findings across both roots and all recursive modules. The complete pinned-runtime repository verification passed all nine workspaces, 111 mobile tests, prerequisite/auth/authorization/OIDC/saved-plan/run-ledger/recovery/Terraform/public-cost/preflight/container gates, the 20-entry migration manifest, OpenAPI contracts, all builds, and all three local production-bundle smokes. The final security scan passed 575 text files, and Gitleaks found no leaks in approximately 15.74 MB.
 
 Container image machine contract: [`../../../config/container-image-contract.v1.json`](../../../config/container-image-contract.v1.json)
 
@@ -102,6 +114,10 @@ Container image operations gate: [`../../operations/container-image-gate.md`](..
 M5 local preflight machine contract: [`../../../config/m5-local-preflight.v1.json`](../../../config/m5-local-preflight.v1.json)
 
 M5 local preflight operations gate: [`../../operations/m5-local-preflight-gate.md`](../../operations/m5-local-preflight-gate.md)
+
+Azure public cost-review machine contract: [`../../../config/azure-public-cost-review.v1.json`](../../../config/azure-public-cost-review.v1.json)
+
+Azure public service/cost review: [`../../operations/azure-public-service-cost-review.md`](../../operations/azure-public-service-cost-review.md)
 
 Recovery-drill machine contract: [`../../../config/recovery-drill.v1.json`](../../../config/recovery-drill.v1.json)
 
@@ -127,4 +143,4 @@ Command evidence: [`commands.txt`](./commands.txt)
 
 ## Boundary
 
-The preflight, container, dashboard, and recovery work is static policy, local compilation, temporary offline production bundling, localhost process smoke, mock-provider planning, synthetic fixtures, local file inspection, and local hashing only. No container build, base-image pull, package/container registry request, image scan, image signature, image publication, GitHub environment, Azure/Entra identity, federated credential, Azure login, account identifier, credential, subscription, remote backend, live price request, provider-backed refresh/plan, Terraform plan binary, resource, networking activation, import, apply, restore, rollback, destroy, live query, customer data, or cost-incurring action was created or used. Current CI remains non-deploying. Resource counts, cost examples, identities, endpoints, tags, and recovery reports are synthetic contract examples rather than image or cloud evidence, approved prices, or measured Azure RTO/RPO. M5 is not complete, all sixteen external gates remain deferred, and final M4 Entra/provider/native-device proof remains open.
+The preflight, container, dashboard, and recovery work remains static/local. The only new external read was Microsoft's public unauthenticated Retail Prices API and public Microsoft Learn documentation. No container build, base-image pull, package/container registry request, image scan, signature, publication, GitHub environment, Azure/Entra identity, federated credential, Azure login, tenant/account/subscription identifier, credential, subscription read, remote backend, account-specific offer request, provider-backed refresh/plan, Terraform plan binary, resource, networking activation, import, apply, restore, rollback, destroy, live-state query, customer data, or cost-incurring action was created or used. Current CI remains non-deploying. Public meters are estimates, not an Azure quote, approved budget, subscription availability proof, or measured RTO/RPO. M5 is not complete, the provider-plan and later mutation gates remain deferred, and final M4 Entra/provider/native-device proof remains open.
