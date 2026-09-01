@@ -1,6 +1,6 @@
 # Local Missions architecture decisions
 
-ADR-001 through ADR-058 are the founder-approved V1 baseline frozen on 2026-08-26. ADR-059 is the founder-approved milestone scheduling decision added on 2026-08-27 without weakening the physical-device accessibility gate. These generated records make the register reviewable as individual decisions; [../../architecture.md](../../architecture.md) remains the detailed architecture overview and [../../plans.md](../../plans.md) remains the build-and-verification contract.
+ADR-001 through ADR-058 are the founder-approved V1 baseline frozen on 2026-08-26. ADR-059 is the founder-approved milestone scheduling decision added on 2026-08-27 without weakening the physical-device accessibility gate. ADR-060 is an unapproved M5 infrastructure proposal and does not change the accepted baseline. These records make the register reviewable as individual decisions; [../../architecture.md](../../architecture.md) remains the detailed architecture overview and [../../plans.md](../../plans.md) remains the build-and-verification contract.
 
 | ADR | Decision | Source status at freeze |
 |---|---|---|
@@ -63,6 +63,7 @@ ADR-001 through ADR-058 are the founder-approved V1 baseline frozen on 2026-08-2
 | [ADR-057](./ADR-057.md) | Declined/validly expired or finally denied invited onboarding closes and deletes Local Missions verification, media, draft, and unfunded payment references within 30 days after the applicable appeal boundary, preserving only the minimal waitlist return and a 12-month non-personal audit | Confirmed 2026-08-26 |
 | [ADR-058](./ADR-058.md) | Fixable onboarding issues receive a 14-day correction; final creator/business denials use objective reasons and one 14-day independent appeal targeted within 10 business days, with limited fraud-detail withholding and no cross-role/earned-money harm | Confirmed 2026-08-26 |
 | [ADR-059](./ADR-059.md) | Physical-iPhone VoiceOver gesture testing is deferred from M2 to M16; it remains mandatory before M16 passes or external TestFlight expansion begins | Confirmed 2026-08-27 |
+| [ADR-060](./ADR-060.md) | Use an organization-scoped GitHub larger runner in an Azure VNet for workflow state access; do not weaken the Storage firewall or attach a self-hosted runner to the public repository | Proposed 2026-09-01; founder and billing approval required |
 
 ## Change rule
 

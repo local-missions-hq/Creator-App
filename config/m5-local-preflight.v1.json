@@ -1,6 +1,6 @@
 {
-  "activationStatus": "github_oidc_arm_proof_ready_pending_environment_review",
-  "checkpoint": "M05-github-oidc-arm-proof-ready-023",
+  "activationStatus": "github_state_network_design_review_pending",
+  "checkpoint": "M05-github-state-network-design-local-025",
   "currentExecution": {
     "azureAuthenticated": true,
     "azureReadOnlyInventoryExecuted": true,
@@ -25,6 +25,11 @@
       "evidence": "config/azure-oidc-plan-gate.v1.json",
       "id": "secretless-identity-and-command-policy",
       "proofClass": "static_contract"
+    },
+    {
+      "evidence": "config/github-state-network-gate.v1.json",
+      "id": "workflow-state-network-design",
+      "proofClass": "local_architecture_and_cost_review"
     },
     {
       "evidence": "config/saved-plan-evidence.v1.json",
@@ -82,10 +87,16 @@
       "path": "config/azure-plan-readiness.v1.json"
     },
     {
-      "activationStatus": "github_oidc_arm_proof_ready_pending_environment_review",
-      "checkpoint": "M05-github-oidc-arm-proof-ready-023",
+      "activationStatus": "github_oidc_arm_proof_passed_network_access_pending",
+      "checkpoint": "M05-github-oidc-arm-proof-passed-024",
       "command": "pnpm azure-oidc:check",
       "path": "config/azure-oidc-plan-gate.v1.json"
+    },
+    {
+      "activationStatus": "proposal_review_pending_no_external_change",
+      "checkpoint": "M05-github-state-network-design-local-025",
+      "command": "pnpm github-state-network:check",
+      "path": "config/github-state-network-gate.v1.json"
     },
     {
       "activationStatus": "synthetic_contract_only",
@@ -113,10 +124,11 @@
     }
   ],
   "milestoneComplete": false,
-  "nextBoundary": "github_environment_human_approval_required",
+  "nextBoundary": "github_org_team_transfer_owner_approval_required",
   "requiredArtifacts": [
     ".github/workflows/azure-oidc-proof.yml",
     ".github/workflows/verify.yml",
+    "config/github-state-network-gate.v1.json",
     "infra/terraform/control-plane/main.tf",
     "infra/terraform/environments/dev/main.tf",
     "infra/terraform/ci/azure-workload-identity.workflow.yml.example",
@@ -125,13 +137,16 @@
     "apps/worker/Dockerfile",
     "docs/operations/ephemeral-azure-development.md",
     "docs/operations/github-azure-oidc-plan-gate.md",
+    "docs/operations/github-state-network-gate.md",
     "docs/operations/saved-plan-evidence-gate.md",
     "docs/operations/ephemeral-run-ledger-gate.md",
     "docs/operations/recovery-drill-gate.md",
     "docs/operations/container-image-gate.md",
     "docs/evidence/M05/github-oidc-proof.md",
     "docs/evidence/M05/summary.md",
-    "docs/evidence/M05/commands.txt"
+    "docs/evidence/M05/commands.txt",
+    "docs/decisions/ADR-060.md",
+    "scripts/validate-github-state-network-gate.mjs"
   ],
   "externalGates": [
     {
@@ -181,7 +196,7 @@
       "evidenceRequired": "reviewed immutable GitHub subject identities and protected environments",
       "id": "oidc-identities-and-environment-protection",
       "ownerRole": "identity_owner",
-      "status": "approved_proof_pending_environment_review"
+      "status": "completed_no_apply_proof"
     },
     {
       "approvalRequired": true,
@@ -189,6 +204,13 @@
       "id": "remote-state-backend-and-locking",
       "ownerRole": "platform_owner",
       "status": "completed_for_retained_bootstrap"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "temporary least-privilege state-network method and viable operator recovery path",
+      "id": "workflow-state-network-access-and-operator-recovery",
+      "ownerRole": "security_reviewer",
+      "status": "design_complete_owner_approval_pending"
     },
     {
       "approvalRequired": true,

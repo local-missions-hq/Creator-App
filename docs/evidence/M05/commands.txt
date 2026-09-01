@@ -377,3 +377,32 @@ PASS — local high-confidence secret scan passed for 637 text files.
 
 pnpm test:gitleaks
 PASS — Gitleaks scanned approximately 17.72 MB and found no leaks.
+
+M05-github-oidc-arm-proof-passed-024 — 2026-09-01
+
+GitHub protected-environment review
+PASS — the owner approved `azure-development-plan`, `azure-development-apply`, and `azure-development-destroy` for only the no-apply OIDC/ARM proof on commit `73ef5bd5e3251a95347aeb7449d4365745e4c5c4`. The recorded review explicitly excluded Terraform, deployment, provider registration, and Azure resource mutation.
+
+GitHub Actions run 33513053687
+PASS — plan, apply, and destroy identity-proof jobs completed successfully in 16, 18, and 21 seconds. Every job passed process-only identifier masking, GitHub OIDC-to-Azure token exchange, exact-scope/effective-permission assertions, expected default-deny Blob refusal, Azure logout, and post-login cleanup.
+
+sanitized post-run Azure inventory
+PASS — exactly three tagged retained Local Missions resource groups remain; the workload landing zone remains empty; the control group contains one Action Group and three user-assigned identities; the state group contains one Storage account; and the private state container has exactly four `Storage Blob Data Contributor` assignments comprising three workflow identities plus the temporary operator recovery assignment.
+
+No Terraform command, Azure create/update/delete command, provider registration, network/RBAC mutation, workload plan, registry/image action, Container App, Stripe action, customer data, or iOS deployment occurred. The next gate is independent review and approval of a temporary least-privilege state-network access and operator-recovery design.
+
+M05-github-state-network-design-local-025 — 2026-09-01
+
+official GitHub/Azure constraint and public-price review
+PASS — rejected standard-runner global/dynamic IP allowlisting, a self-hosted runner on the public repository, all-networks Storage, and broad trusted-service bypass. Proposed one app-only GitHub Team organization, a maximum-concurrency-one two-core Linux larger runner, and an exact East US 2 VNet runner subnet with the Microsoft.Storage service endpoint and default-deny Storage preserved.
+
+pnpm azure-oidc:check && pnpm github-state-network:check && pnpm m5:preflight
+PASS — live OIDC proof evidence, the approval-pending state-network design, nine M5 machine contracts, ten local coverage areas, and eleven deferred external gates passed validation with zero new external changes.
+
+pnpm verify
+PASS — formatting, every local policy/architecture contract, all nine workspace lint/type/test/contract/build gates, 111 mobile tests, the 20-entry migration manifest, OpenAPI contracts, and all three production-bundle smokes passed.
+
+pnpm test:security && pnpm test:gitleaks
+PASS — the local high-confidence scan passed for 643 text files and Gitleaks found no leaks in approximately 17.76 MB.
+
+No GitHub organization, paid plan, repository transfer, runner, provider registration, Azure network/firewall/RBAC mutation, Terraform plan/apply, workload action, Stripe action, customer data, or iOS deployment occurred. The next gate is the founder's explicit approval or rejection of the candidate organization, GitHub Team recurring cost, public repository transfer boundary, and first-run runner ceiling.

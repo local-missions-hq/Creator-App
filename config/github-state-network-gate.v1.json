@@ -1,0 +1,123 @@
+{
+  "activationStatus": "proposal_review_pending_no_external_change",
+  "checkpoint": "M05-github-state-network-design-local-025",
+  "costReview": {
+    "currency": "USD",
+    "githubTeamPerUserMonthly": 4,
+    "linuxTwoCoreRunnerPerMinute": 0.006,
+    "runnerCostForTwentyMinutes": 0.12,
+    "runnerCostForSixtyMinutes": 0.36,
+    "runnerIdleCost": 0,
+    "reviewedAt": "2026-09-01",
+    "sources": [
+      "https://github.com/pricing",
+      "https://docs.github.com/en/billing/reference/actions-runner-pricing",
+      "https://azure.microsoft.com/en-us/pricing/details/virtual-network/"
+    ],
+    "vnetBaseMonthlyCost": 0,
+    "warning": "Public list prices are estimates, not a quote; associated Azure network services, data transfer, taxes, and future price changes require action-time review."
+  },
+  "currentExecution": {
+    "azureNetworkMutationExecuted": false,
+    "githubOrganizationCreated": false,
+    "githubPlanPurchased": false,
+    "repositoryTransferred": false,
+    "runnerCreated": false,
+    "storageFirewallMutationExecuted": false,
+    "workflowStateReadExecuted": false
+  },
+  "currentRepository": {
+    "checkedAt": "2026-09-01",
+    "defaultBranch": "main",
+    "organizationOwned": false,
+    "owner": "stratiosai",
+    "ownerType": "User",
+    "source": "github_api_read_only",
+    "visibility": "public"
+  },
+  "problem": {
+    "defaultDenyFirewallPreserved": true,
+    "endToEndWorkflowStateAccessProven": false,
+    "oidcProofCommit": "73ef5bd5e3251a95347aeb7449d4365745e4c5c4",
+    "oidcProofPassed": true,
+    "oidcProofRunId": 33513053687,
+    "stateDataActionsProven": true,
+    "workflowBlobReadBlockedByFirewall": true
+  },
+  "recommendation": {
+    "azureNetwork": {
+      "defaultAction": "Deny",
+      "dedicatedRunnerSubnet": true,
+      "githubNetworkSettingsRequired": true,
+      "inboundFromInternetAllowed": false,
+      "networkSecurityGroupRequired": true,
+      "privateEndpointDeferred": true,
+      "providerRegistrationRequired": "GitHub.Network",
+      "region": "eastus2",
+      "serviceEndpoint": "Microsoft.Storage",
+      "storageRuleScope": "exact_runner_subnet_only",
+      "trustedServiceBypassAllowed": false,
+      "vnetRequired": true
+    },
+    "github": {
+      "keepRepositoryPublic": true,
+      "largerRunnerRequired": true,
+      "maximumConcurrency": 1,
+      "organizationAccountRequired": true,
+      "organizationCandidate": "local-missions-hq",
+      "organizationCandidateStatus": "no_visible_account_not_reserved",
+      "plan": "Team",
+      "repositoryTransferRequired": true,
+      "runnerArchitecture": "x64",
+      "runnerCores": 2,
+      "runnerOperatingSystem": "Linux",
+      "runnerRepositoryAccess": "Creator-App-only",
+      "staticPublicIp": false
+    },
+    "id": "organization_team_larger_runner_azure_vnet_service_endpoint",
+    "ownerApprovalRequired": true,
+    "securityOutcome": "default_deny_exact_subnet_and_short_lived_oidc",
+    "supersedesAcceptedAdr": false
+  },
+  "rejectedAlternatives": [
+    {
+      "id": "standard_runner_global_ip_allowlist",
+      "reason": "GitHub publishes many weekly-changing ranges and recommends against using them as an internal-resource allowlist."
+    },
+    {
+      "id": "single_dynamic_runner_ip_rule",
+      "reason": "Standard-runner region is uncontrolled and Azure Storage IP rules do not work for same-region Azure service traffic."
+    },
+    {
+      "id": "self_hosted_runner_on_current_public_repository",
+      "reason": "GitHub says self-hosted runners should almost never serve public repositories because forked workflow code can compromise the host."
+    },
+    {
+      "id": "storage_all_networks",
+      "reason": "Opening the retained state endpoint to all networks weakens the accepted default-deny baseline and is unnecessary."
+    },
+    {
+      "id": "broad_trusted_services_bypass",
+      "reason": "GitHub-hosted runners are not an exact Storage trusted-resource boundary and broad bypass is wider than the required workflow path."
+    }
+  ],
+  "requiredApprovalGates": [
+    "approve-github-organization-name-and-repository-transfer",
+    "approve-github-team-recurring-cost-and-runner-minute-ceiling",
+    "preview-new-immutable-github-owner-and-repository-subjects",
+    "generate-and-review-retained-network-and-federation-saved-plan",
+    "approve-exact-retained-network-and-federation-plan",
+    "apply-and-reconcile-only-the-reviewed-retained-delta",
+    "approve-and-run-three-key-remote-state-proof",
+    "remove-temporary-operator-role-only-after-recovery-proof"
+  ],
+  "schemaVersion": 1,
+  "sourceReview": [
+    "https://docs.github.com/en/actions/reference/runners/github-hosted-runners",
+    "https://docs.github.com/en/actions/concepts/runners/larger-runners",
+    "https://docs.github.com/en/organizations/managing-organization-settings/about-azure-private-networking-for-github-hosted-runners-in-your-organization",
+    "https://docs.github.com/en/actions/reference/security/secure-use",
+    "https://learn.microsoft.com/en-us/azure/storage/common/storage-network-security-ip-address-range",
+    "https://learn.microsoft.com/en-us/azure/storage/common/storage-network-security-virtual-networks"
+  ]
+}

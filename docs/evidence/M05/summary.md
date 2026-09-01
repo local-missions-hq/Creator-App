@@ -1,10 +1,10 @@
 # M05 Azure foundation evidence
 
-Status: M5.4 exact 20-resource retained control plane applied and independently verified; no workload deployed
+Status: M5.4 live OIDC/ARM proof and local state-network architecture review passed; founder/billing decision pending and no workload deployed
 
 Date: 2026-09-01
 
-Checkpoint: `M05-control-plane-saved-plan-reviewed-021`
+Checkpoint: `M05-github-state-network-design-local-025`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
@@ -18,7 +18,8 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - Generated and independently reviewed the exact 20-resource retained control-plane plan after resolving its process-only monitored destination and GitHub reviewer inputs. The plan contained 20 creates, zero changes/deletes/replacements, and zero paid workload resources; its separately approved apply is now complete.
 - Applied the exact approved saved plan by SHA-256 before expiry. Terraform reported 20 added, zero changed, and zero destroyed. Independent live inventory and Terraform state proved the exact retained resources, an empty workload landing zone, `$100` budget, six alerts, and zero disposable workload resources.
 - Azure normalized the protected budget period to the current September billing year. The stale August defaults triggered a safe `prevent_destroy` refusal during verification; the source-only dates were corrected to match live Azure and a normal provider-backed plan then reported **No changes**.
-- Prepared the separately approved no-mutation GitHub OIDC/ARM proof with three protected environment jobs and full-commit-pinned Azure login. The state firewall remains unchanged; the jobs are pending human environment approval and an actual Blob read is intentionally expected to remain network-blocked.
+- Completed the separately approved no-mutation GitHub OIDC/ARM proof on commit `73ef5bd5e3251a95347aeb7449d4365745e4c5c4`. Plan, apply, and destroy jobs all exchanged their immutable-subject tokens, proved exact live ARM/data permissions and retained-control-group denial, confirmed the state firewall remained closed, and logged out successfully. No Terraform or Azure mutation command ran.
+- Reviewed current official GitHub and Azure network constraints after the proof. Standard-runner IP allowlisting, a dynamic runner-IP rule, a self-hosted runner on the public repository, all-networks Storage, and broad trusted-services bypass were rejected. Proposed an organization-scoped GitHub Team two-core larger runner in an exact East US 2 VNet subnet with maximum concurrency one, default-deny Storage, Entra-only access, and separate migration/apply gates; no organization, billing, transfer, runner, provider, network, or firewall change occurred.
 - The owner subsequently supplied the monitored destination and named the sole `stratiosai` collaborator as reviewer. Created all three main-only GitHub environments with required review and no administrator bypass, recorded the single-human self-review exception, and enabled immutable OIDC subjects without adding secrets or activating an Azure workflow.
 
 - Preserved the retained/disposable Terraform roots, exact AzureRM 5.0.1 package lock, static OIDC and saved-plan contracts, recovery contract, and non-deploying active CI while every external activation gate remains blocked.

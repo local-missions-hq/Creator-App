@@ -61,10 +61,11 @@ The checked-in defaults are ceilings for review, not an approved subscription qu
 5. Apply and migrate the approved state bootstrap. **Completed.**
 6. Supply the monitored alert destination and remaining M5.4 inputs, then plan and independently review the 20-resource retained control/landing-zone boundary, including three container-scoped state-backend role assignments. **Complete.**
 7. Obtain separate approval bound to the exact saved-plan SHA-256 and expiry, then apply and verify only that retained control plane. **Complete on 2026-09-01; 20 added, zero changed/destroyed, zero-change verification passed.**
-8. Approve and run a no-apply GitHub OIDC remote-state/access-policy proof before removing temporary operator state access. **Current gate.**
-9. Generate/review and separately approve/apply the 27-resource core, then build/scan/sign/push immutable images.
-10. Generate/review and separately approve/apply the three-Container-App activation delta.
-11. Test with synthetic data, capture evidence, and stop new writes.
-12. Review the exact stamped destroy target, destroy while attached without deleting the landing zone, then reconcile Terraform state and live Azure independently. Report **Disposable workload: empty** separately from **Retained control plane and landing zone: expected list**. Any orphan or mismatch is a teardown failure.
+8. Approve and run a no-apply GitHub OIDC access-policy proof before removing temporary operator state access. **Complete on 2026-09-01; all three identities passed, while the default-deny firewall correctly blocked the real Blob read.**
+9. Design, review, and separately approve a temporary least-privilege state-network exception and operator recovery path. Prove all three distinct state keys, remove the exception, reconcile default deny, then remove temporary operator access only if recovery remains viable. **Current gate.**
+10. Generate/review and separately approve/apply the 27-resource core, then build/scan/sign/push immutable images.
+11. Generate/review and separately approve/apply the three-Container-App activation delta.
+12. Test with synthetic data, capture evidence, and stop new writes.
+13. Review the exact stamped destroy target, destroy while attached without deleting the landing zone, then reconcile Terraform state and live Azure independently. Report **Disposable workload: empty** separately from **Retained control plane and landing zone: expected list**. Any orphan or mismatch is a teardown failure.
 
 Private networking remains deferred until the infrastructure and UI are functionally complete. The first ephemeral deployment still requires TLS, authentication, managed identity/RBAC, disabled anonymous Blob access, and narrow firewall allowlists.

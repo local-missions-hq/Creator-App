@@ -1,5 +1,5 @@
 {
-  "activationStatus": "github_oidc_arm_proof_ready_pending_environment_review",
+  "activationStatus": "github_oidc_arm_proof_passed_network_access_pending",
   "activeWorkflowPresent": true,
   "actionPolicy": {
     "azureLoginAction": "azure/login",
@@ -10,7 +10,7 @@
     "unpinnedActionsAllowed": false
   },
   "azureExecutionEnabled": true,
-  "checkpoint": "M05-github-oidc-arm-proof-ready-023",
+  "checkpoint": "M05-github-oidc-arm-proof-passed-024",
   "credentialContract": {
     "externalIdentifierVariables": ["AZURE_CLIENT_ID", "AZURE_SUBSCRIPTION_ID", "AZURE_TENANT_ID"],
     "forbiddenInputs": [
@@ -161,6 +161,16 @@
     "stateFirewallExpectedToBlockRunner": true,
     "terraformCommandsAllowed": [],
     "workflowDispatchOnly": true
+  },
+  "proofResult": {
+    "allIdentityJobsPassed": true,
+    "approvalCompleted": true,
+    "azureMutationCommandsExecuted": 0,
+    "conclusion": "success",
+    "headCommitSha": "73ef5bd5e3251a95347aeb7449d4365745e4c5c4",
+    "runId": 33513053687,
+    "stateBlobReadBlockedByFirewall": true,
+    "terraformCommandsExecuted": 0
   },
   "refusalScenarios": [
     "pull-request-event",

@@ -12,9 +12,9 @@ Cloud: Microsoft Azure
 
 Current milestone: **M5 — Azure development foundation and continuous delivery**
 
-Current checkpoint: **M05-github-oidc-arm-proof-ready-023**
+Current checkpoint: **M05-github-state-network-design-local-025**
 
-Next exact task: **Approve the three protected GitHub environment jobs and review the no-mutation OIDC/ARM proof results**
+Next exact task: **Approve or reject the `local-missions-hq` GitHub Team organization, public repository transfer, `$4/month` seat, and `$0.36` first-run runner ceiling; no account, billing, transfer, or Azure change before approval**
 
 Last updated: 2026-09-01
 
@@ -40,8 +40,8 @@ The former detailed build contract, verification protocols, and dated work entri
 | Product and domain | Founder-approved V1 contract, state machines, PostgreSQL migrations, API contracts, and synthetic workflows are implemented locally. | Production data behavior and provider-backed end-to-end operation. |
 | iOS | Shared Expo/React Native Creator and Business prototype builds and runs in Simulator with local adapters and automated UI evidence. | External Identity sign-in, Azure API connectivity, physical-iPhone VoiceOver, signed TestFlight build, and App Store release. |
 | Web/API/worker | Local dashboard, API, worker boundaries, authorization, audit, queue, upload, and recovery contracts exist. | Running Azure endpoints and production operations. |
-| Azure | Dedicated `Local Missions Development` subscription contains the applied three-resource retained-state bootstrap. Entra-backed remote state, Blob locking, versioning, and live security controls were independently verified. | The 20-resource control plane, disposable workload, immutable images, endpoints, and cloud tests. |
-| Identity | OIDC/PKCE, token verification, server session, role/workspace, and secretless workflow contracts pass locally. | Entra External ID tenant/app activation, real registrations, GitHub federation, and real-user sign-in. |
+| Azure | Dedicated `Local Missions Development` subscription contains the applied three-resource retained-state bootstrap and 20-resource retained control/landing-zone plane. The empty workload landing zone, budget, alerting, least-privilege workflow RBAC, remote state, locking, and live security controls were independently verified. | Disposable workload, immutable images, endpoints, cloud tests, and same-day teardown. |
+| Identity | OIDC/PKCE, token verification, server session, role/workspace, and secretless workflow contracts pass locally. Three protected GitHub environment identities successfully exchanged immutable-subject OIDC tokens and proved their exact live ARM/data permissions without mutation. | Entra External ID tenant/app activation, customer registrations, real-user sign-in, and end-to-end workflow state access through the default-deny network. |
 | Stripe | Ledger, funding, payout, refund, idempotency, reconciliation, and webhook behavior are modeled and tested locally with no provider contact. | Stripe test-mode Connect configuration, real test webhooks/transactions, live-mode approval, and real-money operation. |
 | Release | Local quality gates and Simulator evidence exist. | Physical-device release candidate, TestFlight, App Review, and controlled Orlando production launch. |
 
@@ -149,7 +149,13 @@ Goal: prove a reproducible, least-privilege Azure development deployment using s
 - [x] Obtain separate approval for the exact 20-resource plan.
 - [x] Apply only the reviewed control-plane plan and verify two retained resource groups, three identities, three federated credentials, two custom roles, five workload scoped assignments, three state-container assignments, one action group, and one budget. Azure normalized the protected budget period to September 1, 2026 through September 1, 2027; the local defaults were corrected and a normal provider-backed plan then proved zero changes.
 - [x] Obtain separate approval to activate a no-apply GitHub OIDC proof that each workflow identity receives only its intended environment subject, control command policy, remote-state access, and landing-zone permissions.
-- [ ] Approve and complete the three protected GitHub environment jobs. Prove OIDC token exchange, exact landing-zone ARM permissions, control-group denial, and state data-action assignment without Azure mutation. The actual Blob read remains blocked by the default-deny firewall until a separate temporary-network exception is approved.
+- [x] Approve and complete the three protected GitHub environment jobs. Prove OIDC token exchange, exact landing-zone ARM permissions, control-group denial, and state data-action assignment without Azure mutation. The actual Blob read remained blocked by the default-deny firewall as designed.
+- [x] Design and locally validate the least-privilege workflow state-network method and operator recovery sequence. Reject global/dynamic IP allowlists, all-networks mode, trusted-service bypass, and a self-hosted runner on the public repository; propose an organization-scoped GitHub Team larger runner in an exact East US 2 VNet subnet.
+- [ ] Approve or reject the currently unreserved `local-missions-hq` organization candidate, one GitHub Team seat at the current `$4/month` public price, transfer of the still-public repository, and a first-run 60-minute larger-runner ceiling of `$0.36`. The `$100` Azure budget does not authorize GitHub billing.
+- [ ] If approved, create only the organization/Team boundary first. Preview the new immutable owner/repository subjects and generate one retained federation/network migration saved plan; stop before transfer or apply.
+- [ ] Independently review and separately approve the exact federation/network saved plan, provider registration, retained resource count, security rules, and cost meters.
+- [ ] Apply only the reviewed retained delta, reconcile Azure, transfer the repository in the approved window, and configure a maximum-concurrency-one runner group restricted to `Creator-App`.
+- [ ] Prove all three workflow identities can use their distinct remote-state keys through only the approved temporary network exception, then remove that exception and independently reconcile the default-deny firewall.
 - [ ] Remove the temporary operator state-container role only after all three workflow identities prove remote-state access and an approved operator recovery path exists.
 - [ ] Prove plan cannot apply/delete, apply cannot delete, destroy cannot delete the landing-zone group, and delegated RBAC is limited to the five approved application data roles.
 

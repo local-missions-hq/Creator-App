@@ -23,6 +23,7 @@ const expectedContractPaths = [
   'config/azure-subscription-placement.v1.json',
   'config/azure-plan-readiness.v1.json',
   'config/azure-oidc-plan-gate.v1.json',
+  'config/github-state-network-gate.v1.json',
   'config/saved-plan-evidence.v1.json',
   'config/ephemeral-run-ledger.v1.json',
   'config/recovery-drill.v1.json',
@@ -32,6 +33,7 @@ const expectedContractPaths = [
 const expectedCoverageIds = [
   'terraform-roots-modules-and-mock-plans',
   'secretless-identity-and-command-policy',
+  'workflow-state-network-design',
   'saved-plan-producer-consumer-evidence',
   'apply-test-destroy-reconcile-lifecycle',
   'recovery-and-rollback-evidence',
@@ -50,6 +52,7 @@ const expectedExternalGateIds = [
   'image-build-scan-sign-and-push',
   'oidc-identities-and-environment-protection',
   'remote-state-backend-and-locking',
+  'workflow-state-network-access-and-operator-recovery',
   'provider-backed-saved-plan-review',
   'explicit-apply-approval',
   'ephemeral-apply-migrate-and-seed',
@@ -87,14 +90,17 @@ function assertUniqueExact(actual, expected, label) {
 function validateManifest(candidate) {
   assert(candidate.schemaVersion === 1, 'Preflight schema version drifted.');
   assert(
-    candidate.activationStatus === 'github_oidc_arm_proof_ready_pending_environment_review',
+    candidate.activationStatus === 'github_state_network_design_review_pending',
     'Activation status drifted.',
   );
-  assert(candidate.checkpoint === 'M05-github-oidc-arm-proof-ready-023', 'Checkpoint drifted.');
+  assert(
+    candidate.checkpoint === 'M05-github-state-network-design-local-025',
+    'Checkpoint drifted.',
+  );
   assert(candidate.milestoneComplete === false, 'M5 cannot be claimed complete locally.');
   assert(candidate.syntheticDataOnly === true, 'Only synthetic data is allowed.');
   assert(
-    candidate.nextBoundary === 'github_environment_human_approval_required',
+    candidate.nextBoundary === 'github_org_team_transfer_owner_approval_required',
     'Next boundary drifted.',
   );
   assert(candidate.verificationCommand === 'pnpm m5:preflight', 'Verification command drifted.');
@@ -131,7 +137,8 @@ function validateManifest(candidate) {
         'control_plane_saved_plan_reviewed_no_apply',
         'control_plane_applied_verified',
         'github_environments_configured_azure_execution_disabled',
-        'github_oidc_arm_proof_ready_pending_environment_review',
+        'github_oidc_arm_proof_passed_network_access_pending',
+        'proposal_review_pending_no_external_change',
       ].includes(contract.activationStatus),
       `${contract.path} activation status is not local-only.`,
     );
@@ -154,7 +161,7 @@ function validateManifest(candidate) {
     candidate.requiredArtifacts.length === new Set(candidate.requiredArtifacts).size,
     'Required artifacts contain a duplicate.',
   );
-  assert(candidate.requiredArtifacts.length === 17, 'Required artifact count drifted.');
+  assert(candidate.requiredArtifacts.length === 21, 'Required artifact count drifted.');
 
   assertUniqueExact(
     candidate.externalGates.map((gate) => gate.id),
@@ -170,14 +177,16 @@ function validateManifest(candidate) {
   for (const gate of candidate.externalGates) {
     const expectedStatus =
       gate.id === 'oidc-identities-and-environment-protection'
-        ? 'approved_proof_pending_environment_review'
-        : completedControlApplyGates.has(gate.id)
-          ? 'completed_for_control_plane_apply'
-          : completedControlPlanGates.has(gate.id)
-            ? 'completed_for_control_plane_plan'
-            : completedBootstrapGates.has(gate.id)
-              ? 'completed_for_retained_bootstrap'
-              : 'deferred';
+        ? 'completed_no_apply_proof'
+        : gate.id === 'workflow-state-network-access-and-operator-recovery'
+          ? 'design_complete_owner_approval_pending'
+          : completedControlApplyGates.has(gate.id)
+            ? 'completed_for_control_plane_apply'
+            : completedControlPlanGates.has(gate.id)
+              ? 'completed_for_control_plane_plan'
+              : completedBootstrapGates.has(gate.id)
+                ? 'completed_for_retained_bootstrap'
+                : 'deferred';
     assert(gate.status === expectedStatus, `${gate.id} status drifted.`);
     assert(gate.approvalRequired === true, `${gate.id} must require approval.`);
     assert(/^[a-z][a-z0-9_]+$/.test(gate.ownerRole), `${gate.id} owner role is missing.`);

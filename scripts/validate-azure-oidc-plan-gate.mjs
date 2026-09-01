@@ -16,13 +16,13 @@ function assert(condition, message) {
 
 function assertProofBoundary() {
   assert(
-    manifest.activationStatus === 'github_oidc_arm_proof_ready_pending_environment_review',
+    manifest.activationStatus === 'github_oidc_arm_proof_passed_network_access_pending',
     'OIDC activation status drifted.',
   );
   assert(manifest.activeWorkflowPresent === true, 'The approved OIDC proof workflow is missing.');
   assert(manifest.azureExecutionEnabled === true, 'OIDC proof execution is not recorded.');
   assert(
-    manifest.checkpoint === 'M05-github-oidc-arm-proof-ready-023',
+    manifest.checkpoint === 'M05-github-oidc-arm-proof-passed-024',
     'OIDC checkpoint identifier drifted.',
   );
 
@@ -246,6 +246,18 @@ function assertIdentityContracts() {
       proof.workflowDispatchOnly === true,
     'The no-apply OIDC proof boundary drifted.',
   );
+  const result = manifest.proofResult;
+  assert(
+    result.allIdentityJobsPassed === true &&
+      result.approvalCompleted === true &&
+      result.azureMutationCommandsExecuted === 0 &&
+      result.conclusion === 'success' &&
+      /^[0-9a-f]{40}$/.test(result.headCommitSha) &&
+      result.runId === 33513053687 &&
+      result.stateBlobReadBlockedByFirewall === true &&
+      result.terraformCommandsExecuted === 0,
+    'The live no-apply proof result drifted.',
+  );
 }
 
 function evaluateInvocation(invocation) {
@@ -380,5 +392,5 @@ assertIdentityContracts();
 const invocationCounts = assertInvocationPolicy();
 
 console.log(
-  `Azure OIDC proof gate passed for ${manifest.identities.length} distinct identities, ${invocationCounts.accepted} accepted command invocations, ${invocationCounts.refused} refusal scenarios, one inactive deployment template, and ${activeWorkflowCount} active workflows; only the no-mutation OIDC/ARM proof is enabled.`,
+  `Azure OIDC proof gate passed for ${manifest.identities.length} distinct identities, ${invocationCounts.accepted} accepted command invocations, ${invocationCounts.refused} refusal scenarios, one inactive deployment template, and ${activeWorkflowCount} active workflows; live run ${manifest.proofResult.runId} passed without Terraform or Azure mutation and state-network access remains pending.`,
 );

@@ -1,8 +1,8 @@
 # GitHub OIDC no-apply proof evidence
 
-Status: ready; three protected environment approvals pending
+Status: passed; three protected environment jobs completed without mutation
 Date: 2026-09-01
-Checkpoint: `M05-github-oidc-arm-proof-ready-023`
+Checkpoint: `M05-github-oidc-arm-proof-passed-024`
 
 ## Approved boundary
 
@@ -29,6 +29,18 @@ Each environment-approved job must:
 
 The last assertion is a security result, not proof of end-to-end remote-state access. A real Blob read from a GitHub-hosted runner requires separately approved temporary network access followed by removal and reconciliation.
 
-## Current gate
+## Result
 
-The workflow and environment variables are prepared but no job has run. The required human reviewer must approve all three protected environments after dispatch. No workload plan or apply is authorized.
+The owner approved all three protected environments in GitHub with the comment: “Approved only for the no-apply OIDC/ARM identity and permission proof on commit 73ef5bd. No Terraform, deployment, provider registration, or Azure resource mutation.” GitHub run [33513053687](https://github.com/stratiosai/Creator-App/actions/runs/33513053687) completed successfully on full commit `73ef5bd5e3251a95347aeb7449d4365745e4c5c4`:
+
+- plan identity proof: success in 16 seconds;
+- apply identity proof: success in 18 seconds; and
+- destroy identity proof: success in 21 seconds.
+
+Every job passed token exchange, exact-scope/effective-permission assertions, and explicit Azure CLI logout. The proof therefore establishes live immutable-subject federation, the expected enabled subscription, management and Storage audience token acquisition, exact retained landing-zone visibility, retained-control-group denial, the intended operation-specific ARM limits, and container-scoped Blob data actions.
+
+The expected state Blob read failed from each GitHub-hosted runner because the Storage firewall remains default-deny. This proves the network control remained closed; it does not prove end-to-end remote-state connectivity. A sanitized post-run inventory still showed exactly the three retained Local Missions resource groups, an empty workload landing zone, four tagged control/state resources, and four container-scoped `Storage Blob Data Contributor` assignments: the three workflow identities plus the temporary operator recovery assignment.
+
+## Next gate
+
+The local state-network review is recorded at checkpoint `M05-github-state-network-design-local-025`. The next owner gate is approval or rejection of the `local-missions-hq` GitHub Team organization, public repository transfer, recurring seat cost, and first-run larger-runner ceiling. Do not alter GitHub billing/ownership, the Storage firewall, federation, networking, RBAC, or workload state under the completed proof approval.
