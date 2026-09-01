@@ -5,6 +5,15 @@
 > log. It is historical context, not the active execution checklist. The authoritative
 > current roadmap and first unchecked task are in [`plans.md`](plans.md).
 
+### 2026-09-01 — Retained state Storage removed for owner-directed cost pause
+
+- Checkpoint: `M05-retained-state-cost-teardown-reconciled-036`.
+- Scope: Rejected the Azure CLI default because it belongs to the other project, uniquely targeted only the dedicated Local Missions subscription, and confirmed the disposable landing zone contained zero resources.
+- Recovery: Downloaded the current bootstrap and control-plane Terraform states to a private directory outside the repository, set both files to mode `0600`, validated Terraform state version 4 structure, and recorded their SHA-256 digests locally. No state content, account identifier, public IP, credential, or monitored address entered Git or chat.
+- Teardown: Deleted exactly the retained `Standard_LRS` Terraform-state Storage account, the only standing metered Local Missions resource. No Terraform command ran. No resource group, managed identity, action group, budget, custom role, provider registration, or other-project resource was deleted.
+- Reconciliation: Live Azure now contains zero workload resources and zero standing metered compute, database, registry, queue, telemetry, Key Vault, or Storage resources. The retained boundary consists of three empty resource groups, three managed identities, one email-only action group, the subscription budget, custom roles/RBAC, and registered providers. Remote Terraform state is intentionally unavailable.
+- Next exact task: When Azure work resumes, separately approve restoration of the hardened state bootstrap from the private backups and independently reconcile both retained roots before any workload plan or apply.
+
 Local Missions — iOS App Build and Verification Plan
 
 Working title: Local Missions

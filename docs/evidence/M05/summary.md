@@ -1,12 +1,16 @@
 # M05 Azure foundation evidence
 
-Status: M5.5 exact-six providers registered and read-only proof passed; no workload deployed
+Status: M5.5 owner-directed Azure cost pause; no workload deployed and remote Terraform state intentionally offline
 
 Date: 2026-09-01
 
-Checkpoint: `M05-workload-provider-registration-proof-passed-035`
+Checkpoint: `M05-retained-state-cost-teardown-reconciled-036`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
+
+## Current cost-pause state
+
+The owner instructed an immediate Azure cost teardown. Read-only discovery rejected the other-project CLI default, uniquely resolved the dedicated Local Missions subscription, and proved the disposable landing zone was already empty. The current bootstrap and control-plane Terraform states were copied to a private mode-`0600` recovery directory outside the repository and structurally validated. The sole metered retained-state `Standard_LRS` Storage account was then deleted directly and live inventory reconciled to zero Storage, compute, database, registry, queue, telemetry, Key Vault, or workload resources. Three empty retained resource groups, three managed identities, an email-only action group, budget, custom roles/RBAC, and provider registrations remain. No Terraform command ran, and remote Terraform state must be restored and reconciled before any future plan or apply.
 
 ## Implemented
 
