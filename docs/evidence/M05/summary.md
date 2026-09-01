@@ -1,10 +1,10 @@
 # M05 Azure foundation evidence
 
-Status: M5.5 read-only workload pre-plan review complete; blocked on six provider registrations and quota; no workload deployed
+Status: M5.5 exact-six provider-registration gate ready locally; awaiting approval; no workload deployed
 
 Date: 2026-09-01
 
-Checkpoint: `M05-workload-preplan-readonly-revalidation-033`
+Checkpoint: `M05-provider-registration-gate-local-034`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
@@ -15,6 +15,7 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - Added 43 V2 refusal mutations for false execution claims, phase ordering, root/backend/count drift, image mutability or missing security evidence, identity/approval/expiry drift, destructive non-destroy changes, retained-target deletion, skipped tests, nonzero teardown inventories, or secret-shaped evidence. No Terraform or Azure command runs in the validator.
 - Detected and rejected the other-project Azure CLI default, uniquely resolved the Local Missions subscription by its three retained tagged groups, and completed read-only current-IP, East US 2 resource-type, PostgreSQL capability, 17-meter price, official Node manifest/provenance, frozen lockfile, and tracked Docker-input revalidation without retaining account or IP values.
 - Stopped before mutation because six workload resource providers remain unregistered and subscription quota/capacity is therefore not proven. No workload plan may be generated until those exact registrations receive separate approval and the quota/capacity check is repeated.
+- Mapped all 17 active workload Terraform resource types to 11 provider namespaces and locally validated the exact-six registration boundary. The gate requires unique process-only subscription resolution, sequential explicit-subscription registration, unchanged non-target provider and retained-resource state, and a read-only post-registration usage/capability proof. It passed 24 refusal scenarios and ran no Azure or Terraform command.
 
 - Applied only the independently reviewed replacement three-resource bootstrap after rejecting the expired prior artifact; registered only `Microsoft.Storage` and preserved automatic provider registration as disabled.
 - Verified the retained resource group, hardened Standard LRS Storage account, and private state container against the default-deny network, Entra-default authentication, disabled Shared Key/local-user/anonymous access, TLS, encryption, versioning, recovery, tags, and destroy-protection contracts.

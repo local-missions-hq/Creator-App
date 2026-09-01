@@ -28,4 +28,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
       - run: node scripts/validate-azure-workload-preplan-revalidation.mjs
+      - run: node scripts/validate-azure-workload-provider-registration-gate.mjs
       - run: pnpm test:security

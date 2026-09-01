@@ -12,9 +12,9 @@ Cloud: Microsoft Azure
 
 Current milestone: **M5 — Azure development foundation and continuous delivery**
 
-Current checkpoint: **M05-workload-preplan-readonly-revalidation-033**
+Current checkpoint: **M05-provider-registration-gate-local-034**
 
-Next exact task: **Approve registration of exactly six required workload resource providers, then rerun subscription quota/capacity checks; no workload plan yet**
+Next exact task: **Approve registration of exactly six required workload resource providers, then run the defined read-only usage/capability proof; no workload plan yet**
 
 Last updated: 2026-09-01
 
@@ -170,6 +170,7 @@ Goal: prove a reproducible, least-privilege Azure development deployment using s
 - [x] Replace the historical single-plan evidence/run-ledger fixtures with an activation-valid V2 contract covering bootstrap, control plane, core, image publication, app activation, tests, destroy, and reconciliation.
 - [ ] Revalidate the Node base-image digest, dependency lockfiles, Docker build inputs, current public IP allowlist, low-cost SKUs, quota, and the selected `$2` two-hour smoke duration; use the `$5` eight-hour tier only after a separately recorded need.
   - [x] Complete the non-mutating portions: uniquely resolve the retained Local Missions subscription by tags, verify the current IPv4 rule without retaining the address, recheck 17 public meters with zero price drift, verify East US 2 resource-type/PostgreSQL capability, bind the official Node 24.19.0 `linux/amd64` manifest digest, and hash every tracked Docker build input.
+  - [x] Derive all 17 workload Terraform resource types, map them to the exact required provider namespaces, and locally validate a sequential exact-six registration gate with explicit-subscription targeting, drift refusal, and no Terraform or follow-on mutation.
   - [ ] Separately approve and register only `Microsoft.App`, `Microsoft.ContainerRegistry`, `Microsoft.DBforPostgreSQL`, `Microsoft.KeyVault`, `Microsoft.OperationalInsights`, and `Microsoft.ServiceBus`; then repeat subscription-specific quota/capacity checks. No registration or workload plan has run.
 - [ ] Generate and independently review a saved plan containing exactly the 27-resource workload core and no Container Apps; stop before apply.
 - [ ] Obtain separate approval for the exact core plan and cost ceiling.

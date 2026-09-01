@@ -538,3 +538,19 @@ PASS — the complete repository gate and the new 21-refusal sanitized pre-plan 
 
 pnpm test:security && pnpm test:gitleaks
 PASS — the high-confidence scan passed for 652 text files and Gitleaks found no leaks in approximately 17.89 MB.
+
+M05-provider-registration-gate-local-034 — 2026-09-01
+
+rg workload Terraform resource declarations and map provider namespaces
+PASS — found exactly 17 AzureRM resource types in the active development root/modules and mapped all of them to 11 required namespaces. Five are already registered and exactly six remain eligible for the separately approved registration action.
+
+node scripts/validate-azure-workload-provider-registration-gate.mjs
+PASS — the local exact-six gate passed 24 refusal scenarios covering target ambiguity, retained account/IP data, provider-list expansion/reordering, unregister/terms/parallel modes, missing explicit subscription/wait, resource inventory drift, false quota/capacity/execution claims, and Terraform/resource/image follow-on activation.
+
+No Azure CLI mutation or Terraform command ran. No provider was registered, no resource/provider/network/RBAC/budget state changed, and no image, Stripe, or iOS action occurred. The next gate remains explicit approval for the exact six sequential registrations and read-only post-registration proof; workload planning remains unauthorized.
+
+pnpm verify && both workload pre-plan validators
+PASS — formatting, architecture/policy gates, all three Terraform roots, workspace lint/type/test/contracts/build, 111 mobile tests, production bundles, the 21-refusal prior read-only record, and the new 24-refusal exact-six gate all passed under Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security && pnpm test:gitleaks
+PASS — the high-confidence scan passed for 655 text files and Gitleaks found no leaks in approximately 17.92 MB.

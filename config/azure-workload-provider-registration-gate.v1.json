@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "M05-provider-registration-gate-local-034",
+  "status": "locally_ready_awaiting_explicit_provider_registration_approval",
+  "target": {
+    "region": "eastus2",
+    "resolution": "unique-subscription-with-exactly-three-local-missions-tagged-resource-groups-and-no-other-resource-groups",
+    "trustAzureCliDefault": false,
+    "persistSubscriptionIdentifier": false,
+    "persistSubscriptionName": false,
+    "persistTenantIdentifier": false,
+    "expectedLocalMissionsResourceGroupCount": 3,
+    "expectedOtherResourceGroupCount": 0,
+    "expectedDisposableWorkloadResourceCount": 0
+  },
+  "terraformInventory": {
+    "roots": ["infra/terraform/environments/dev", "infra/terraform/modules"],
+    "resourceTypes": {
+      "azurerm_application_insights": "Microsoft.Insights",
+      "azurerm_container_app": "Microsoft.App",
+      "azurerm_container_app_environment": "Microsoft.App",
+      "azurerm_container_registry": "Microsoft.ContainerRegistry",
+      "azurerm_key_vault": "Microsoft.KeyVault",
+      "azurerm_log_analytics_workspace": "Microsoft.OperationalInsights",
+      "azurerm_postgresql_flexible_server": "Microsoft.DBforPostgreSQL",
+      "azurerm_postgresql_flexible_server_active_directory_administrator": "Microsoft.DBforPostgreSQL",
+      "azurerm_postgresql_flexible_server_database": "Microsoft.DBforPostgreSQL",
+      "azurerm_postgresql_flexible_server_firewall_rule": "Microsoft.DBforPostgreSQL",
+      "azurerm_resource_group": "Microsoft.Resources",
+      "azurerm_role_assignment": "Microsoft.Authorization",
+      "azurerm_servicebus_namespace": "Microsoft.ServiceBus",
+      "azurerm_servicebus_queue": "Microsoft.ServiceBus",
+      "azurerm_storage_account": "Microsoft.Storage",
+      "azurerm_storage_container": "Microsoft.Storage",
+      "azurerm_user_assigned_identity": "Microsoft.ManagedIdentity"
+    }
+  },
+  "providerRegistration": {
+    "exactMutationAllowlist": [
+      "Microsoft.App",
+      "Microsoft.ContainerRegistry",
+      "Microsoft.DBforPostgreSQL",
+      "Microsoft.KeyVault",
+      "Microsoft.OperationalInsights",
+      "Microsoft.ServiceBus"
+    ],
+    "alreadyRegisteredNoMutation": [
+      "Microsoft.Authorization",
+      "Microsoft.Insights",
+      "Microsoft.ManagedIdentity",
+      "Microsoft.Resources",
+      "Microsoft.Storage"
+    ],
+    "approvalRequired": true,
+    "approvalReceived": false,
+    "registrationExecuted": false,
+    "unregistrationAllowed": false,
+    "automaticTerraformRegistrationAllowed": false,
+    "acceptThirdPartyTermsAllowed": false,
+    "parallelRegistrationAllowed": false,
+    "waitForRegisteredState": true
+  },
+  "executionProcedure": {
+    "mode": "documented_not_executed",
+    "preconditions": [
+      "record-explicit-owner-approval-for-the-exact-six-namespace-allowlist",
+      "resolve-one-target-subscription-process-only-from-the-retained-tag-boundary",
+      "refuse-if-the-target-is-not-unique-or-contains-any-other-resource-group",
+      "refuse-if-the-disposable-workload-inventory-is-not-zero",
+      "refuse-if-the-current-public-ipv4-does-not-match-the-single-state-storage-rule",
+      "re-read-all-eleven-workload-provider-states-before-mutation"
+    ],
+    "registrationCommandShape": [
+      "az",
+      "provider",
+      "register",
+      "--namespace",
+      "<exact-allowlisted-namespace>",
+      "--subscription",
+      "<process-only-subscription-id>",
+      "--wait",
+      "--only-show-errors"
+    ],
+    "registrationOrder": [
+      "Microsoft.App",
+      "Microsoft.ContainerRegistry",
+      "Microsoft.DBforPostgreSQL",
+      "Microsoft.KeyVault",
+      "Microsoft.OperationalInsights",
+      "Microsoft.ServiceBus"
+    ],
+    "postconditions": [
+      "all-six-exact-targets-report-Registered",
+      "all-five-preexisting-provider-states-remain-Registered",
+      "no-nonallowlisted-provider-state-changed",
+      "three-retained-resource-groups-remain-and-workload-resource-count-remains-zero",
+      "state-storage-security-and-current-ipv4-rule-remain-unchanged",
+      "available-subscription-usage-location-sku-and-name-capability-checks-pass"
+    ]
+  },
+  "postRegistrationProof": {
+    "containerApps": {
+      "source": "https://learn.microsoft.com/en-us/rest/api/resource-manager/containerapps/usages/list",
+      "subscriptionRegionalUsageEndpointRequired": true,
+      "managedEnvironmentHeadroomRequired": 1
+    },
+    "postgresql": {
+      "serverVersion16Required": true,
+      "standardB1msRequired": true,
+      "storage32768MbRequired": true,
+      "capacityReservationClaimAllowed": false
+    },
+    "otherServices": {
+      "eastUs2ResourceTypeLocationRequired": true,
+      "currentWorkloadResourceCountRequired": 0,
+      "documentedLimitReviewRequired": true,
+      "globalNameAvailabilityDeferredToPlanTime": true
+    },
+    "subscriptionQuotaVerified": false,
+    "capacityGuaranteed": false,
+    "proofExecuted": false
+  },
+  "forbiddenActions": {
+    "terraformCommand": true,
+    "terraformPlan": true,
+    "terraformApply": true,
+    "terraformDestroy": true,
+    "resourceCreation": true,
+    "resourceUpdate": true,
+    "resourceDeletion": true,
+    "networkChange": true,
+    "roleChange": true,
+    "budgetChange": true,
+    "imagePullBuildScanSignOrPush": true,
+    "stripeContact": true,
+    "iosDeployment": true
+  },
+  "nextGate": {
+    "action": "Receive explicit approval, register only the exact six providers, and perform read-only post-registration proof",
+    "providerRegistrationApprovalRequired": true,
+    "workloadPlanAllowed": false,
+    "workloadApplyAllowed": false
+  }
+}

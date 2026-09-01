@@ -4616,3 +4616,13 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Availability: East US 2 resource-type records and PostgreSQL 16/B1ms/32 GiB capability passed. Subscription quota remains unproven because six workload providers are not registered.
 - Safety: No provider registration, Terraform command/plan, Azure mutation, image pull/build/push, workload cost, Stripe action, customer data, or iOS deployment occurred.
 - Next exact task: Obtain separate approval for exactly the six listed provider registrations, then rerun quota/capacity checks. Do not generate the workload-core plan yet.
+
+### 2026-09-01 — Exact-six provider-registration gate passed locally
+
+- Checkpoint: `M05-provider-registration-gate-local-034`.
+- Scope proof: Scanned the active development Terraform root and modules, mapped all 17 declared AzureRM resource types to 11 required provider namespaces, and isolated exactly six currently missing namespaces. `Microsoft.Resources` is explicitly covered as a required, already-registered namespace rather than silently omitted.
+- Safety contract: The future procedure must uniquely resolve the tagged Local Missions subscription process-only, refuse inventory/network/provider drift, register the exact six sequentially with explicit `--subscription` and `--wait`, and prove all other provider states and the retained boundary remain unchanged.
+- Post-registration proof: Defined a read-only Container Apps regional usage/headroom check, PostgreSQL 16/B1ms/32 GiB capability check, East US 2 location and documented-limit review, and zero-workload reconciliation. These checks do not claim a capacity reservation or guarantee.
+- Negative proof: The validator rejects expanded/reordered provider lists, default-subscription trust, account/IP retention, unregister/terms/parallel modes, missing wait or explicit subscription, Terraform/resource/image follow-on actions, and false quota/capacity/execution claims.
+- Safety: No provider registration, Terraform command, Azure mutation, image operation, Stripe action, customer data, or iOS deployment occurred.
+- Next exact task: Obtain explicit owner approval for the exact-six registration list. That approval authorizes only sequential provider registration plus the read-only post-registration proof; it does not authorize a Terraform plan or apply.
