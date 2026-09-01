@@ -1,8 +1,10 @@
 # Saved-plan evidence gate
 
-Status: historical V1 static synthetic contract; superseded for first deployment by the retained-foundation/two-phase plan contract
+Status: activation-valid V2 local contract; no workload plan or cloud execution claimed
 
-This historical gate proves digest, sanitization, producer/consumer, review, approval, and expiry mechanics for one synthetic apply and destroy plan. It does not create a plan, query Azure prices, approve cost, authenticate, initialize remote state, or authorize apply/destroy. It is not valid for the current first-deployment sequence because the disposable ACR must exist before immutable images can be published and the three Container Apps can be planned. The active local design is [`azure-retained-foundation-and-two-phase-plan.md`](./azure-retained-foundation-and-two-phase-plan.md); a V2 saved-plan evidence schema is required before Azure activation.
+The active V2 gate is [`../../config/saved-plan-evidence.v2.json`](../../config/saved-plan-evidence.v2.json). It models five separately approved Terraform operations: retained bootstrap, retained control plane, 27-resource workload core, three-resource application activation, and exact 30-resource workload destroy. It also binds the intervening three-image publication gate, eleven-test gate, and independent state/live reconciliation gate. Its checked fixture is synthetic contract data, so it does not create a plan, query Azure, approve cost, authenticate, initialize state, or authorize apply/destroy.
+
+The historical V1 contract remains checked as regression evidence, but it stays visibly blocked for activation because it models a single 31-resource apply. `pnpm saved-plan:check` now requires both the preserved V1 regression checks and the activation-valid V2 lifecycle checks to pass.
 
 ## Current local boundary
 
@@ -33,24 +35,24 @@ Actual Terraform plan files can contain sensitive values. A future binary plan m
 
 A SHA-256 digest proves that producer and consumer saw the same bytes; it does not make those bytes safe, prove the plan is correct, approve the cost, or authorize cloud mutation. Independent review must still inspect the sanitized changes, exact target, current cost source, expiry, and operation-specific risks.
 
-## Synthetic proof
+## V2 local proof
 
-`pnpm saved-plan:check` currently proves:
+`pnpm saved-plan:check` now proves:
 
-- one valid synthetic apply producer-consumer path;
-- one valid synthetic destroy producer-consumer path;
-- all eight evidence fields required by the OIDC command contract;
-- exact cross-contract binding to the Terraform root, state key, provider lock, 28-resource inventory, identities, environments, commands, and same-day time policy;
-- forty-three refusal scenarios for schema, artifact, digest, source, target, identity, command, sanitization, cost, review, approval, expiry, and producer-consumer drift; and
+- the preserved V1 apply/destroy regression paths remain synthetic and activation-blocked;
+- five ordered V2 saved-plan operations bind the three Terraform roots, exact state keys, producer/consumer identities, approvals, digests, expiry, and transient deletion;
+- the core remains exactly 27 resources with zero Container Apps, activation adds exactly three Container Apps after all immutable images pass scan/signature/provenance checks, and destroy targets exactly 30 disposable resources with zero retained targets;
+- all eleven critical test gates must pass before destroy and both Terraform state and independently queried live disposable inventory must reconcile to zero; and
+- forty-three V2 refusal mutations cover ordering, counts, images, identities, expiry, tests, destroy scope, reconciliation, secret-shaped evidence, and false execution claims; and
 - zero checked-in Terraform plan/state artifacts.
 
-## Future V2 activation gate
+## Live evidence boundary
 
-Do not turn a fixture status into a live claim. A separately approved checkpoint must version the schema and then:
+Do not turn the V2 fixture status into a live claim. Each real phase must independently:
 
 1. lift the no-Azure boundary for a read-only plan probe only;
 2. approve the subscription, exact scopes, owners, immutable GitHub subjects, OIDC identities, backend, budget, monitored alerts, region/SKUs, and current pricing source;
-3. produce separate subscription-backed saved plans for retained bootstrap, the 20-resource retained control/landing-zone plane, the 27-resource workload core, three-app activation, and destroy as each operation becomes eligible;
+3. use the already retained bootstrap/control evidence or produce separate subscription-backed saved plans for the 27-resource workload core, three-app activation, and destroy only as each operation becomes eligible;
 4. sanitize summaries and record real source/target/cost metadata without exposing the binary or credentials;
 5. independently review the commit, artifact digest, change inventory, exact target, cost ceiling, and expiry;
 6. record explicit operation-specific approval bound to the review-payload digest; and

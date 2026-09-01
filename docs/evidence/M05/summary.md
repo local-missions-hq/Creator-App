@@ -1,14 +1,18 @@
 # M05 Azure foundation evidence
 
-Status: M5.4 complete through live workflow-RBAC negative proof; local-operator state path retained; no workload deployed
+Status: M5.5 V2 activation lifecycle contract complete locally; local-operator state path retained; no workload deployed
 
 Date: 2026-09-01
 
-Checkpoint: `M05-workflow-rbac-negative-proof-passed-031`
+Checkpoint: `M05-activation-lifecycle-contract-local-032`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
 ## Implemented
+
+- Replaced the historical single-apply activation assumption with V2 saved-plan and run-ledger contracts covering five separately bound Terraform operations, three non-Terraform gates, and twelve ordered success states from retained verification through independent teardown reconciliation. Historical V1 fixtures remain regression-only and activation-blocked.
+- Added synthetic V2 fixtures that require a 27-resource core with no Container Apps, three commit-bound immutable image digests with scan/signature/provenance success, a three-app activation reaching 30 disposable resources, all eleven critical tests, exact 30-resource destroy with zero retained targets, and independent zero state/live reconciliation.
+- Added 43 V2 refusal mutations for false execution claims, phase ordering, root/backend/count drift, image mutability or missing security evidence, identity/approval/expiry drift, destructive non-destroy changes, retained-target deletion, skipped tests, nonzero teardown inventories, or secret-shaped evidence. No Terraform or Azure command runs in the validator.
 
 - Applied only the independently reviewed replacement three-resource bootstrap after rejecting the expired prior artifact; registered only `Microsoft.Storage` and preserved automatic provider registration as disabled.
 - Verified the retained resource group, hardened Standard LRS Storage account, and private state container against the default-deny network, Entra-default authentication, disabled Shared Key/local-user/anonymous access, TLS, encryption, versioning, recovery, tags, and destroy-protection contracts.
@@ -141,11 +145,15 @@ Recovery-drill machine contract: [`../../../config/recovery-drill.v1.json`](../.
 
 Recovery-drill operations gate: [`../../operations/recovery-drill-gate.md`](../../operations/recovery-drill-gate.md)
 
-Run-ledger machine contract: [`../../../config/ephemeral-run-ledger.v1.json`](../../../config/ephemeral-run-ledger.v1.json)
+Active run-ledger machine contract: [`../../../config/ephemeral-run-ledger.v2.json`](../../../config/ephemeral-run-ledger.v2.json)
+
+Historical run-ledger regression contract: [`../../../config/ephemeral-run-ledger.v1.json`](../../../config/ephemeral-run-ledger.v1.json)
 
 Run-ledger operations gate: [`../../operations/ephemeral-run-ledger-gate.md`](../../operations/ephemeral-run-ledger-gate.md)
 
-Saved-plan machine contract: [`../../../config/saved-plan-evidence.v1.json`](../../../config/saved-plan-evidence.v1.json)
+Active saved-plan machine contract: [`../../../config/saved-plan-evidence.v2.json`](../../../config/saved-plan-evidence.v2.json)
+
+Historical saved-plan regression contract: [`../../../config/saved-plan-evidence.v1.json`](../../../config/saved-plan-evidence.v1.json)
 
 Saved-plan operations gate: [`../../operations/saved-plan-evidence-gate.md`](../../operations/saved-plan-evidence-gate.md)
 

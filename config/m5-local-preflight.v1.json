@@ -1,6 +1,6 @@
 {
-  "activationStatus": "workflow_rbac_negative_proof_passed_before_workload_planning",
-  "checkpoint": "M05-workflow-rbac-negative-proof-passed-031",
+  "activationStatus": "activation_lifecycle_v2_contract_ready_before_workload_planning",
+  "checkpoint": "M05-activation-lifecycle-contract-local-032",
   "currentExecution": {
     "azureAuthenticated": true,
     "azureReadOnlyInventoryExecuted": true,
@@ -32,14 +32,14 @@
       "proofClass": "local_architecture_and_cost_review"
     },
     {
-      "evidence": "config/saved-plan-evidence.v1.json",
+      "evidence": "config/saved-plan-evidence.v2.json",
       "id": "saved-plan-producer-consumer-evidence",
-      "proofClass": "synthetic_contract"
+      "proofClass": "activation_valid_schema_with_synthetic_fixture"
     },
     {
-      "evidence": "config/ephemeral-run-ledger.v1.json",
+      "evidence": "config/ephemeral-run-ledger.v2.json",
       "id": "apply-test-destroy-reconcile-lifecycle",
-      "proofClass": "synthetic_state_machine"
+      "proofClass": "activation_valid_state_machine_with_synthetic_fixture"
     },
     {
       "evidence": "config/recovery-drill.v1.json",
@@ -111,6 +111,18 @@
       "path": "config/ephemeral-run-ledger.v1.json"
     },
     {
+      "activationStatus": "activation_valid_contract_local_only",
+      "checkpoint": "M05-activation-lifecycle-contract-local-032",
+      "command": "pnpm saved-plan:check",
+      "path": "config/saved-plan-evidence.v2.json"
+    },
+    {
+      "activationStatus": "activation_valid_contract_local_only",
+      "checkpoint": "M05-activation-lifecycle-contract-local-032",
+      "command": "pnpm run-ledger:check",
+      "path": "config/ephemeral-run-ledger.v2.json"
+    },
+    {
       "activationStatus": "synthetic_contract_only",
       "checkpoint": "M05-recovery-drill-contract-local-007",
       "command": "pnpm recovery-drill:check",
@@ -124,11 +136,13 @@
     }
   ],
   "milestoneComplete": false,
-  "nextBoundary": "activation_valid_v2_lifecycle_contract_required",
+  "nextBoundary": "current_ip_sku_quota_cost_and_base_image_revalidation_required",
   "requiredArtifacts": [
     ".github/workflows/azure-oidc-proof.yml",
     ".github/workflows/verify.yml",
     "config/github-state-network-gate.v1.json",
+    "config/saved-plan-evidence.v2.json",
+    "config/ephemeral-run-ledger.v2.json",
     "infra/terraform/control-plane/main.tf",
     "infra/terraform/environments/dev/main.tf",
     "infra/terraform/ci/azure-workload-identity.workflow.yml.example",
@@ -147,7 +161,8 @@
     "docs/evidence/M05/commands.txt",
     "docs/decisions/ADR-060.md",
     "docs/decisions/ADR-061.md",
-    "scripts/validate-github-state-network-gate.mjs"
+    "scripts/validate-github-state-network-gate.mjs",
+    "scripts/validate-activation-lifecycle-v2.mjs"
   ],
   "externalGates": [
     {
@@ -211,7 +226,7 @@
       "evidenceRequired": "temporary least-privilege state-network method and viable operator recovery path",
       "id": "workflow-state-network-access-and-operator-recovery",
       "ownerRole": "security_reviewer",
-      "status": "post_transfer_subject_correction_plan_reviewed_owner_approval_pending"
+      "status": "completed_with_default_deny_blob_refusal_and_local_operator_recovery_retained"
     },
     {
       "approvalRequired": true,

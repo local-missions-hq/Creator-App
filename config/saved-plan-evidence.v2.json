@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 2,
+  "checkpoint": "M05-activation-lifecycle-contract-local-032",
+  "activationStatus": "activation_valid_contract_local_only",
+  "activationUseAllowed": true,
+  "cloudExecutionClaimed": false,
+  "fixtureStatus": "synthetic_contract_test_only",
+  "fixture": "config/fixtures/saved-plan-evidence-v2/lifecycle.valid.json",
+  "digestAlgorithm": "sha256",
+  "repository": "local-missions-hq/Creator-App",
+  "allowedRef": "refs/heads/main",
+  "retention": {
+    "binaryPlanInRepositoryAllowed": false,
+    "binaryPlanInRetainedEvidenceAllowed": false,
+    "manifestMayContainSecrets": false,
+    "maximumTransientArtifactHours": 8,
+    "consumerMustDeleteTransientCopy": true,
+    "requiredTimeZone": "America/New_York",
+    "cutoffHourAmericaNewYork": 23,
+    "warningMinutes": 60
+  },
+  "operations": [
+    {
+      "id": "retained-state-bootstrap",
+      "terraformRoot": "infra/terraform/bootstrap",
+      "backendKey": "local-missions/bootstrap.tfstate",
+      "resourceClass": "retained",
+      "expectedPlan": { "create": 3, "update": 0, "delete": 0, "resultingCount": 3 },
+      "approvalKind": "bootstrap_apply",
+      "producerIdentity": "local-operator",
+      "consumerIdentity": "local-operator",
+      "prerequisites": []
+    },
+    {
+      "id": "retained-control-plane",
+      "terraformRoot": "infra/terraform/control-plane",
+      "backendKey": "local-missions/control-plane.tfstate",
+      "resourceClass": "retained",
+      "expectedPlan": { "create": 20, "update": 0, "delete": 0, "resultingCount": 20 },
+      "approvalKind": "control_plane_apply",
+      "producerIdentity": "local-operator",
+      "consumerIdentity": "local-operator",
+      "prerequisites": ["retained-state-bootstrap"]
+    },
+    {
+      "id": "workload-core",
+      "terraformRoot": "infra/terraform/environments/dev",
+      "backendKey": "local-missions/dev-workload.tfstate",
+      "resourceClass": "disposable",
+      "expectedPlan": { "create": 27, "update": 0, "delete": 0, "resultingCount": 27 },
+      "approvalKind": "core_apply",
+      "producerIdentity": "AZURE_PLAN_CLIENT_ID",
+      "consumerIdentity": "AZURE_APPLY_CLIENT_ID",
+      "prerequisites": ["retained-control-plane"]
+    },
+    {
+      "id": "application-activation",
+      "terraformRoot": "infra/terraform/environments/dev",
+      "backendKey": "local-missions/dev-workload.tfstate",
+      "resourceClass": "disposable",
+      "expectedPlan": { "create": 3, "update": 0, "delete": 0, "resultingCount": 30 },
+      "approvalKind": "application_activation_apply",
+      "producerIdentity": "AZURE_PLAN_CLIENT_ID",
+      "consumerIdentity": "AZURE_APPLY_CLIENT_ID",
+      "prerequisites": ["workload-core", "immutable-image-publication"]
+    },
+    {
+      "id": "workload-destroy",
+      "terraformRoot": "infra/terraform/environments/dev",
+      "backendKey": "local-missions/dev-workload.tfstate",
+      "resourceClass": "disposable",
+      "expectedPlan": { "create": 0, "update": 0, "delete": 30, "resultingCount": 0 },
+      "approvalKind": "workload_destroy",
+      "producerIdentity": "AZURE_DESTROY_CLIENT_ID",
+      "consumerIdentity": "AZURE_DESTROY_CLIENT_ID",
+      "prerequisites": ["cloud-test-suite"]
+    }
+  ],
+  "nonTerraformGates": [
+    {
+      "id": "immutable-image-publication",
+      "requiredImageIds": ["api", "dashboard", "worker"],
+      "requiresExactCommit": true,
+      "requiresImmutableDigest": true,
+      "requiresScan": true,
+      "requiresSignature": true,
+      "requiresProvenance": true,
+      "prerequisites": ["workload-core"]
+    },
+    {
+      "id": "cloud-test-suite",
+      "requiredTests": [
+        "smoke",
+        "integration",
+        "e2e",
+        "authorization",
+        "upload",
+        "queue",
+        "webhook",
+        "backup_restore",
+        "reconciliation",
+        "dashboard",
+        "environment_isolation"
+      ],
+      "prerequisites": ["application-activation"]
+    },
+    {
+      "id": "independent-reconciliation",
+      "requiresTerraformStateQuery": true,
+      "requiresLiveAzureQuery": true,
+      "expectedDisposableStateCount": 0,
+      "expectedDisposableLiveCount": 0,
+      "retainedLandingZoneRequired": true,
+      "prerequisites": ["workload-destroy"]
+    }
+  ],
+  "requiredPlanEvidence": [
+    "source_commit_sha",
+    "terraform_plan_sha256",
+    "sanitized_text_plan",
+    "sanitized_json_summary",
+    "approved_cost_summary",
+    "expires_at",
+    "exact_target_root",
+    "exact_target_resource_group",
+    "provider_lock_sha256",
+    "source_set_sha256",
+    "review_payload_sha256"
+  ],
+  "refusalScenarios": [
+    "activation-claim",
+    "live-fixture-claim",
+    "operation-order-drift",
+    "root-or-backend-drift",
+    "resource-count-drift",
+    "core-contains-container-app",
+    "activation-before-images",
+    "missing-image",
+    "mutable-image-reference",
+    "unscanned-image",
+    "unsigned-image",
+    "image-commit-mismatch",
+    "plan-artifact-digest-mismatch",
+    "review-payload-digest-mismatch",
+    "self-approval",
+    "consumer-identity-drift",
+    "consumer-before-approval",
+    "expired-consumption",
+    "destructive-nondestroy-plan",
+    "destroy-retained-target",
+    "missing-test-gate",
+    "destroy-before-tests",
+    "missing-state-reconciliation",
+    "missing-live-reconciliation",
+    "nonzero-disposable-reconciliation",
+    "secret-shaped-evidence",
+    "checked-in-plan-or-state"
+  ]
+}

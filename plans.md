@@ -12,9 +12,9 @@ Cloud: Microsoft Azure
 
 Current milestone: **M5 — Azure development foundation and continuous delivery**
 
-Current checkpoint: **M05-workflow-rbac-negative-proof-passed-031**
+Current checkpoint: **M05-activation-lifecycle-contract-local-032**
 
-Next exact task: **Replace historical single-plan/run-ledger fixtures with an activation-valid V2 lifecycle contract; no workload plan or apply yet**
+Next exact task: **Revalidate the current public IPv4, Node base-image digest, lockfiles, Docker inputs, East US 2 SKUs/quota/prices, and the selected `$2` two-hour ceiling; no workload plan yet**
 
 Last updated: 2026-09-01
 
@@ -167,7 +167,7 @@ Goal: prove a reproducible, least-privilege Azure development deployment using s
 
 ### M5.5 — Disposable workload core and immutable images
 
-- [ ] Replace the historical single-plan evidence/run-ledger fixtures with an activation-valid V2 contract covering bootstrap, control plane, core, image publication, app activation, tests, destroy, and reconciliation.
+- [x] Replace the historical single-plan evidence/run-ledger fixtures with an activation-valid V2 contract covering bootstrap, control plane, core, image publication, app activation, tests, destroy, and reconciliation.
 - [ ] Revalidate the Node base-image digest, dependency lockfiles, Docker build inputs, current public IP allowlist, low-cost SKUs, quota, and the selected `$2` two-hour smoke duration; use the `$5` eight-hour tier only after a separately recorded need.
 - [ ] Generate and independently review a saved plan containing exactly the 27-resource workload core and no Container Apps; stop before apply.
 - [ ] Obtain separate approval for the exact core plan and cost ceiling.

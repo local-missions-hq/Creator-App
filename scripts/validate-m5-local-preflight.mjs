@@ -26,6 +26,8 @@ const expectedContractPaths = [
   'config/github-state-network-gate.v1.json',
   'config/saved-plan-evidence.v1.json',
   'config/ephemeral-run-ledger.v1.json',
+  'config/saved-plan-evidence.v2.json',
+  'config/ephemeral-run-ledger.v2.json',
   'config/recovery-drill.v1.json',
   'config/container-image-contract.v1.json',
 ];
@@ -90,17 +92,18 @@ function assertUniqueExact(actual, expected, label) {
 function validateManifest(candidate) {
   assert(candidate.schemaVersion === 1, 'Preflight schema version drifted.');
   assert(
-    candidate.activationStatus === 'workflow_rbac_negative_proof_passed_before_workload_planning',
+    candidate.activationStatus ===
+      'activation_lifecycle_v2_contract_ready_before_workload_planning',
     'Activation status drifted.',
   );
   assert(
-    candidate.checkpoint === 'M05-workflow-rbac-negative-proof-passed-031',
+    candidate.checkpoint === 'M05-activation-lifecycle-contract-local-032',
     'Checkpoint drifted.',
   );
   assert(candidate.milestoneComplete === false, 'M5 cannot be claimed complete locally.');
   assert(candidate.syntheticDataOnly === true, 'Only synthetic data is allowed.');
   assert(
-    candidate.nextBoundary === 'activation_valid_v2_lifecycle_contract_required',
+    candidate.nextBoundary === 'current_ip_sku_quota_cost_and_base_image_revalidation_required',
     'Next boundary drifted.',
   );
   assert(candidate.verificationCommand === 'pnpm m5:preflight', 'Verification command drifted.');
@@ -140,6 +143,7 @@ function validateManifest(candidate) {
         'post_transfer_oidc_subject_mismatch_correction_plan_reviewed',
         'post_transfer_oidc_correction_plan_reviewed_no_apply',
         'post_transfer_oidc_proof_passed_local_operator_state_retained',
+        'activation_valid_contract_local_only',
       ].includes(contract.activationStatus),
       `${contract.path} activation status is not local-only.`,
     );
@@ -162,7 +166,7 @@ function validateManifest(candidate) {
     candidate.requiredArtifacts.length === new Set(candidate.requiredArtifacts).size,
     'Required artifacts contain a duplicate.',
   );
-  assert(candidate.requiredArtifacts.length === 22, 'Required artifact count drifted.');
+  assert(candidate.requiredArtifacts.length === 25, 'Required artifact count drifted.');
 
   assertUniqueExact(
     candidate.externalGates.map((gate) => gate.id),
@@ -180,7 +184,7 @@ function validateManifest(candidate) {
       gate.id === 'oidc-identities-and-environment-protection'
         ? 'completed_no_apply_proof'
         : gate.id === 'workflow-state-network-access-and-operator-recovery'
-          ? 'post_transfer_subject_correction_plan_reviewed_owner_approval_pending'
+          ? 'completed_with_default_deny_blob_refusal_and_local_operator_recovery_retained'
           : completedControlApplyGates.has(gate.id)
             ? 'completed_for_control_plane_apply'
             : completedControlPlanGates.has(gate.id)
@@ -232,17 +236,30 @@ function loadContracts() {
   return {
     images: readJson('config/container-image-contract.v1.json'),
     ledger: readJson('config/ephemeral-run-ledger.v1.json'),
+    ledgerV2: readJson('config/ephemeral-run-ledger.v2.json'),
     oidc: readJson('config/azure-oidc-plan-gate.v1.json'),
     placement: readJson('config/azure-subscription-placement.v1.json'),
     readiness: readJson('config/azure-plan-readiness.v1.json'),
     recovery: readJson('config/recovery-drill.v1.json'),
     savedPlan: readJson('config/saved-plan-evidence.v1.json'),
+    savedPlanV2: readJson('config/saved-plan-evidence.v2.json'),
     terraform: readJson('config/terraform-foundation.v1.json'),
   };
 }
 
 function validateCrossContractCoherence(contracts) {
-  const { images, ledger, oidc, placement, readiness, recovery, savedPlan, terraform } = contracts;
+  const {
+    images,
+    ledger,
+    ledgerV2,
+    oidc,
+    placement,
+    readiness,
+    recovery,
+    savedPlan,
+    savedPlanV2,
+    terraform,
+  } = contracts;
 
   const resourceCount = terraform.workloadResourceInventory.total;
   assert(
@@ -258,6 +275,26 @@ function validateCrossContractCoherence(contracts) {
     ledger.inventoryContract.expectedDisposableTotalBeforeDestroy === 31 &&
       ledger.supersededForActivationBy === terraform.checkpoint,
     'Historical run-ledger evidence must remain visibly superseded by the current contract.',
+  );
+  assert(
+    savedPlanV2.checkpoint === manifest.checkpoint &&
+      ledgerV2.checkpoint === manifest.checkpoint &&
+      savedPlanV2.activationStatus === 'activation_valid_contract_local_only' &&
+      ledgerV2.activationStatus === 'activation_valid_contract_local_only' &&
+      savedPlanV2.activationUseAllowed === true &&
+      ledgerV2.activationUseAllowed === true &&
+      savedPlanV2.cloudExecutionClaimed === false &&
+      ledgerV2.cloudExecutionClaimed === false,
+    'Activation-valid V2 contracts drifted or overclaimed execution.',
+  );
+  assert(
+    savedPlanV2.operations.find(({ id }) => id === 'workload-core')?.expectedPlan.create ===
+      terraform.workloadCoreResourceInventory.total &&
+      savedPlanV2.operations.find(({ id }) => id === 'application-activation')?.expectedPlan
+        .resultingCount === terraform.workloadResourceInventory.total &&
+      savedPlanV2.operations.find(({ id }) => id === 'workload-destroy')?.expectedPlan.delete ===
+        terraform.workloadResourceInventory.total,
+    'V2 core/activation/destroy counts drifted from Terraform.',
   );
   assert(
     placement.checkpoint === terraform.checkpoint && readiness.checkpoint === terraform.checkpoint,
@@ -290,6 +327,20 @@ function validateCrossContractCoherence(contracts) {
     assert(
       oidcEnvironments.has(operation.consumerEnvironment),
       'Saved-plan consumer drifted from OIDC.',
+    );
+  }
+  for (const operation of savedPlanV2.operations.slice(2)) {
+    assert(
+      oidc.identities.some(
+        ({ identityReferenceVariable }) => identityReferenceVariable === operation.producerIdentity,
+      ),
+      'V2 saved-plan producer drifted from OIDC.',
+    );
+    assert(
+      oidc.identities.some(
+        ({ identityReferenceVariable }) => identityReferenceVariable === operation.consumerIdentity,
+      ),
+      'V2 saved-plan consumer drifted from OIDC.',
     );
   }
 

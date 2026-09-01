@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 2,
+  "fixtureStatus": "synthetic_contract_test_only",
+  "runId": "synthetic:activation-run:complete:001",
+  "sourceCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "startedAt": "2026-09-01T08:00:00-04:00",
+  "expiresAt": "2026-09-01T16:00:00-04:00",
+  "warningAt": "2026-09-01T15:00:00-04:00",
+  "endedAt": "2026-09-01T14:15:00-04:00",
+  "operationBindings": {
+    "retained-state-bootstrap": "1111111111111111111111111111111111111111111111111111111111111111",
+    "retained-control-plane": "1222222222222222222222222222222222222222222222222222222222222222",
+    "workload-core": "1333333333333333333333333333333333333333333333333333333333333333",
+    "application-activation": "1444444444444444444444444444444444444444444444444444444444444444",
+    "workload-destroy": "1555555555555555555555555555555555555555555555555555555555555555"
+  },
+  "events": [
+    {
+      "sequence": 1,
+      "state": "retained_state_verified",
+      "at": "2026-09-01T08:05:00-04:00",
+      "evidenceRef": "synthetic:evidence:bootstrap:001"
+    },
+    {
+      "sequence": 2,
+      "state": "retained_control_verified",
+      "at": "2026-09-01T08:35:00-04:00",
+      "evidenceRef": "synthetic:evidence:control:001"
+    },
+    {
+      "sequence": 3,
+      "state": "core_plan_approved",
+      "at": "2026-09-01T09:10:00-04:00",
+      "evidenceRef": "synthetic:evidence:core-plan:001"
+    },
+    {
+      "sequence": 4,
+      "state": "core_apply_verified",
+      "at": "2026-09-01T09:45:00-04:00",
+      "evidenceRef": "synthetic:evidence:core-apply:001"
+    },
+    {
+      "sequence": 5,
+      "state": "images_verified",
+      "at": "2026-09-01T10:50:00-04:00",
+      "evidenceRef": "synthetic:evidence:images:001"
+    },
+    {
+      "sequence": 6,
+      "state": "activation_plan_approved",
+      "at": "2026-09-01T11:10:00-04:00",
+      "evidenceRef": "synthetic:evidence:activation-plan:001"
+    },
+    {
+      "sequence": 7,
+      "state": "activation_apply_verified",
+      "at": "2026-09-01T11:45:00-04:00",
+      "evidenceRef": "synthetic:evidence:activation-apply:001"
+    },
+    {
+      "sequence": 8,
+      "state": "tests_passed",
+      "at": "2026-09-01T12:45:00-04:00",
+      "evidenceRef": "synthetic:evidence:tests:001"
+    },
+    {
+      "sequence": 9,
+      "state": "destroy_plan_approved",
+      "at": "2026-09-01T13:10:00-04:00",
+      "evidenceRef": "synthetic:evidence:destroy-plan:001"
+    },
+    {
+      "sequence": 10,
+      "state": "destroy_apply_verified",
+      "at": "2026-09-01T13:50:00-04:00",
+      "evidenceRef": "synthetic:evidence:destroy:001"
+    },
+    {
+      "sequence": 11,
+      "state": "reconciled_clean",
+      "at": "2026-09-01T14:05:00-04:00",
+      "evidenceRef": "synthetic:evidence:reconcile:001"
+    },
+    {
+      "sequence": 12,
+      "state": "complete",
+      "at": "2026-09-01T14:15:00-04:00",
+      "evidenceRef": "synthetic:evidence:report:001"
+    }
+  ],
+  "observedCounts": {
+    "coreAfterApply": 27,
+    "activatedAfterApply": 30,
+    "destroyedDisposable": 30,
+    "retainedDestroyed": 0,
+    "stateAfterDestroy": 0,
+    "liveAfterDestroy": 0
+  },
+  "imageIds": ["api", "dashboard", "worker"],
+  "testStatus": "passed",
+  "reconciliationActors": {
+    "terraformState": "synthetic:actor:state-reconciler",
+    "liveAzure": "synthetic:actor:live-reconciler"
+  },
+  "orphanRefs": [],
+  "incident": null,
+  "terminalState": "complete",
+  "ledgerDigestSha256": "4356b26b11c90a7e8a40240f0fd79ac96c8c64cf9fe1fd84e7bd54abbd7931ea"
+}

@@ -4599,3 +4599,11 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Delegation proof: Both landing-zone RBAC administrator assignments use condition version `2.0`, accept only ServicePrincipal recipients, and list exactly the five approved application data roles with no additional role definition.
 - Safety: Attempted no destructive command, ran no Terraform command, observed zero Azure write/delete/action activity during the audit, retained private raw identifiers outside the repository, and confirmed the workload landing zone remains empty.
 - Next exact task: Replace historical single-plan/run-ledger fixtures with an activation-valid V2 lifecycle contract. Do not generate or apply the workload plan yet.
+
+### 2026-09-01 — Activation-valid V2 lifecycle contract passed locally
+
+- Checkpoint: `M05-activation-lifecycle-contract-local-032`.
+- Contract: Added activation-capable V2 saved-plan and run-ledger schemas for retained bootstrap, retained control, exact 27-resource core, three immutable image publications, exact three-app activation, eleven tests, exact 30-resource destroy, and independent state/live reconciliation. Historical V1 fixtures remain preserved and activation-blocked.
+- Negative proof: The V2 validator passed 43 mutations covering false cloud claims, ordering, root/backend/count drift, core Container Apps, mutable/unscanned/unsigned images, commit drift, approval/identity/expiry failures, retained deletion, skipped tests, nonzero reconciliation, or secret-shaped evidence.
+- Safety: All V2 fixtures are explicitly synthetic. The work ran no Terraform command, Azure command, registry contact, image build/publication, workload plan/apply/destroy, network/RBAC/budget change, Stripe action, customer data, or iOS deployment.
+- Next exact task: Revalidate current public IPv4, Node base-image digest, lockfiles and Docker inputs, East US 2 SKUs/quota/prices, and the `$2` two-hour ceiling. Stop before generating the workload-core plan.

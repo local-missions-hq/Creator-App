@@ -491,3 +491,22 @@ The next exact task is the local activation-valid V2 lifecycle contract. No work
 
 pnpm verify && pnpm test:security && pnpm test:gitleaks
 PASS — all repository contracts, 25 placement refusal scenarios, nine workspace lint/type/test/contract/build gates, 111 mobile tests, the 644-file high-confidence scan, and Gitleaks over approximately 17.81 MB passed under Node 24.19.0 and pnpm 11.24.0.
+
+M05-activation-lifecycle-contract-local-032 — 2026-09-01
+
+pnpm saved-plan:check
+PASS — preserved the historical V1 two-manifest/43-refusal regression and passed the activation-valid V2 contract for five saved-plan operations, three non-Terraform gates, twelve ordered lifecycle states, and 43 V2 refusal mutations. Fixtures remain synthetic; no Terraform or Azure command ran.
+
+pnpm run-ledger:check
+PASS — preserved the historical V1 three-ledger/59-refusal regression and passed the same activation-valid V2 lifecycle contract. Core is fixed at 27 resources with no Container Apps; activation requires three immutable scan/signature/provenance-verified images and reaches 30; destroy removes exactly 30 disposable resources and no retained target; independent state/live reconciliation must both be zero.
+
+pnpm m5:preflight
+PASS — reconciled 11 machine contracts and 10 local coverage areas, retained 11 deferred external gates, and kept zero workload/registry execution claims.
+
+No workload Terraform plan/apply/destroy, Azure mutation, provider registration, network/RBAC/budget change, image build or registry contact, Stripe action, customer data, or iOS deployment occurred. The next gate is action-time IP/base-image/build-input/SKU/quota/price revalidation before any workload-core plan.
+
+pnpm verify
+PASS — formatting, all historical and V2 policy/architecture gates, three Terraform roots, nine workspace lint/type/test/contract/build gates, 111 mobile tests, and production-bundle validation passed under Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security && pnpm test:gitleaks
+PASS — the high-confidence scan passed for 649 text files and Gitleaks found no leaks in approximately 17.87 MB.

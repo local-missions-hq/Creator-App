@@ -1,6 +1,6 @@
 # Ephemeral Azure development boundary
 
-Status: retained-state bootstrap applied and migrated; control/workload plans and later applies remain separately gated
+Status: retained bootstrap/control plane and workflow authorization verified; V2 lifecycle contract ready; workload remains empty
 
 This runbook separates the retained rebuild/cleanup control plane from the same-day disposable development workload. The three-resource retained-state bootstrap has been applied and migrated to its Entra-backed Blob backend under explicit authorization. This runbook does not by itself authorize the 20-resource control-plane apply, any disposable workload apply, deployment, or destroy.
 
@@ -27,9 +27,9 @@ The local foundation gate strips Azure, ARM, and `TF_VAR_*` values from Terrafor
 
 `pnpm azure-oidc:check` validates the separate static [GitHub-to-Azure OIDC plan gate](./github-azure-oidc-plan-gate.md). It proves three distinct future identities, protected immutable environment subjects, job-scoped permissions, reviewed plan/destroy-plan consumption, and fail-closed command rules while `.github/workflows/verify.yml` remains read-only and non-deploying.
 
-`pnpm saved-plan:check` validates the historical V1 [saved-plan evidence gate](./saved-plan-evidence-gate.md). Two harmless text fixtures model digest, sanitization, review, approval, expiry, and producer/consumer binding, but they are explicitly blocked from activation because they model a single apply. A V2 contract must bind the separate retained bootstrap, retained control/landing-zone, 27-resource core, three-app activation, and destroy plans. The validator never creates or reads a Terraform plan binary.
+`pnpm saved-plan:check` preserves the historical V1 regression checks and validates the active V2 [saved-plan evidence gate](./saved-plan-evidence-gate.md). V2 binds retained bootstrap/control evidence plus separate 27-resource core, three-app activation, and exact 30-resource destroy operations, with image/test/reconciliation prerequisites. Its fixture is synthetic contract data; the validator never creates or reads a Terraform plan binary.
 
-`pnpm run-ledger:check` validates the static [ephemeral run-ledger gate](./ephemeral-run-ledger-gate.md). Three synthetic ledgers cover clean continuation, successful application rollback after a failed test, and destroy-timeout/orphan escalation. The gate separates Terraform-state, live disposable, and retained-control-plane inventories and never contacts Azure.
+`pnpm run-ledger:check` preserves the three historical V1 terminal regressions and validates the activation-valid V2 [ephemeral run-ledger gate](./ephemeral-run-ledger-gate.md). V2 orders core, images, activation, tests, destroy, and independent reconciliation; it separates Terraform-state, live disposable, and retained-control-plane inventories and never contacts Azure.
 
 `pnpm azure-cost:check` validates the dated [public Azure service and cost review](./azure-public-service-cost-review.md). Microsoft public catalog meters support the selected East US 2 candidate shape and the raw conservative eight-hour estimate is `$3.02`. The owner selected the `$2.00` two-hour smoke tier for the first workload run, retained `$5.00`/eight hours only as a fallback ceiling, and revised the monthly alert budget from the historical `$25.00` proposal to `$100.00`. The historical check validates its captured public snapshot; it does not verify alert delivery or prove provider availability.
 
@@ -64,7 +64,7 @@ The checked-in defaults are ceilings for review, not an approved subscription qu
 8. Approve and run a no-apply GitHub OIDC access-policy proof before removing temporary operator state access. **Complete on 2026-09-01; all three identities passed, while the default-deny firewall correctly blocked the real Blob read.**
 9. Use `local-missions-hq` on GitHub Free with no payment method, keep provider-backed Terraform on the reviewed local operator path, and defer paid private-runner/VNet state networking to M14. **Complete and retained as the current operating boundary.**
 10. Approve and apply only correction plan SHA-256 `de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c`, then rerun the no-Terraform OIDC/ARM proof while default-deny Blob refusal remains expected. Retain temporary operator access until a later private-runner/recovery proof exists. **Complete on 2026-09-01: zero added, three changed, zero destroyed; normal plan zero-change; all three proof jobs passed; Blob refusal preserved.**
-11. Generate/review and separately approve/apply the 27-resource core, then build/scan/sign/push immutable images.
+11. Revalidate current IP, base digest, build inputs, SKUs, quota, prices, and the `$2` two-hour ceiling; then generate/review and separately approve/apply the 27-resource core before building/scanning/signing/pushing immutable images.
 12. Generate/review and separately approve/apply the three-Container-App activation delta.
 13. Test with synthetic data, capture evidence, and stop new writes.
 14. Review the exact stamped destroy target, destroy while attached without deleting the landing zone, then reconcile Terraform state and live Azure independently. Report **Disposable workload: empty** separately from **Retained control plane and landing zone: expected list**. Any orphan or mismatch is a teardown failure.

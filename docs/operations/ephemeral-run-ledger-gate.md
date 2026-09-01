@@ -1,10 +1,12 @@
 # Ephemeral run-ledger gate
 
-Status: historical V1 static synthetic contract; no cloud run or teardown claim and not valid for two-phase activation
+Status: activation-valid V2 lifecycle contract; no cloud run or teardown claim
 
-This historical gate proves terminal-state, test, rollback, destroy, reconciliation, and escalation mechanics for one synthetic apply path. It does not authenticate, initialize remote state, produce or consume a Terraform plan, apply, test a cloud endpoint, roll back a live revision, destroy, or query Azure. It is superseded for activation by the retained bootstrap/control and two-phase core/image/app sequence; a V2 ledger must represent each separately approved operation before any cloud run. The machine contract is [`../../config/ephemeral-run-ledger.v1.json`](../../config/ephemeral-run-ledger.v1.json), and `pnpm run-ledger:check` reads only the three historical synthetic ledgers under [`../../config/fixtures/ephemeral-run-ledger/`](../../config/fixtures/ephemeral-run-ledger/).
+The active machine contract is [`../../config/ephemeral-run-ledger.v2.json`](../../config/ephemeral-run-ledger.v2.json). Its success path explicitly orders retained-state verification, retained-control verification, core plan/apply, three immutable images, activation plan/apply, eleven critical tests, destroy plan/apply, and independent clean reconciliation. It does not authenticate, initialize remote state, consume a real plan, apply, test a cloud endpoint, publish an image, destroy, or query Azure.
 
-## Three terminal examples
+The historical V1 state machine and its three synthetic terminal fixtures remain checked as regression evidence. They are not activation evidence. `pnpm run-ledger:check` now requires both the historical V1 checks and the V2 activation-valid lifecycle contract.
+
+## Historical V1 terminal examples
 
 | Fixture             | Decision path                                                                                                        | Truthful terminal report                                     |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
@@ -14,7 +16,11 @@ This historical gate proves terminal-state, test, rollback, destroy, reconciliat
 
 All actors, identities, references, commits, timestamps, resources, and outcomes are synthetic. The fixtures are state-machine proof, not execution evidence.
 
-## State and transition contract
+## Active V2 success contract
+
+The V2 success path contains twelve ordered states. It cannot report complete unless the core count is 27, all three image identities are bound to immutable digests, activated count is 30, tests pass, destroy removes exactly 30 disposable resources and no retained resource, state/live reconciliation are independently performed, both counts are zero, and no orphan or incident remains. Forty-three combined V2 refusal mutations exercise false claims, ordering, binding, count, image, test, destroy, reconciliation, expiry, secret-shape, and retained-boundary failures.
+
+## Historical V1 state and transition contract
 
 The ledger contains 23 explicit states and 29 allowed transitions. It begins at `plan_approved` and can finish only at `complete` or `escalated`. Every event has a contiguous sequence, exact previous/next state, monotonic New York timestamp, synthetic actor, evidence reference, and reason code. Unknown states, skipped links, illegal transitions, events after the run end, and events after a terminal state are refused.
 

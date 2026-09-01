@@ -1,6 +1,6 @@
 # Azure retained foundation and two-phase workload plan
 
-Status: three-resource retained-state bootstrap applied and migrated; 20-resource control-plane planning is the next gate
+Status: retained bootstrap/control plane and workflow authorization verified; V2 lifecycle contract ready; workload planning remains gated
 
 ## Why the plan is phased
 
@@ -29,6 +29,6 @@ If literally no retained Azure cost is acceptable, do not bootstrap remote state
 
 ## Current gate
 
-The dedicated `Local Missions Development` subscription is enabled and tenant-matched. The expired first bootstrap artifact was rejected, a replacement three-create saved plan was independently reviewed, and that exact plan was applied under explicit authorization. Azure now contains the retained state resource group, hardened Storage account, and private state container; `Microsoft.Storage` is registered. Bootstrap state was migrated to `local-missions/bootstrap.tfstate`, and a clean independent initialization proved Entra-backed access, locking, versioning, and no resource drift. One temporary operator Blob data-role assignment remains at the container until all three workflow identities prove backend access and an approved recovery path exists.
+The dedicated `Local Missions Development` subscription is enabled and tenant-matched. The retained three-resource state bootstrap and 20-resource control/landing-zone plane were applied from separately reviewed saved plans and independently reconciled. Corrected GitHub OIDC/ARM proof passed for all three identities, and live role review proved plan read-only, apply no-delete, destroy unable to delete the landing-zone group, and five-role ServicePrincipal-only delegated RBAC. The workload landing zone remains empty. One temporary operator Blob data-role assignment remains because default-deny Storage blocks standard GitHub-hosted runners; paid private networking is deferred.
 
-The next gate is M5.4 input resolution and generation of an exact 20-resource control-plane saved plan. The monitored alert receiver, immutable GitHub subjects, PostgreSQL Entra administrator group, current provider/SKU/quota checks, and exact plan must be verified before requesting a separate apply approval.
+The activation-valid V2 contract now binds the exact bootstrap, control, 27-resource core, immutable image publication, three-app activation, tests, 30-resource destroy, and independent reconciliation sequence. The next gate is action-time revalidation of the current public IPv4, Node base-image digest, dependency/build inputs, East US 2 SKUs/quota/prices, and `$2` two-hour smoke ceiling. No workload plan may be generated until that review passes.

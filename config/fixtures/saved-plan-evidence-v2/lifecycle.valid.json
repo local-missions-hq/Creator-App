@@ -1,0 +1,204 @@
+{
+  "schemaVersion": 2,
+  "fixtureStatus": "synthetic_contract_test_only",
+  "sourceCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "targetResourceGroup": "rg-local-missions-dev-eus2-001",
+  "plans": [
+    {
+      "operationId": "retained-state-bootstrap",
+      "artifactSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "reviewPayloadSha256": "6c9c3beac3dcc7d57b98f7e9911c446e0bda45e98dda027078130ee2bbd62f76",
+      "evidence": {
+        "sourceCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
+        "sourceSetSha256": "3111111111111111111111111111111111111111111111111111111111111111",
+        "exactTargetRoot": "infra/terraform/bootstrap",
+        "exactTargetResourceGroup": "rg-local-missions-tfstate-eus2-001",
+        "sanitizedTextPlan": "Plan: 3 to add, 0 to change, 0 to destroy.",
+        "sanitizedJsonSummary": { "create": 3, "update": 0, "delete": 0, "resultingCount": 3 },
+        "approvedCostSummary": {
+          "currency": "USD",
+          "ceilingMinor": 100,
+          "reviewedBy": "synthetic:actor:cost-reviewer"
+        }
+      },
+      "summary": { "create": 3, "update": 0, "delete": 0, "resultingCount": 3 },
+      "containerAppChanges": 0,
+      "retainedTargetsDestroyed": 0,
+      "approvedBy": "synthetic:actor:bootstrap-approver",
+      "producedBy": "synthetic:actor:local-operator",
+      "consumedBy": "synthetic:actor:local-operator",
+      "approvedAt": "2026-09-01T08:10:00-04:00",
+      "consumedAt": "2026-09-01T08:15:00-04:00",
+      "expiresAt": "2026-09-01T16:00:00-04:00",
+      "transientArtifactDeleted": true
+    },
+    {
+      "operationId": "retained-control-plane",
+      "artifactSha256": "1222222222222222222222222222222222222222222222222222222222222222",
+      "reviewPayloadSha256": "697be180890ca3bed62607cff1c6b3d181d89bb8c7e3a5a744fcf4269c2d2a83",
+      "evidence": {
+        "sourceCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
+        "sourceSetSha256": "3222222222222222222222222222222222222222222222222222222222222222",
+        "exactTargetRoot": "infra/terraform/control-plane",
+        "exactTargetResourceGroup": "rg-local-missions-control-eus2-001",
+        "sanitizedTextPlan": "Plan: 20 to add, 0 to change, 0 to destroy.",
+        "sanitizedJsonSummary": { "create": 20, "update": 0, "delete": 0, "resultingCount": 20 },
+        "approvedCostSummary": {
+          "currency": "USD",
+          "ceilingMinor": 100,
+          "reviewedBy": "synthetic:actor:cost-reviewer"
+        }
+      },
+      "summary": { "create": 20, "update": 0, "delete": 0, "resultingCount": 20 },
+      "containerAppChanges": 0,
+      "retainedTargetsDestroyed": 0,
+      "approvedBy": "synthetic:actor:control-approver",
+      "producedBy": "synthetic:actor:local-operator",
+      "consumedBy": "synthetic:actor:local-operator",
+      "approvedAt": "2026-09-01T08:40:00-04:00",
+      "consumedAt": "2026-09-01T08:45:00-04:00",
+      "expiresAt": "2026-09-01T16:30:00-04:00",
+      "transientArtifactDeleted": true
+    },
+    {
+      "operationId": "workload-core",
+      "artifactSha256": "1333333333333333333333333333333333333333333333333333333333333333",
+      "reviewPayloadSha256": "7d6b741d90cbd66ad9b18d9ed81311d7ff9b7fc09f754f6bfaadf2e6a80e55fd",
+      "evidence": {
+        "sourceCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
+        "sourceSetSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "exactTargetRoot": "infra/terraform/environments/dev",
+        "exactTargetResourceGroup": "rg-local-missions-dev-eus2-001",
+        "sanitizedTextPlan": "Plan: 27 to add, 0 to change, 0 to destroy.",
+        "sanitizedJsonSummary": { "create": 27, "update": 0, "delete": 0, "resultingCount": 27 },
+        "approvedCostSummary": {
+          "currency": "USD",
+          "ceilingMinor": 200,
+          "reviewedBy": "synthetic:actor:cost-reviewer"
+        }
+      },
+      "summary": { "create": 27, "update": 0, "delete": 0, "resultingCount": 27 },
+      "containerAppChanges": 0,
+      "retainedTargetsDestroyed": 0,
+      "approvedBy": "synthetic:actor:core-approver",
+      "producedBy": "AZURE_PLAN_CLIENT_ID",
+      "consumedBy": "AZURE_APPLY_CLIENT_ID",
+      "approvedAt": "2026-09-01T09:10:00-04:00",
+      "consumedAt": "2026-09-01T09:15:00-04:00",
+      "expiresAt": "2026-09-01T17:00:00-04:00",
+      "transientArtifactDeleted": true
+    },
+    {
+      "operationId": "application-activation",
+      "artifactSha256": "1444444444444444444444444444444444444444444444444444444444444444",
+      "reviewPayloadSha256": "b47125c4a29bfc95dff6853a25a681a602aaab4406ea54d5a59a9543179ada28",
+      "evidence": {
+        "sourceCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
+        "sourceSetSha256": "3444444444444444444444444444444444444444444444444444444444444444",
+        "exactTargetRoot": "infra/terraform/environments/dev",
+        "exactTargetResourceGroup": "rg-local-missions-dev-eus2-001",
+        "sanitizedTextPlan": "Plan: 3 to add, 0 to change, 0 to destroy.",
+        "sanitizedJsonSummary": { "create": 3, "update": 0, "delete": 0, "resultingCount": 30 },
+        "approvedCostSummary": {
+          "currency": "USD",
+          "ceilingMinor": 100,
+          "reviewedBy": "synthetic:actor:cost-reviewer"
+        }
+      },
+      "summary": { "create": 3, "update": 0, "delete": 0, "resultingCount": 30 },
+      "containerAppChanges": 3,
+      "retainedTargetsDestroyed": 0,
+      "approvedBy": "synthetic:actor:activation-approver",
+      "producedBy": "AZURE_PLAN_CLIENT_ID",
+      "consumedBy": "AZURE_APPLY_CLIENT_ID",
+      "approvedAt": "2026-09-01T11:10:00-04:00",
+      "consumedAt": "2026-09-01T11:15:00-04:00",
+      "expiresAt": "2026-09-01T19:00:00-04:00",
+      "transientArtifactDeleted": true
+    },
+    {
+      "operationId": "workload-destroy",
+      "artifactSha256": "1555555555555555555555555555555555555555555555555555555555555555",
+      "reviewPayloadSha256": "91fb57d97678336ce7ffcab099ed835654d6386dc347248b6e635c2ba5446a2a",
+      "evidence": {
+        "sourceCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
+        "sourceSetSha256": "3555555555555555555555555555555555555555555555555555555555555555",
+        "exactTargetRoot": "infra/terraform/environments/dev",
+        "exactTargetResourceGroup": "rg-local-missions-dev-eus2-001",
+        "sanitizedTextPlan": "Plan: 0 to add, 0 to change, 30 to destroy.",
+        "sanitizedJsonSummary": { "create": 0, "update": 0, "delete": 30, "resultingCount": 0 },
+        "approvedCostSummary": {
+          "currency": "USD",
+          "ceilingMinor": 50,
+          "reviewedBy": "synthetic:actor:cost-reviewer"
+        }
+      },
+      "summary": { "create": 0, "update": 0, "delete": 30, "resultingCount": 0 },
+      "containerAppChanges": 3,
+      "retainedTargetsDestroyed": 0,
+      "approvedBy": "synthetic:actor:destroy-approver",
+      "producedBy": "AZURE_DESTROY_CLIENT_ID",
+      "consumedBy": "AZURE_DESTROY_CLIENT_ID",
+      "approvedAt": "2026-09-01T13:10:00-04:00",
+      "consumedAt": "2026-09-01T13:15:00-04:00",
+      "expiresAt": "2026-09-01T21:00:00-04:00",
+      "transientArtifactDeleted": true
+    }
+  ],
+  "images": [
+    {
+      "id": "api",
+      "sourceCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "publishedAt": "2026-09-01T10:30:00-04:00",
+      "scanStatus": "passed",
+      "signatureStatus": "verified",
+      "provenanceStatus": "verified"
+    },
+    {
+      "id": "dashboard",
+      "sourceCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "publishedAt": "2026-09-01T10:35:00-04:00",
+      "scanStatus": "passed",
+      "signatureStatus": "verified",
+      "provenanceStatus": "verified"
+    },
+    {
+      "id": "worker",
+      "sourceCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "publishedAt": "2026-09-01T10:40:00-04:00",
+      "scanStatus": "passed",
+      "signatureStatus": "verified",
+      "provenanceStatus": "verified"
+    }
+  ],
+  "tests": {
+    "smoke": "passed",
+    "integration": "passed",
+    "e2e": "passed",
+    "authorization": "passed",
+    "upload": "passed",
+    "queue": "passed",
+    "webhook": "passed",
+    "backup_restore": "passed",
+    "reconciliation": "passed",
+    "dashboard": "passed",
+    "environment_isolation": "passed"
+  },
+  "reconciliation": {
+    "terraformStateCount": 0,
+    "liveAzureResourceCount": 0,
+    "stateQueryRef": "synthetic:evidence:state-query:001",
+    "liveQueryRef": "synthetic:evidence:live-query:001",
+    "queriedBy": "synthetic:actor:independent-reconciler",
+    "retainedLandingZonePresent": true,
+    "orphanRefs": []
+  }
+}
