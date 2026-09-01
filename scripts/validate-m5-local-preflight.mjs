@@ -90,14 +90,17 @@ function assertUniqueExact(actual, expected, label) {
 function validateManifest(candidate) {
   assert(candidate.schemaVersion === 1, 'Preflight schema version drifted.');
   assert(
-    candidate.activationStatus === 'post_transfer_oidc_proof_passed_local_operator_state_retained',
+    candidate.activationStatus === 'workflow_rbac_negative_proof_passed_before_workload_planning',
     'Activation status drifted.',
   );
-  assert(candidate.checkpoint === 'M05-post-transfer-oidc-proof-passed-030', 'Checkpoint drifted.');
+  assert(
+    candidate.checkpoint === 'M05-workflow-rbac-negative-proof-passed-031',
+    'Checkpoint drifted.',
+  );
   assert(candidate.milestoneComplete === false, 'M5 cannot be claimed complete locally.');
   assert(candidate.syntheticDataOnly === true, 'Only synthetic data is allowed.');
   assert(
-    candidate.nextBoundary === 'workflow_rbac_negative_proof_before_workload_planning',
+    candidate.nextBoundary === 'activation_valid_v2_lifecycle_contract_required',
     'Next boundary drifted.',
   );
   assert(candidate.verificationCommand === 'pnpm m5:preflight', 'Verification command drifted.');

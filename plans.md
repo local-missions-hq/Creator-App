@@ -12,9 +12,9 @@ Cloud: Microsoft Azure
 
 Current milestone: **M5 — Azure development foundation and continuous delivery**
 
-Current checkpoint: **M05-post-transfer-oidc-proof-passed-030**
+Current checkpoint: **M05-workflow-rbac-negative-proof-passed-031**
 
-Next exact task: **Prove the plan/apply/destroy workflow roles cannot cross their lifecycle boundaries; no workload plan or apply yet**
+Next exact task: **Replace historical single-plan/run-ledger fixtures with an activation-valid V2 lifecycle contract; no workload plan or apply yet**
 
 Last updated: 2026-09-01
 
@@ -163,7 +163,7 @@ Goal: prove a reproducible, least-privilege Azure development deployment using s
 - [x] Revalidate the correction plan/source/provider-lock digests and live mismatched subjects, apply only the three reviewed corrections, prove a zero-change normal plan, rerun all three protected OIDC/ARM jobs, and confirm the default-deny Blob refusal.
 - [x] Keep provider-backed Terraform plan/apply/destroy on the reviewed local operator path while GitHub Free is selected. Do not allowlist standard-runner IP ranges, discover/add dynamic runner IPs, open Storage, enable trusted-service bypass, or attach a self-hosted runner to the public repository.
 - [x] Retain the temporary operator state-container role until a separately approved recovery path and later paid private-runner proof exist; do not misreport GitHub workflow remote-state access as complete.
-- [ ] Prove plan cannot apply/delete, apply cannot delete, destroy cannot delete the landing-zone group, and delegated RBAC is limited to the five approved application data roles.
+- [x] Prove plan cannot apply/delete, apply cannot delete, destroy cannot delete the landing-zone group, and delegated RBAC is limited to the five approved application data roles.
 
 ### M5.5 — Disposable workload core and immutable images
 

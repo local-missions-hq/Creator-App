@@ -77,7 +77,7 @@ The dedicated subscription, three-resource retained-state bootstrap, and exact 2
 7. Real monitored budget/expiry alert delivery and the retained cleanup controller.
 8. Current SKU/price/availability against the saved plan. The first future workload run is the `$2` two-hour smoke tier; `$5`/eight hours is a fallback only. The revised `$100` monthly budget is an alert threshold, not a spend target or hard cap.
 
-The bootstrap, control-plane apply, free-organization creation, repository transfer, both federation subject applies, and corrected no-apply OIDC proof authorizations have been consumed. These actions do not authorize a paid GitHub feature, Storage firewall change, temporary-role removal, workload planning, registry push, application deployment, live tests, rollback, restore, or destroy. The next M5.4 task is negative lifecycle-boundary proof for the three workflow roles; every later external action remains separately reviewed and approved.
+The bootstrap, control-plane apply, free-organization creation, repository transfer, both federation subject applies, corrected no-apply OIDC proof, and live read-only workflow-RBAC negative proof are complete. These actions do not authorize a paid GitHub feature, Storage firewall change, temporary-role removal, workload planning, registry push, application deployment, live tests, rollback, restore, or destroy. The next task is the local activation-valid V2 lifecycle contract; every later external action remains separately reviewed and approved.
 
 ### 4. Tests only after a separately approved ephemeral deployment
 

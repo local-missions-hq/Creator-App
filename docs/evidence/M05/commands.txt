@@ -475,3 +475,19 @@ PASS — formatting, all policy/architecture contracts, nine workspace lint/type
 
 pnpm test:security && pnpm test:gitleaks
 PASS — the high-confidence scan passed for 644 text files and Gitleaks found no leaks in approximately 17.81 MB.
+
+M05-workflow-rbac-negative-proof-passed-031 — 2026-09-01
+
+live read-only Azure RBAC reconciliation
+PASS — all three workflow identities have only the expected landing-zone and exact state-container assignments: five landing-zone assignments total and three workflow state assignments. No workflow identity has Owner, Contributor, User Access Administrator, subscription, control-group, or other cross-scope access.
+
+custom-role and constrained-delegation proof
+PASS — plan remains Reader-only; the apply custom role excludes every delete plus access-management writes/deletes; the destroy custom role excludes retained landing-zone group deletion. Both RBAC administrator assignments use condition version `2.0`, allow only ServicePrincipal recipients, and contain exactly the five approved data-role definition IDs with no sixth role.
+
+non-mutation reconciliation
+PASS — reused successful no-Terraform run `33521970773` as the effective-permissions proof, attempted no destructive command, executed no Terraform command, observed zero Azure activity-log write/delete/action operations, and confirmed the workload landing zone remains empty. Raw live identifiers remain mode-`0600` in a private Trash directory and are not in the repository.
+
+The next exact task is the local activation-valid V2 lifecycle contract. No workload plan/apply, network/RBAC/budget mutation, paid GitHub feature, operator-role removal, Stripe action, customer data, or iOS deployment occurred.
+
+pnpm verify && pnpm test:security && pnpm test:gitleaks
+PASS — all repository contracts, 25 placement refusal scenarios, nine workspace lint/type/test/contract/build gates, 111 mobile tests, the 644-file high-confidence scan, and Gitleaks over approximately 17.81 MB passed under Node 24.19.0 and pnpm 11.24.0.

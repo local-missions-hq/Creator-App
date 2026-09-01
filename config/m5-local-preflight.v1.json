@@ -1,6 +1,6 @@
 {
-  "activationStatus": "post_transfer_oidc_proof_passed_local_operator_state_retained",
-  "checkpoint": "M05-post-transfer-oidc-proof-passed-030",
+  "activationStatus": "workflow_rbac_negative_proof_passed_before_workload_planning",
+  "checkpoint": "M05-workflow-rbac-negative-proof-passed-031",
   "currentExecution": {
     "azureAuthenticated": true,
     "azureReadOnlyInventoryExecuted": true,
@@ -124,7 +124,7 @@
     }
   ],
   "milestoneComplete": false,
-  "nextBoundary": "workflow_rbac_negative_proof_before_workload_planning",
+  "nextBoundary": "activation_valid_v2_lifecycle_contract_required",
   "requiredArtifacts": [
     ".github/workflows/azure-oidc-proof.yml",
     ".github/workflows/verify.yml",

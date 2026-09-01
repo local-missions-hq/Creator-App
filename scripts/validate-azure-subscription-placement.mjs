@@ -107,6 +107,35 @@ function validate(candidate) {
     'Workflow role or constrained-delegation contract drifted.',
   );
 
+  const liveProof = candidate.liveRbacNegativeProof;
+  assert(
+    liveProof.checkpoint === 'M05-workflow-rbac-negative-proof-passed-031' &&
+      liveProof.observedAtUtc === '2026-09-01T15:15:34Z' &&
+      liveProof.sourceProofRunId === 33521970773 &&
+      liveProof.sourceProofCommit === '76803cde194dfc8965bf6114690f47a0dabcdf79' &&
+      liveProof.sourceProofConclusion === 'success' &&
+      liveProof.identityCount === 3 &&
+      liveProof.landingZoneAssignmentCount === rbac.assignmentCount &&
+      liveProof.stateContainerAssignmentCount === 3 &&
+      liveProof.crossScopeAssignmentCount === 0 &&
+      liveProof.controlGroupServicePrincipalAssignmentCount === 0 &&
+      liveProof.planCanWriteOrDelete === false &&
+      liveProof.applyCanDelete === false &&
+      liveProof.destroyCanDeleteLandingZone === false &&
+      liveProof.constrainedAdministratorAssignmentCount === 2 &&
+      liveProof.conditionVersion === rbac.rbacAdministratorConditionVersion &&
+      JSON.stringify(liveProof.delegatedPrincipalTypes) ===
+        JSON.stringify(rbac.delegatedPrincipalTypes) &&
+      liveProof.delegatedRoleDefinitionCount === rbac.delegatedRoleDefinitions.length &&
+      liveProof.destructiveCommandsAttempted === 0 &&
+      liveProof.terraformCommandsExecuted === 0 &&
+      liveProof.azureMutationCommandsExecuted === 0 &&
+      liveProof.activityLogMutationCount === 0 &&
+      liveProof.workloadResourceCount === 0 &&
+      liveProof.privateRawEvidenceStoredInRepository === false,
+    'Live workflow RBAC negative proof drifted.',
+  );
+
   assert(
     candidate.dailyTeardown.destroyExactDeploymentStampOnly &&
       candidate.dailyTeardown.retainsLandingZone &&
@@ -209,6 +238,15 @@ const refusals = [
   ['delegated contributor', (value) => (value.workflowRbac.canAssignContributor = true)],
   ['condition removed', (value) => (value.workflowRbac.rbacAdministratorConditionVersion = '')],
   ['role removed', (value) => value.workflowRbac.delegatedRoleDefinitions.pop()],
+  [
+    'live proof scope widened',
+    (value) => (value.liveRbacNegativeProof.crossScopeAssignmentCount = 1),
+  ],
+  ['live proof delete allowed', (value) => (value.liveRbacNegativeProof.applyCanDelete = true)],
+  [
+    'live proof mutation claimed',
+    (value) => (value.liveRbacNegativeProof.azureMutationCommandsExecuted = 1),
+  ],
   ['landing zone teardown', (value) => (value.dailyTeardown.retainsLandingZone = false)],
   ['other target allowed', (value) => (value.dailyTeardown.otherProjectTargetsAllowed = true)],
   ['state proof removed', (value) => (value.dailyTeardown.terraformStateMustBeEmpty = false)],

@@ -4590,3 +4590,12 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Independent reconciliation: No Terraform command appeared in proof logs; Azure activity recorded zero write/delete/action operations during the proof; the workload group remained empty; Storage default deny/no bypass/current-IP restriction, corrected subjects, GitHub Free, and zero repository/environment secrets remained intact.
 - Safety: Provider-backed Terraform remains local-operator-only, the temporary operator container role remains retained, and no workload plan/apply, network/RBAC/budget change, paid GitHub feature, Stripe action, customer data, or iOS deployment occurred.
 - Next exact task: Prove the plan/apply/destroy workflow roles cannot cross their lifecycle boundaries. Stop before workload planning or apply.
+
+### 2026-09-01 — Live workflow-RBAC negative proof passed
+
+- Checkpoint: `M05-workflow-rbac-negative-proof-passed-031`.
+- Live assignment proof: Re-read all three managed identities and found exactly five landing-zone assignments plus three exact state-container assignments, with no subscription/control/other scope, Owner, Contributor, or User Access Administrator assignment.
+- Lifecycle proof: The successful corrected GitHub run already proved each identity's effective permissions. Independent live role-definition review confirmed plan is read-only, apply excludes all delete, and destroy excludes retained landing-zone group deletion.
+- Delegation proof: Both landing-zone RBAC administrator assignments use condition version `2.0`, accept only ServicePrincipal recipients, and list exactly the five approved application data roles with no additional role definition.
+- Safety: Attempted no destructive command, ran no Terraform command, observed zero Azure write/delete/action activity during the audit, retained private raw identifiers outside the repository, and confirmed the workload landing zone remains empty.
+- Next exact task: Replace historical single-plan/run-ledger fixtures with an activation-valid V2 lifecycle contract. Do not generate or apply the workload plan yet.

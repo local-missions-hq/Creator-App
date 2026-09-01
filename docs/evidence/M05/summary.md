@@ -1,10 +1,10 @@
 # M05 Azure foundation evidence
 
-Status: M5.4 post-transfer OIDC correction applied and proved; local-operator state path retained; no workload deployed
+Status: M5.4 complete through live workflow-RBAC negative proof; local-operator state path retained; no workload deployed
 
 Date: 2026-09-01
 
-Checkpoint: `M05-post-transfer-oidc-proof-passed-030`
+Checkpoint: `M05-workflow-rbac-negative-proof-passed-031`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
@@ -25,6 +25,7 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - Consumed that approved plan with `0` added, `3` changed, and `0` destroyed, then transferred the still-public repository to `local-missions-hq`. Verified the stable repository ID, redirect, protected environments, main-only policies, exact variables, zero secrets, and restored the immutable OIDC, selected Actions, and solo-founder branch rule that GitHub reset during transfer.
 - Post-transfer run `33519420112` failed safely during Azure login before ARM or Blob access because GitHub emitted `repository_owner_id:{id}:repository_id:{id}:environment:{name}` while the first plan encoded a name-decorated preview. Applied only approved correction plan SHA-256 `de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c`: zero added, three changed, zero destroyed. A normal provider-backed plan then reported no changes.
 - Protected run `33521970773` passed all three corrected post-transfer OIDC/ARM jobs on commit `76803cde194dfc8965bf6114690f47a0dabcdf79`. Each identity exchanged OIDC, proved exact permission boundaries and retained-control denial, logged out, and confirmed the actual state Blob read remained refused by the unchanged default-deny firewall. No Terraform or Azure mutation command ran; the workload landing zone remained empty.
+- Independently re-read all live workflow identities, assignments, custom roles, and constrained-delegation conditions. Plan has only Reader at the landing zone and its exact state-container role; apply excludes every delete; destroy excludes landing-zone group deletion; the two RBAC administrators are condition version `2.0`, ServicePrincipal-only, and limited to the exact five approved application data roles. Five landing-zone assignments, three workflow state assignments, zero cross-scope assignments, zero control-group service-principal assignments, zero workload resources, and zero activity-log mutations were observed.
 - The owner subsequently supplied the monitored destination and named the sole `stratiosai` collaborator as reviewer. Created all three main-only GitHub environments with required review and no administrator bypass, recorded the single-human self-review exception, and enabled immutable OIDC subjects without adding secrets or activating an Azure workflow.
 
 - Preserved the retained/disposable Terraform roots, exact AzureRM 5.0.1 package lock, static OIDC and saved-plan contracts, recovery contract, and non-deploying active CI while every external activation gate remains blocked.

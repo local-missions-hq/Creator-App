@@ -301,7 +301,7 @@
     },
     {
       "id": "workflow-rbac-scopes",
-      "status": "passed_exact_control_plan_review",
+      "status": "passed_live_read_only_negative_proof",
       "blocking": false
     },
     {
