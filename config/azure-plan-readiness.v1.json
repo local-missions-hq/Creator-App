@@ -129,8 +129,32 @@
     "budgetChanges": 0,
     "workloadChanges": 0,
     "federatedCredentialSubjectUpdates": 3,
+    "terraformApplyExecuted": true,
+    "repositoryTransferred": true,
+    "postTransferProofPassed": false,
+    "subjectFormatMismatchRecorded": true
+  },
+  "oidcSubjectCorrectionPlanEvidence": {
+    "checkpoint": "M05-post-transfer-oidc-correction-saved-plan-reviewed-029",
+    "sha256": "de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c",
+    "byteSize": 26384,
+    "generatedAtUtc": "2026-09-01T14:30:51Z",
+    "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
+    "controlPlaneSourceSha256Current": "e982809bcc1f1841c369c5572269e228976ef7a5fbdfae167380d6a3cc4a3144",
+    "sourceSetSha256": "d941ebfdb933a151b57f2261ad9feafc2405db26d7ea448cf72f79b22d4aac20",
+    "binaryStoredInRepository": false,
+    "rawJsonStoredInRepository": false,
+    "resourcesToAdd": 0,
+    "resourcesToChange": 3,
+    "resourcesToDestroy": 0,
+    "resourcesToReplace": 0,
+    "networkChanges": 0,
+    "rbacChanges": 0,
+    "budgetChanges": 0,
+    "workloadChanges": 0,
+    "federatedCredentialSubjectUpdates": 3,
     "terraformApplyExecuted": false,
-    "repositoryTransferred": false
+    "expectedSubjectFormat": "repository_owner_id:{id}:repository_id:{id}:environment:{name}"
   },
   "architecture": {
     "terraformRoots": 3,

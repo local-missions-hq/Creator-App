@@ -240,9 +240,9 @@ variable "github_oidc_subjects" {
     condition = (
       alltrue([for subject in values(var.github_oidc_subjects) : subject == ""]) ||
       (
-        can(regex("^repo:${var.github_repository_owner}@[0-9]+/Creator-App@[0-9]+:environment:azure-development-plan$", var.github_oidc_subjects.plan)) &&
-        can(regex("^repo:${var.github_repository_owner}@[0-9]+/Creator-App@[0-9]+:environment:azure-development-apply$", var.github_oidc_subjects.apply)) &&
-        can(regex("^repo:${var.github_repository_owner}@[0-9]+/Creator-App@[0-9]+:environment:azure-development-destroy$", var.github_oidc_subjects.destroy))
+        can(regex("^repository_owner_id:[0-9]+:repository_id:[0-9]+:environment:azure-development-plan$", var.github_oidc_subjects.plan)) &&
+        can(regex("^repository_owner_id:[0-9]+:repository_id:[0-9]+:environment:azure-development-apply$", var.github_oidc_subjects.apply)) &&
+        can(regex("^repository_owner_id:[0-9]+:repository_id:[0-9]+:environment:azure-development-destroy$", var.github_oidc_subjects.destroy))
       )
     )
     error_message = "GitHub subjects must be entirely empty or exact immutable owner/repository-ID environment subjects."
@@ -252,7 +252,7 @@ variable "github_oidc_subjects" {
 variable "github_repository_owner" {
   description = "Approved current or migration-target GitHub repository owner; changing it requires a reviewed immutable-subject preview."
   type        = string
-  default     = "stratiosai"
+  default     = "local-missions-hq"
   nullable    = false
 
   validation {

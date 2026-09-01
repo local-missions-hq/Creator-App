@@ -18,11 +18,11 @@ function assert(condition, message) {
 function validate(candidate) {
   assert(candidate.schemaVersion === 1, 'Schema version drifted.');
   assert(
-    candidate.activationStatus === 'github_free_org_created_federation_plan_reviewed_no_apply',
+    candidate.activationStatus === 'post_transfer_oidc_correction_plan_reviewed_no_apply',
     'Activation status drifted.',
   );
   assert(
-    candidate.checkpoint === 'M05-free-org-federation-saved-plan-reviewed-027',
+    candidate.checkpoint === 'M05-post-transfer-oidc-correction-saved-plan-reviewed-029',
     'Checkpoint drifted.',
   );
 
@@ -31,7 +31,7 @@ function validate(candidate) {
     freePath.organization === 'local-missions-hq' &&
       freePath.plan === 'free' &&
       freePath.memberCount === 1 &&
-      freePath.organizationOwnedRepositories === 0 &&
+      freePath.organizationOwnedRepositories === 1 &&
       freePath.organizationOwnerType === 'personal_account' &&
       freePath.paymentMethodPresent === false &&
       freePath.contactVerifiedProcessOnly === true &&
@@ -42,9 +42,9 @@ function validate(candidate) {
 
   const repository = candidate.currentRepository;
   assert(
-    repository.owner === 'stratiosai' &&
-      repository.ownerType === 'User' &&
-      repository.organizationOwned === false &&
+    repository.owner === 'local-missions-hq' &&
+      repository.ownerType === 'Organization' &&
+      repository.organizationOwned === true &&
       repository.visibility === 'public' &&
       repository.defaultBranch === 'main' &&
       repository.source === 'github_api_read_only',
@@ -59,6 +59,9 @@ function validate(candidate) {
       problem.stateDataActionsProven === true &&
       problem.workflowBlobReadBlockedByFirewall === true &&
       problem.defaultDenyFirewallPreserved === true &&
+      problem.postTransferOidcProofPassed === false &&
+      problem.postTransferOidcProofRunId === 33519420112 &&
+      problem.postTransferProofFailedBeforeArm === true &&
       problem.endToEndWorkflowStateAccessProven === false,
     'State-network problem statement drifted.',
   );
@@ -119,8 +122,26 @@ function validate(candidate) {
       /^[0-9a-f]{64}$/.test(savedPlan.sha256) &&
       /^[0-9a-f]{64}$/.test(savedPlan.sourceSetSha256) &&
       /^[0-9a-f]{64}$/.test(savedPlan.providerLockSha256) &&
-      savedPlan.terraformApplyExecuted === false,
+      savedPlan.terraformApplyExecuted === true,
     'Federation saved-plan evidence drifted.',
+  );
+  const correctionPlan = candidate.oidcCorrectionSavedPlan;
+  assert(
+    correctionPlan.artifactOutsideRepository === true &&
+      correctionPlan.changeCount === 3 &&
+      correctionPlan.resourceType === 'azurerm_federated_identity_credential' &&
+      JSON.stringify(correctionPlan.actions) === JSON.stringify(['update']) &&
+      correctionPlan.deletes === 0 &&
+      correctionPlan.replacements === 0 &&
+      correctionPlan.networkChanges === 0 &&
+      correctionPlan.workloadChanges === 0 &&
+      correctionPlan.sha256 ===
+        'de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c' &&
+      /^[0-9a-f]{64}$/.test(correctionPlan.sourceSetSha256) &&
+      /^[0-9a-f]{64}$/.test(correctionPlan.providerLockSha256) &&
+      correctionPlan.terraformApplyExecuted === false &&
+      correctionPlan.postTransferProofFailedBeforeArm === true,
+    'OIDC correction saved-plan evidence drifted.',
   );
 
   const cost = candidate.costReview;
@@ -155,7 +176,7 @@ function validate(candidate) {
       rejected.every((entry) => entry.reason.length >= 64),
     'Rejected-alternative register drifted.',
   );
-  assert(candidate.requiredApprovalGates.length === 8, 'Approval gate count drifted.');
+  assert(candidate.requiredApprovalGates.length === 7, 'Approval gate count drifted.');
   assert(
     new Set(candidate.requiredApprovalGates).size === candidate.requiredApprovalGates.length,
     'Approval gate register contains a duplicate.',
@@ -177,8 +198,17 @@ function validate(candidate) {
     'Federation plan not recorded.',
   );
   for (const [key, value] of Object.entries(candidate.currentExecution)) {
-    if (!['githubOrganizationCreated', 'federationSavedPlanGenerated'].includes(key)) {
+    if (
+      ![
+        'githubOrganizationCreated',
+        'federationSavedPlanGenerated',
+        'federationSavedPlanApplied',
+        'repositoryTransferred',
+      ].includes(key)
+    ) {
       assert(value === false, `${key} must remain false.`);
+    } else {
+      assert(value === true, `${key} must remain true.`);
     }
   }
 }
@@ -188,7 +218,7 @@ validate(manifest);
 const mutations = [
   (value) => (value.activationStatus = 'approved'),
   (value) => (value.checkpoint = 'M05-live'),
-  (value) => (value.currentRepository.organizationOwned = true),
+  (value) => (value.currentRepository.organizationOwned = false),
   (value) => (value.problem.endToEndWorkflowStateAccessProven = true),
   (value) => (value.problem.defaultDenyFirewallPreserved = false),
   (value) => (value.currentFreePath.plan = 'Team'),
@@ -201,7 +231,9 @@ const mutations = [
   (value) => (value.deferredPaidRecommendation.azureNetwork.trustedServiceBypassAllowed = true),
   (value) => (value.federationSavedPlan.changeCount = 4),
   (value) => (value.federationSavedPlan.deletes = 1),
-  (value) => (value.federationSavedPlan.terraformApplyExecuted = true),
+  (value) => (value.federationSavedPlan.terraformApplyExecuted = false),
+  (value) => (value.oidcCorrectionSavedPlan.changeCount = 4),
+  (value) => (value.oidcCorrectionSavedPlan.terraformApplyExecuted = true),
   (value) => (value.costReview.runnerCostForSixtyMinutes = 0.35),
   (value) => value.rejectedAlternatives.pop(),
   (value) => value.requiredApprovalGates.pop(),
@@ -220,5 +252,5 @@ for (const mutate of mutations) {
 }
 
 console.log(
-  `GitHub state-network gate passed the GitHub Free/local-operator decision, one reviewed three-update federation plan, one deferred paid private-runner design, ${manifest.rejectedAlternatives.length} rejected unsafe alternatives, ${manifest.requiredApprovalGates.length} remaining gates, and ${mutations.length} refusal scenarios.`,
+  `GitHub state-network gate passed the transferred GitHub Free/local-operator boundary, one consumed federation plan, one reviewed three-update OIDC correction plan, one deferred paid private-runner design, ${manifest.rejectedAlternatives.length} rejected unsafe alternatives, ${manifest.requiredApprovalGates.length} remaining gates, and ${mutations.length} refusal scenarios.`,
 );

@@ -90,17 +90,17 @@ function assertUniqueExact(actual, expected, label) {
 function validateManifest(candidate) {
   assert(candidate.schemaVersion === 1, 'Preflight schema version drifted.');
   assert(
-    candidate.activationStatus === 'github_free_org_federation_plan_reviewed_no_apply',
+    candidate.activationStatus === 'post_transfer_oidc_correction_plan_reviewed_no_apply',
     'Activation status drifted.',
   );
   assert(
-    candidate.checkpoint === 'M05-free-org-federation-saved-plan-reviewed-027',
+    candidate.checkpoint === 'M05-post-transfer-oidc-correction-saved-plan-reviewed-029',
     'Checkpoint drifted.',
   );
   assert(candidate.milestoneComplete === false, 'M5 cannot be claimed complete locally.');
   assert(candidate.syntheticDataOnly === true, 'Only synthetic data is allowed.');
   assert(
-    candidate.nextBoundary === 'exact_federation_plan_and_public_transfer_approval_required',
+    candidate.nextBoundary === 'exact_oidc_subject_correction_plan_approval_required',
     'Next boundary drifted.',
   );
   assert(candidate.verificationCommand === 'pnpm m5:preflight', 'Verification command drifted.');
@@ -137,8 +137,8 @@ function validateManifest(candidate) {
         'control_plane_saved_plan_reviewed_no_apply',
         'control_plane_applied_verified',
         'github_environments_configured_azure_execution_disabled',
-        'github_oidc_arm_proof_passed_network_access_pending',
-        'github_free_org_created_federation_plan_reviewed_no_apply',
+        'post_transfer_oidc_subject_mismatch_correction_plan_reviewed',
+        'post_transfer_oidc_correction_plan_reviewed_no_apply',
       ].includes(contract.activationStatus),
       `${contract.path} activation status is not local-only.`,
     );
@@ -179,7 +179,7 @@ function validateManifest(candidate) {
       gate.id === 'oidc-identities-and-environment-protection'
         ? 'completed_no_apply_proof'
         : gate.id === 'workflow-state-network-access-and-operator-recovery'
-          ? 'paid_private_runner_deferred_free_local_operator_selected'
+          ? 'post_transfer_subject_correction_plan_reviewed_owner_approval_pending'
           : completedControlApplyGates.has(gate.id)
             ? 'completed_for_control_plane_apply'
             : completedControlPlanGates.has(gate.id)

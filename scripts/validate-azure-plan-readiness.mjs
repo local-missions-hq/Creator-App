@@ -194,9 +194,37 @@ function validate(candidate) {
       federationEvidence.budgetChanges === 0 &&
       federationEvidence.workloadChanges === 0 &&
       federationEvidence.federatedCredentialSubjectUpdates === 3 &&
-      federationEvidence.terraformApplyExecuted === false &&
-      federationEvidence.repositoryTransferred === false,
+      federationEvidence.terraformApplyExecuted === true &&
+      federationEvidence.repositoryTransferred === true &&
+      federationEvidence.postTransferProofPassed === false &&
+      federationEvidence.subjectFormatMismatchRecorded === true,
     'Federation migration saved-plan evidence drifted.',
+  );
+  const correctionEvidence = candidate.oidcSubjectCorrectionPlanEvidence;
+  assert(
+    correctionEvidence.checkpoint === 'M05-post-transfer-oidc-correction-saved-plan-reviewed-029' &&
+      correctionEvidence.sha256 ===
+        'de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c' &&
+      correctionEvidence.byteSize === 26384 &&
+      correctionEvidence.generatedAtUtc === '2026-09-01T14:30:51Z' &&
+      correctionEvidence.providerLockSha256 === controlEvidence.providerLockSha256 &&
+      /^[0-9a-f]{64}$/.test(correctionEvidence.controlPlaneSourceSha256Current) &&
+      /^[0-9a-f]{64}$/.test(correctionEvidence.sourceSetSha256) &&
+      correctionEvidence.binaryStoredInRepository === false &&
+      correctionEvidence.rawJsonStoredInRepository === false &&
+      correctionEvidence.resourcesToAdd === 0 &&
+      correctionEvidence.resourcesToChange === 3 &&
+      correctionEvidence.resourcesToDestroy === 0 &&
+      correctionEvidence.resourcesToReplace === 0 &&
+      correctionEvidence.networkChanges === 0 &&
+      correctionEvidence.rbacChanges === 0 &&
+      correctionEvidence.budgetChanges === 0 &&
+      correctionEvidence.workloadChanges === 0 &&
+      correctionEvidence.federatedCredentialSubjectUpdates === 3 &&
+      correctionEvidence.terraformApplyExecuted === false &&
+      correctionEvidence.expectedSubjectFormat ===
+        'repository_owner_id:{id}:repository_id:{id}:environment:{name}',
+    'OIDC subject-correction saved-plan evidence drifted.',
   );
   const lockBytes = readFileSync(
     join(repositoryRoot, 'infra/terraform/bootstrap/.terraform.lock.hcl'),
@@ -227,8 +255,8 @@ function validate(candidate) {
     .join('');
   assert(
     createHash('sha256').update(controlSourceLines).digest('hex') ===
-      federationEvidence.controlPlaneSourceSha256Current,
-    'Control-plane source digest drifted from the reviewed federation plan.',
+      correctionEvidence.controlPlaneSourceSha256Current,
+    'Control-plane source digest drifted from the reviewed OIDC correction plan.',
   );
   assert(
     controlEvidence.controlPlaneSourceSha256AfterApply ===
@@ -443,12 +471,24 @@ const refusalCases = [
     (value) => (value.federationMigrationPlanEvidence.sha256 = 'invalid'),
   ],
   [
-    'federation plan apply claimed',
-    (value) => (value.federationMigrationPlanEvidence.terraformApplyExecuted = true),
+    'federation plan apply erased',
+    (value) => (value.federationMigrationPlanEvidence.terraformApplyExecuted = false),
   ],
   [
     'federation plan network drift',
     (value) => (value.federationMigrationPlanEvidence.networkChanges = 1),
+  ],
+  [
+    'OIDC correction plan digest drift',
+    (value) => (value.oidcSubjectCorrectionPlanEvidence.sha256 = 'invalid'),
+  ],
+  [
+    'OIDC correction plan apply claimed',
+    (value) => (value.oidcSubjectCorrectionPlanEvidence.terraformApplyExecuted = true),
+  ],
+  [
+    'OIDC correction plan resource drift',
+    (value) => (value.oidcSubjectCorrectionPlanEvidence.resourcesToChange = 4),
   ],
   [
     'control plan resource count drift',

@@ -1,5 +1,5 @@
 {
-  "activationStatus": "github_oidc_arm_proof_passed_network_access_pending",
+  "activationStatus": "post_transfer_oidc_subject_mismatch_correction_plan_reviewed",
   "activeWorkflowPresent": true,
   "actionPolicy": {
     "azureLoginAction": "azure/login",
@@ -10,7 +10,7 @@
     "unpinnedActionsAllowed": false
   },
   "azureExecutionEnabled": true,
-  "checkpoint": "M05-github-oidc-arm-proof-passed-024",
+  "checkpoint": "M05-post-transfer-oidc-correction-saved-plan-reviewed-029",
   "credentialContract": {
     "externalIdentifierVariables": ["AZURE_CLIENT_ID", "AZURE_SUBSCRIPTION_ID", "AZURE_TENANT_ID"],
     "forbiddenInputs": [
@@ -36,7 +36,7 @@
     "inactiveTemplate": "infra/terraform/ci/azure-workload-identity.workflow.yml.example",
     "issuer": "https://token.actions.githubusercontent.com",
     "oidcPermissionScope": "job_only",
-    "repository": "stratiosai/Creator-App",
+    "repository": "local-missions-hq/Creator-App",
     "reviewer": "stratiosai",
     "repositoryNumericIdsSource": "external_subject_preview_only",
     "subjectPreviewRequired": true,
@@ -63,7 +63,7 @@
       ],
       "identityReferenceVariable": "AZURE_PLAN_CLIENT_ID",
       "kind": "plan",
-      "subjectTemplate": "repo:stratiosai@{repository_owner_id}/Creator-App@{repository_id}:environment:azure-development-plan"
+      "subjectTemplate": "repository_owner_id:{repository_owner_id}:repository_id:{repository_id}:environment:azure-development-plan"
     },
     {
       "allowedCapabilities": [
@@ -84,7 +84,7 @@
       ],
       "identityReferenceVariable": "AZURE_APPLY_CLIENT_ID",
       "kind": "apply",
-      "subjectTemplate": "repo:stratiosai@{repository_owner_id}/Creator-App@{repository_id}:environment:azure-development-apply"
+      "subjectTemplate": "repository_owner_id:{repository_owner_id}:repository_id:{repository_id}:environment:azure-development-apply"
     },
     {
       "allowedCapabilities": [
@@ -108,7 +108,7 @@
       ],
       "identityReferenceVariable": "AZURE_DESTROY_CLIENT_ID",
       "kind": "destroy",
-      "subjectTemplate": "repo:stratiosai@{repository_owner_id}/Creator-App@{repository_id}:environment:azure-development-destroy"
+      "subjectTemplate": "repository_owner_id:{repository_owner_id}:repository_id:{repository_id}:environment:azure-development-destroy"
     }
   ],
   "invocationContract": {
@@ -171,6 +171,17 @@
     "runId": 33513053687,
     "stateBlobReadBlockedByFirewall": true,
     "terraformCommandsExecuted": 0
+  },
+  "postTransferProofAttempt": {
+    "runId": 33519420112,
+    "headCommitSha": "be668a66c1f4a8151521b6180d1ddce65f2d6c03",
+    "conclusion": "failure",
+    "failedBeforeArmAccess": true,
+    "failedBeforeBlobAccess": true,
+    "azureMutationCommandsExecuted": 0,
+    "terraformCommandsExecuted": 0,
+    "subjectFormatMismatchRecorded": true,
+    "replacementSavedPlanApproved": false
   },
   "refusalScenarios": [
     "pull-request-event",

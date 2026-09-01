@@ -428,3 +428,31 @@ PASS — all policy/architecture contracts, all nine workspace lint/type/test/co
 
 pnpm test:security && pnpm test:gitleaks
 PASS — the high-confidence scan passed for 644 text files and Gitleaks found no leaks in approximately 17.78 MB.
+
+M05-post-transfer-oidc-correction-saved-plan-reviewed-029 — 2026-09-01
+
+exact saved-plan apply and independent reconciliation
+PASS — revalidated the approved first-plan digest, source/provider lock, dedicated subscription, current exact Storage IP rule, Entra state access, retained inventory, GitHub IDs, and three live old subjects. Applied exactly `0` added, `3` changed, `0` destroyed. A normal provider-backed plan then reported no changes.
+
+public GitHub Free repository transfer and security reconciliation
+PASS — transferred the still-public repository to `local-missions-hq`; verified stable repository ID, redirect, public visibility, main default, three protected environments, main-only policies, distinct identifier variables, and zero secrets. Restored transfer-reset immutable OIDC customization, selected exact Actions, and solo-founder `main` protection. No payment or paid feature was used.
+
+GitHub Actions run 33519420112
+SAFE FAILURE — all three jobs stopped during OIDC-to-Azure login before ARM or Blob access. GitHub emitted the claim-key subject format `repository_owner_id:{id}:repository_id:{id}:environment:{name}`; the first preview had encoded a different name-decorated format. No Terraform command, Azure permission, network/RBAC/workload change, or state access occurred. Public numeric identifiers appeared in GitHub's provider error and are treated process-only in repository evidence; the workflow now masks both identifier contexts for future runs.
+
+replacement provider-backed saved plan
+PASS — corrected the Terraform/OIDC contract and generated a mode-`0600` saved plan outside the repository. Independent JSON review proved exactly three in-place `azurerm_federated_identity_credential` subject updates, zero creates/deletes/replacements, zero network/RBAC/budget/workload changes, provider-lock SHA-256 `71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33`, source-set SHA-256 `d941ebfdb933a151b57f2261ad9feafc2405db26d7ea448cf72f79b22d4aac20`, and plan SHA-256 `de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c`.
+
+No correction apply, successful post-transfer OIDC token exchange, workload plan, registry/image action, Container App, Stripe action, customer data, or iOS deployment occurred. The next gate is approval bound to the exact correction plan digest and immediate no-Terraform proof rerun.
+
+pnpm verify
+PASS — all policy/architecture contracts, all nine workspace lint/type/test/contract/build gates, 111 mobile tests, three Terraform roots, the corrected immutable-subject contract, and zero workload/registry execution claims passed.
+
+pnpm test:security && pnpm test:gitleaks
+PASS — the high-confidence scan passed for 644 text files and Gitleaks found no leaks in approximately 17.80 MB.
+
+correction artifact revalidation
+PASS — plan SHA-256, mode `0600`, byte size, AzureRM provider lock, and exact planning source remained unchanged after verification.
+
+consumed-plan retention
+PASS — moved the applied first-plan artifact recoverably to Trash to prevent accidental reuse. The unapplied correction plan remains mode `0600` outside the repository.

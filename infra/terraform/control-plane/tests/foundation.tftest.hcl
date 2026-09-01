@@ -42,9 +42,9 @@ run "mock_enabled_control_plane_contract" {
     subscription_placement                 = "shared-nonproduction"
     shared_subscription_cotenancy_approved = true
     github_oidc_subjects = {
-      plan    = "repo:local-missions-hq@123456/Creator-App@789012:environment:azure-development-plan"
-      apply   = "repo:local-missions-hq@123456/Creator-App@789012:environment:azure-development-apply"
-      destroy = "repo:local-missions-hq@123456/Creator-App@789012:environment:azure-development-destroy"
+      plan    = "repository_owner_id:123456:repository_id:789012:environment:azure-development-plan"
+      apply   = "repository_owner_id:123456:repository_id:789012:environment:azure-development-apply"
+      destroy = "repository_owner_id:123456:repository_id:789012:environment:azure-development-destroy"
     }
   }
 

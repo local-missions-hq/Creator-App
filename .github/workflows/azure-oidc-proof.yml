@@ -30,6 +30,8 @@ jobs:
           echo "::add-mask::${{ vars.AZURE_CLIENT_ID }}"
           echo "::add-mask::${{ vars.AZURE_SUBSCRIPTION_ID }}"
           echo "::add-mask::${{ vars.AZURE_TENANT_ID }}"
+          echo "::add-mask::${{ github.repository_owner_id }}"
+          echo "::add-mask::${{ github.repository_id }}"
 
       - name: Exchange GitHub OIDC token for Azure access
         uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c

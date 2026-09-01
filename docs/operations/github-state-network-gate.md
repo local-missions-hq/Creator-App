@@ -1,12 +1,12 @@
 # GitHub workflow state-network gate
 
-Status: GitHub Free selected; organization created; federation-only saved plan reviewed; no apply or transfer
+Status: GitHub Free repository transferred; first federation plan consumed; post-transfer proof failed safely; correction saved plan reviewed but unapplied
 
-Checkpoint: `M05-free-org-federation-saved-plan-reviewed-027`
+Checkpoint: `M05-post-transfer-oidc-correction-saved-plan-reviewed-029`
 
 ## Current no-charge decision
 
-Use the `local-missions-hq` GitHub Free organization with no payment method. Keep the existing repository public and personal-owner hosted until the exact federation plan and coordinated transfer window are separately approved. Continue GitHub-hosted verification and no-apply OIDC/ARM proof, but keep provider-backed Terraform state operations on the reviewed local operator path while Storage remains default-deny, Entra-only, TLS-protected, Shared Key disabled, anonymous access disabled, and trusted-service bypass disabled.
+Use the `local-missions-hq` GitHub Free organization with no payment method. The repository is now public and organization-owned. Continue GitHub-hosted verification and separately approved no-apply OIDC/ARM proof, but keep provider-backed Terraform state operations on the reviewed local operator path while Storage remains default-deny, Entra-only, TLS-protected, Shared Key disabled, anonymous access disabled, and trusted-service bypass disabled.
 
 GitHub's read-only API verified the organization on plan `free`, one active owner, zero repositories, and no transfer. The billing UI verified that no payment method exists. A budget cannot be created without adding payment information, so paid products remain prohibited rather than enabled with a nonzero limit.
 
@@ -15,11 +15,13 @@ GitHub's read-only API verified the organization on plan `free`, one active owne
 1. Create the GitHub Free organization with one personal-account owner, no invitations, no repositories, and no payment method. **Complete.**
 2. Preview the three future immutable organization/repository environment subjects while the repository ID remains stable. **Complete.**
 3. Generate and independently review one retained-control-plane saved plan containing only those three subject updates. **Complete:** three in-place updates; zero create/delete/replace/network/RBAC/budget/workload changes; SHA-256 `5fbc63430b4778a3e18039109bbe66c065663621fd0025cbd51cffc71a0d3903`.
-4. Obtain approval bound to the exact plan digest and one coordinated transfer window. Stop before both apply and transfer.
-5. Revalidate plan/source/provider-lock digests, unchanged Azure inventory, current personal repository ownership, organization ownership, and operator state access. Apply only the reviewed three updates and reconcile Azure independently.
-6. Transfer the still-public repository immediately afterward. Verify its stable repository ID, redirects, branch/default settings, protected environments, required reviewer, main-only rules, immutable OIDC setting, and Actions permissions.
-7. Run the no-Terraform three-identity OIDC/ARM proof. The real Blob read must remain refused by the default-deny firewall; GitHub workflow state access stays deferred.
-8. Keep remote-backend plan/apply/destroy on the reviewed local operator path and retain the temporary operator Blob role until a later private-runner/recovery proof is separately approved.
+4. Obtain approval bound to the exact first-plan digest and one coordinated transfer window. **Complete.**
+5. Revalidate every boundary and apply only the reviewed three updates. **Complete:** `0` added, `3` changed, `0` destroyed; normal provider reconciliation reported no changes.
+6. Transfer the still-public repository and reconcile GitHub. **Complete:** stable ID, public visibility, redirect, environments, main-only rules, variables, zero secrets, immutable OIDC, selected Actions, and solo-founder branch protection verified.
+7. Run the no-Terraform proof. **Failed safely before ARM:** GitHub emitted the documented claim-key subject form, while the first plan used an incorrect name-decorated preview form. No Azure permission, Blob access, Terraform command, or Azure mutation occurred.
+8. Generate a correction plan from the observed subject. **Complete:** exactly three subject-only updates; SHA-256 `de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c`. Stop before correction apply.
+9. After separate digest-bound approval, apply only the correction and immediately rerun the no-Terraform proof. The real Blob read must remain refused by the default-deny firewall.
+10. Keep remote-backend plan/apply/destroy on the reviewed local operator path and retain the temporary operator Blob role until a later private-runner/recovery proof is separately approved.
 
 ## Fail-closed requirements
 
@@ -45,4 +47,4 @@ The owner deferred this option to M14. The `$100` Azure budget does not include 
 
 ## Current stop
 
-The free organization exists and the federation-only saved plan has been reviewed. No payment, Azure mutation, or repository transfer occurred. The next owner decision is whether to approve exact plan SHA-256 `5fbc63430b4778a3e18039109bbe66c065663621fd0025cbd51cffc71a0d3903` and the coordinated still-public repository transfer window. Plan approval does not authorize a workload plan, paid GitHub feature, Storage firewall change, or operator-role removal.
+The repository transfer and first three-update apply are complete. The failed proof gained no Azure access and exposed a narrow subject-format mismatch. The next owner decision is whether to approve exact correction plan SHA-256 `de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c`. Approval authorizes only those three subject corrections and the immediate no-Terraform proof rerun; it does not authorize workload planning, a paid GitHub feature, Storage firewall change, or operator-role removal.

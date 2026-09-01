@@ -43,4 +43,4 @@ The expected state Blob read failed from each GitHub-hosted runner because the S
 
 ## Next gate
 
-The owner subsequently selected GitHub Free, created `local-missions-hq` without a payment method, and deferred the paid private-runner/VNet design to M14. Checkpoint `M05-free-org-federation-saved-plan-reviewed-027` contains an independently reviewed three-update federation-only saved plan. The next gate is approval bound to that exact plan digest and a coordinated still-public repository transfer window. Do not alter the Storage firewall, networking, RBAC, workload state, or paid GitHub settings under the completed proof approval.
+The owner subsequently selected GitHub Free and transferred the still-public repository to `local-missions-hq` without a payment method. Post-transfer run `33519420112` failed before ARM because the first subject preview did not match GitHub's emitted claim-key format. Checkpoint `M05-post-transfer-oidc-correction-saved-plan-reviewed-029` contains the exact three-update correction plan. Do not apply it, rerun the proof, alter Storage/network/RBAC, touch workload state, or enable paid GitHub settings without the next explicit approval.

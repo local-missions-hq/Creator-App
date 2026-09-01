@@ -1,6 +1,6 @@
 {
-  "activationStatus": "github_free_org_created_federation_plan_reviewed_no_apply",
-  "checkpoint": "M05-free-org-federation-saved-plan-reviewed-027",
+  "activationStatus": "post_transfer_oidc_correction_plan_reviewed_no_apply",
+  "checkpoint": "M05-post-transfer-oidc-correction-saved-plan-reviewed-029",
   "costReview": {
     "currency": "USD",
     "githubTeamPerUserMonthly": 4,
@@ -20,9 +20,10 @@
   "currentExecution": {
     "azureNetworkMutationExecuted": false,
     "federationSavedPlanGenerated": true,
+    "federationSavedPlanApplied": true,
     "githubOrganizationCreated": true,
     "githubPlanPurchased": false,
-    "repositoryTransferred": false,
+    "repositoryTransferred": true,
     "runnerCreated": false,
     "storageFirewallMutationExecuted": false,
     "workflowStateReadExecuted": false
@@ -31,7 +32,7 @@
     "contactVerifiedProcessOnly": true,
     "memberCount": 1,
     "organization": "local-missions-hq",
-    "organizationOwnedRepositories": 0,
+    "organizationOwnedRepositories": 1,
     "organizationOwnerType": "personal_account",
     "paymentMethodPresent": false,
     "plan": "free",
@@ -41,9 +42,9 @@
   "currentRepository": {
     "checkedAt": "2026-09-01",
     "defaultBranch": "main",
-    "organizationOwned": false,
-    "owner": "stratiosai",
-    "ownerType": "User",
+    "organizationOwned": true,
+    "owner": "local-missions-hq",
+    "ownerType": "Organization",
     "source": "github_api_read_only",
     "visibility": "public"
   },
@@ -53,6 +54,9 @@
     "oidcProofCommit": "73ef5bd5e3251a95347aeb7449d4365745e4c5c4",
     "oidcProofPassed": true,
     "oidcProofRunId": 33513053687,
+    "postTransferOidcProofPassed": false,
+    "postTransferOidcProofRunId": 33519420112,
+    "postTransferProofFailedBeforeArm": true,
     "stateDataActionsProven": true,
     "workflowBlobReadBlockedByFirewall": true
   },
@@ -103,7 +107,22 @@
     "sha256": "5fbc63430b4778a3e18039109bbe66c065663621fd0025cbd51cffc71a0d3903",
     "sourceSetSha256": "0b598cdfa432aec14ee5ddebc02c772dc2031bc77501164ef69c3b645b59dcfc",
     "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
+    "terraformApplyExecuted": true,
+    "workloadChanges": 0
+  },
+  "oidcCorrectionSavedPlan": {
+    "actions": ["update"],
+    "artifactOutsideRepository": true,
+    "changeCount": 3,
+    "deletes": 0,
+    "networkChanges": 0,
+    "replacements": 0,
+    "resourceType": "azurerm_federated_identity_credential",
+    "sha256": "de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c",
+    "sourceSetSha256": "d941ebfdb933a151b57f2261ad9feafc2405db26d7ea448cf72f79b22d4aac20",
+    "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
     "terraformApplyExecuted": false,
+    "postTransferProofFailedBeforeArm": true,
     "workloadChanges": 0
   },
   "rejectedAlternatives": [
@@ -129,11 +148,10 @@
     }
   ],
   "requiredApprovalGates": [
-    "approve-exact-federation-plan-and-transfer-window",
-    "revalidate-plan-source-lock-and-repository-ownership",
-    "apply-only-three-federated-subject-updates",
-    "transfer-public-repository-and-reconcile-protections",
-    "run-post-transfer-no-apply-oidc-proof",
+    "approve-exact-oidc-subject-correction-plan",
+    "revalidate-correction-plan-source-lock-and-live-subjects",
+    "apply-only-three-corrected-federated-subject-updates",
+    "rerun-post-transfer-no-apply-oidc-proof",
     "retain-local-operator-state-path",
     "revisit-paid-private-runner-at-m14",
     "remove-temporary-operator-role-only-after-recovery-proof"

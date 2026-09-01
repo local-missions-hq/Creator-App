@@ -16,13 +16,13 @@ function assert(condition, message) {
 
 function assertProofBoundary() {
   assert(
-    manifest.activationStatus === 'github_oidc_arm_proof_passed_network_access_pending',
+    manifest.activationStatus === 'post_transfer_oidc_subject_mismatch_correction_plan_reviewed',
     'OIDC activation status drifted.',
   );
   assert(manifest.activeWorkflowPresent === true, 'The approved OIDC proof workflow is missing.');
   assert(manifest.azureExecutionEnabled === true, 'OIDC proof execution is not recorded.');
   assert(
-    manifest.checkpoint === 'M05-github-oidc-arm-proof-passed-024',
+    manifest.checkpoint === 'M05-post-transfer-oidc-correction-saved-plan-reviewed-029',
     'OIDC checkpoint identifier drifted.',
   );
 
@@ -159,7 +159,7 @@ function assertIdentityContracts() {
   );
 
   assert(
-    manifest.githubContract.repository === 'stratiosai/Creator-App' &&
+    manifest.githubContract.repository === 'local-missions-hq/Creator-App' &&
       manifest.githubContract.issuer === 'https://token.actions.githubusercontent.com' &&
       manifest.githubContract.audience === 'api://AzureADTokenExchange' &&
       JSON.stringify(manifest.githubContract.allowedEvents) ===
@@ -174,7 +174,7 @@ function assertIdentityContracts() {
     'GitHub issuer/repository/immutable-subject contract drifted.',
   );
   for (const identity of manifest.identities) {
-    const expectedSubject = `repo:stratiosai@{repository_owner_id}/Creator-App@{repository_id}:environment:${identity.environment}`;
+    const expectedSubject = `repository_owner_id:{repository_owner_id}:repository_id:{repository_id}:environment:${identity.environment}`;
     assert(
       identity.subjectTemplate === expectedSubject,
       `${identity.kind} subject template drifted.`,
@@ -257,6 +257,19 @@ function assertIdentityContracts() {
       result.stateBlobReadBlockedByFirewall === true &&
       result.terraformCommandsExecuted === 0,
     'The live no-apply proof result drifted.',
+  );
+  const postTransferAttempt = manifest.postTransferProofAttempt;
+  assert(
+    postTransferAttempt.runId === 33519420112 &&
+      postTransferAttempt.headCommitSha === 'be668a66c1f4a8151521b6180d1ddce65f2d6c03' &&
+      postTransferAttempt.conclusion === 'failure' &&
+      postTransferAttempt.failedBeforeArmAccess === true &&
+      postTransferAttempt.failedBeforeBlobAccess === true &&
+      postTransferAttempt.azureMutationCommandsExecuted === 0 &&
+      postTransferAttempt.terraformCommandsExecuted === 0 &&
+      postTransferAttempt.subjectFormatMismatchRecorded === true &&
+      postTransferAttempt.replacementSavedPlanApproved === false,
+    'Post-transfer failed-safe proof evidence drifted.',
   );
 }
 
@@ -392,5 +405,5 @@ assertIdentityContracts();
 const invocationCounts = assertInvocationPolicy();
 
 console.log(
-  `Azure OIDC proof gate passed for ${manifest.identities.length} distinct identities, ${invocationCounts.accepted} accepted command invocations, ${invocationCounts.refused} refusal scenarios, one inactive deployment template, and ${activeWorkflowCount} active workflows; live run ${manifest.proofResult.runId} passed without Terraform or Azure mutation and state-network access remains pending.`,
+  `Azure OIDC proof gate passed for ${manifest.identities.length} distinct identities, ${invocationCounts.accepted} accepted command invocations, ${invocationCounts.refused} refusal scenarios, one inactive deployment template, and ${activeWorkflowCount} active workflows; historical run ${manifest.proofResult.runId} passed, post-transfer run ${manifest.postTransferProofAttempt.runId} failed safely before ARM, and the correction saved plan remains approval-gated.`,
 );

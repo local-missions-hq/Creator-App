@@ -1,6 +1,6 @@
 {
-  "activationStatus": "github_free_org_federation_plan_reviewed_no_apply",
-  "checkpoint": "M05-free-org-federation-saved-plan-reviewed-027",
+  "activationStatus": "post_transfer_oidc_correction_plan_reviewed_no_apply",
+  "checkpoint": "M05-post-transfer-oidc-correction-saved-plan-reviewed-029",
   "currentExecution": {
     "azureAuthenticated": true,
     "azureReadOnlyInventoryExecuted": true,
@@ -87,14 +87,14 @@
       "path": "config/azure-plan-readiness.v1.json"
     },
     {
-      "activationStatus": "github_oidc_arm_proof_passed_network_access_pending",
-      "checkpoint": "M05-github-oidc-arm-proof-passed-024",
+      "activationStatus": "post_transfer_oidc_subject_mismatch_correction_plan_reviewed",
+      "checkpoint": "M05-post-transfer-oidc-correction-saved-plan-reviewed-029",
       "command": "pnpm azure-oidc:check",
       "path": "config/azure-oidc-plan-gate.v1.json"
     },
     {
-      "activationStatus": "github_free_org_created_federation_plan_reviewed_no_apply",
-      "checkpoint": "M05-free-org-federation-saved-plan-reviewed-027",
+      "activationStatus": "post_transfer_oidc_correction_plan_reviewed_no_apply",
+      "checkpoint": "M05-post-transfer-oidc-correction-saved-plan-reviewed-029",
       "command": "pnpm github-state-network:check",
       "path": "config/github-state-network-gate.v1.json"
     },
@@ -124,7 +124,7 @@
     }
   ],
   "milestoneComplete": false,
-  "nextBoundary": "exact_federation_plan_and_public_transfer_approval_required",
+  "nextBoundary": "exact_oidc_subject_correction_plan_approval_required",
   "requiredArtifacts": [
     ".github/workflows/azure-oidc-proof.yml",
     ".github/workflows/verify.yml",
@@ -211,7 +211,7 @@
       "evidenceRequired": "temporary least-privilege state-network method and viable operator recovery path",
       "id": "workflow-state-network-access-and-operator-recovery",
       "ownerRole": "security_reviewer",
-      "status": "paid_private_runner_deferred_free_local_operator_selected"
+      "status": "post_transfer_subject_correction_plan_reviewed_owner_approval_pending"
     },
     {
       "approvalRequired": true,

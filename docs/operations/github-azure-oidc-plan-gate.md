@@ -1,6 +1,6 @@
 # GitHub-to-Azure OIDC plan gate
 
-Status: no-mutation OIDC/ARM proof ready; protected environment approval pending
+Status: historical personal-owner proof passed; post-transfer proof failed before ARM; exact correction plan awaits approval
 
 This runbook defines and constrains the approved secretless identity proof. The protected GitHub environments, three Microsoft Entra identities/federated credentials, and retained scoped role assignments are live. [`../../.github/workflows/azure-oidc-proof.yml`](../../.github/workflows/azure-oidc-proof.yml) may exchange OIDC tokens and inspect effective permissions, but it contains no Terraform command or Azure mutation. The machine contract is [`../../config/azure-oidc-plan-gate.v1.json`](../../config/azure-oidc-plan-gate.v1.json).
 
@@ -23,9 +23,9 @@ GitHub repositories created after July 15, 2026 use immutable OIDC subjects cont
 The three required subjects are:
 
 ```text
-repo:stratiosai@{repository_owner_id}/Creator-App@{repository_id}:environment:azure-development-plan
-repo:stratiosai@{repository_owner_id}/Creator-App@{repository_id}:environment:azure-development-apply
-repo:stratiosai@{repository_owner_id}/Creator-App@{repository_id}:environment:azure-development-destroy
+repository_owner_id:{repository_owner_id}:repository_id:{repository_id}:environment:azure-development-plan
+repository_owner_id:{repository_owner_id}:repository_id:{repository_id}:environment:azure-development-apply
+repository_owner_id:{repository_owner_id}:repository_id:{repository_id}:environment:azure-development-destroy
 ```
 
 Environment subjects intentionally replace branch subjects in the token. Each GitHub environment allows only `main`, rejects tags and pull-request execution, requires the named human reviewer, and disallows administrator bypass. The repository currently has one human collaborator, `stratiosai`, while Codex is the separate automated plan producer. The owner explicitly accepted this single-human exception, so GitHub-native self-review prevention is disabled to avoid a permanent deployment deadlock. Exact saved-plan review and apply authorization remain separate human gates. No environment may share an Azure client identity with another operation.
@@ -58,4 +58,4 @@ Direct `terraform destroy`, direct/unreviewed `terraform apply`, `-auto-approve`
 6. Run a separately approved read-only identity/plan probe, capture sanitized evidence, and stop. A successful token exchange does not approve apply.
 7. Review the saved plan and current cost, obtain explicit same-day apply approval, then follow the ephemeral build/test/destroy/reconciliation runbook.
 
-Steps 1 through 5 are complete for the retained control plane. Step 6 is ready and waiting for the three protected-environment approvals. The proof does not authorize step 7, a state firewall exception, temporary operator-role removal, workload planning, or workload apply.
+Steps 1 through 5 are complete for the retained control plane and transferred public repository. The first post-transfer step 6 attempt failed before ARM because the initial preview used a name-decorated subject that did not match GitHub's emitted claim-key subject. An exact three-update correction plan is reviewed but unapplied. The correction and proof rerun require separate digest-bound approval and do not authorize step 7, a state firewall exception, temporary operator-role removal, workload planning, or workload apply.
