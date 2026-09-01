@@ -1,10 +1,10 @@
 # M05 Azure foundation evidence
 
-Status: M5.4 live OIDC/ARM proof and local state-network architecture review passed; founder/billing decision pending and no workload deployed
+Status: M5.4 GitHub Free organization created and federation-only saved plan reviewed; exact apply/transfer approval pending and no workload deployed
 
 Date: 2026-09-01
 
-Checkpoint: `M05-github-state-network-design-local-025`
+Checkpoint: `M05-free-org-federation-saved-plan-reviewed-027`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
@@ -20,6 +20,8 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - Azure normalized the protected budget period to the current September billing year. The stale August defaults triggered a safe `prevent_destroy` refusal during verification; the source-only dates were corrected to match live Azure and a normal provider-backed plan then reported **No changes**.
 - Completed the separately approved no-mutation GitHub OIDC/ARM proof on commit `73ef5bd5e3251a95347aeb7449d4365745e4c5c4`. Plan, apply, and destroy jobs all exchanged their immutable-subject tokens, proved exact live ARM/data permissions and retained-control-group denial, confirmed the state firewall remained closed, and logged out successfully. No Terraform or Azure mutation command ran.
 - Reviewed current official GitHub and Azure network constraints after the proof. Standard-runner IP allowlisting, a dynamic runner-IP rule, a self-hosted runner on the public repository, all-networks Storage, and broad trusted-services bypass were rejected. Proposed an organization-scoped GitHub Team two-core larger runner in an exact East US 2 VNet subnet with maximum concurrency one, default-deny Storage, Entra-only access, and separate migration/apply gates; no organization, billing, transfer, runner, provider, network, or firewall change occurred.
+- The owner rejected the paid GitHub Team path for now and deferred it to M14. Created `local-missions-hq` on GitHub Free under the personal `stratiosai` account with one owner, zero repositories, no invitations, and no payment method. No paid plan, runner, repository transfer, or GitHub charge occurred.
+- Verified the stable current repository ID and the new organization owner ID process-only, previewed the three future immutable environment subjects, and generated a real retained-control-plane saved plan outside the repository. Independent review proved exactly three in-place `azurerm_federated_identity_credential` subject updates, zero creates/deletes/replacements, zero network/RBAC/budget/workload changes, mode `0600`, and SHA-256 `5fbc63430b4778a3e18039109bbe66c065663621fd0025cbd51cffc71a0d3903`. No apply occurred.
 - The owner subsequently supplied the monitored destination and named the sole `stratiosai` collaborator as reviewer. Created all three main-only GitHub environments with required review and no administrator bypass, recorded the single-human self-review exception, and enabled immutable OIDC subjects without adding secrets or activating an Azure workflow.
 
 - Preserved the retained/disposable Terraform roots, exact AzureRM 5.0.1 package lock, static OIDC and saved-plan contracts, recovery contract, and non-deploying active CI while every external activation gate remains blocked.

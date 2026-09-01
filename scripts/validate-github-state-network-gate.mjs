@@ -18,12 +18,26 @@ function assert(condition, message) {
 function validate(candidate) {
   assert(candidate.schemaVersion === 1, 'Schema version drifted.');
   assert(
-    candidate.activationStatus === 'proposal_review_pending_no_external_change',
+    candidate.activationStatus === 'github_free_org_created_federation_plan_reviewed_no_apply',
     'Activation status drifted.',
   );
   assert(
-    candidate.checkpoint === 'M05-github-state-network-design-local-025',
+    candidate.checkpoint === 'M05-free-org-federation-saved-plan-reviewed-027',
     'Checkpoint drifted.',
+  );
+
+  const freePath = candidate.currentFreePath;
+  assert(
+    freePath.organization === 'local-missions-hq' &&
+      freePath.plan === 'free' &&
+      freePath.memberCount === 1 &&
+      freePath.organizationOwnedRepositories === 0 &&
+      freePath.organizationOwnerType === 'personal_account' &&
+      freePath.paymentMethodPresent === false &&
+      freePath.contactVerifiedProcessOnly === true &&
+      freePath.providerBackedTerraformExecution === 'reviewed_local_operator_only' &&
+      freePath.standardHostedRunnerRemoteStateAllowed === false,
+    'Current GitHub Free boundary drifted.',
   );
 
   const repository = candidate.currentRepository;
@@ -49,10 +63,11 @@ function validate(candidate) {
     'State-network problem statement drifted.',
   );
 
-  const recommendation = candidate.recommendation;
+  const recommendation = candidate.deferredPaidRecommendation;
   assert(
     recommendation.id === 'organization_team_larger_runner_azure_vnet_service_endpoint' &&
       recommendation.ownerApprovalRequired === true &&
+      recommendation.deferredToMilestone === 'M14' &&
       recommendation.securityOutcome === 'default_deny_exact_subnet_and_short_lived_oidc' &&
       recommendation.supersedesAcceptedAdr === false,
     'Recommended decision drifted.',
@@ -61,7 +76,7 @@ function validate(candidate) {
   assert(
     github.organizationAccountRequired === true &&
       github.organizationCandidate === 'local-missions-hq' &&
-      github.organizationCandidateStatus === 'no_visible_account_not_reserved' &&
+      github.organizationCandidateStatus === 'created_on_free_plan' &&
       github.plan === 'Team' &&
       github.repositoryTransferRequired === true &&
       github.keepRepositoryPublic === true &&
@@ -89,6 +104,23 @@ function validate(candidate) {
       network.inboundFromInternetAllowed === false &&
       network.privateEndpointDeferred === true,
     'Azure network boundary drifted.',
+  );
+
+  const savedPlan = candidate.federationSavedPlan;
+  assert(
+    savedPlan.artifactOutsideRepository === true &&
+      savedPlan.changeCount === 3 &&
+      savedPlan.resourceType === 'azurerm_federated_identity_credential' &&
+      JSON.stringify(savedPlan.actions) === JSON.stringify(['update']) &&
+      savedPlan.deletes === 0 &&
+      savedPlan.replacements === 0 &&
+      savedPlan.networkChanges === 0 &&
+      savedPlan.workloadChanges === 0 &&
+      /^[0-9a-f]{64}$/.test(savedPlan.sha256) &&
+      /^[0-9a-f]{64}$/.test(savedPlan.sourceSetSha256) &&
+      /^[0-9a-f]{64}$/.test(savedPlan.providerLockSha256) &&
+      savedPlan.terraformApplyExecuted === false,
+    'Federation saved-plan evidence drifted.',
   );
 
   const cost = candidate.costReview;
@@ -139,10 +171,16 @@ function validate(candidate) {
     candidate.costReview.sources.every((url) => /^https:\/\//.test(url)),
     'Cost source register drifted.',
   );
+  assert(candidate.currentExecution.githubOrganizationCreated === true, 'Free org not recorded.');
   assert(
-    Object.values(candidate.currentExecution).every((value) => value === false),
-    'The local design must not claim an external change.',
+    candidate.currentExecution.federationSavedPlanGenerated === true,
+    'Federation plan not recorded.',
   );
+  for (const [key, value] of Object.entries(candidate.currentExecution)) {
+    if (!['githubOrganizationCreated', 'federationSavedPlanGenerated'].includes(key)) {
+      assert(value === false, `${key} must remain false.`);
+    }
+  }
 }
 
 validate(manifest);
@@ -153,11 +191,17 @@ const mutations = [
   (value) => (value.currentRepository.organizationOwned = true),
   (value) => (value.problem.endToEndWorkflowStateAccessProven = true),
   (value) => (value.problem.defaultDenyFirewallPreserved = false),
-  (value) => (value.recommendation.ownerApprovalRequired = false),
-  (value) => (value.recommendation.github.plan = 'Free'),
-  (value) => (value.recommendation.github.maximumConcurrency = 10),
-  (value) => (value.recommendation.azureNetwork.defaultAction = 'Allow'),
-  (value) => (value.recommendation.azureNetwork.trustedServiceBypassAllowed = true),
+  (value) => (value.currentFreePath.plan = 'Team'),
+  (value) => (value.currentFreePath.paymentMethodPresent = true),
+  (value) => (value.currentFreePath.standardHostedRunnerRemoteStateAllowed = true),
+  (value) => (value.deferredPaidRecommendation.ownerApprovalRequired = false),
+  (value) => (value.deferredPaidRecommendation.github.plan = 'Free'),
+  (value) => (value.deferredPaidRecommendation.github.maximumConcurrency = 10),
+  (value) => (value.deferredPaidRecommendation.azureNetwork.defaultAction = 'Allow'),
+  (value) => (value.deferredPaidRecommendation.azureNetwork.trustedServiceBypassAllowed = true),
+  (value) => (value.federationSavedPlan.changeCount = 4),
+  (value) => (value.federationSavedPlan.deletes = 1),
+  (value) => (value.federationSavedPlan.terraformApplyExecuted = true),
   (value) => (value.costReview.runnerCostForSixtyMinutes = 0.35),
   (value) => value.rejectedAlternatives.pop(),
   (value) => value.requiredApprovalGates.pop(),
@@ -176,5 +220,5 @@ for (const mutate of mutations) {
 }
 
 console.log(
-  `GitHub state-network gate passed one approval-pending private-runner design, ${manifest.rejectedAlternatives.length} rejected unsafe alternatives, ${manifest.requiredApprovalGates.length} external gates, ${mutations.length} refusal scenarios, and zero external changes.`,
+  `GitHub state-network gate passed the GitHub Free/local-operator decision, one reviewed three-update federation plan, one deferred paid private-runner design, ${manifest.rejectedAlternatives.length} rejected unsafe alternatives, ${manifest.requiredApprovalGates.length} remaining gates, and ${mutations.length} refusal scenarios.`,
 );

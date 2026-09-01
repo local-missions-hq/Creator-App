@@ -1,6 +1,6 @@
 {
-  "activationStatus": "github_state_network_design_review_pending",
-  "checkpoint": "M05-github-state-network-design-local-025",
+  "activationStatus": "github_free_org_federation_plan_reviewed_no_apply",
+  "checkpoint": "M05-free-org-federation-saved-plan-reviewed-027",
   "currentExecution": {
     "azureAuthenticated": true,
     "azureReadOnlyInventoryExecuted": true,
@@ -93,8 +93,8 @@
       "path": "config/azure-oidc-plan-gate.v1.json"
     },
     {
-      "activationStatus": "proposal_review_pending_no_external_change",
-      "checkpoint": "M05-github-state-network-design-local-025",
+      "activationStatus": "github_free_org_created_federation_plan_reviewed_no_apply",
+      "checkpoint": "M05-free-org-federation-saved-plan-reviewed-027",
       "command": "pnpm github-state-network:check",
       "path": "config/github-state-network-gate.v1.json"
     },
@@ -124,7 +124,7 @@
     }
   ],
   "milestoneComplete": false,
-  "nextBoundary": "github_org_team_transfer_owner_approval_required",
+  "nextBoundary": "exact_federation_plan_and_public_transfer_approval_required",
   "requiredArtifacts": [
     ".github/workflows/azure-oidc-proof.yml",
     ".github/workflows/verify.yml",
@@ -146,6 +146,7 @@
     "docs/evidence/M05/summary.md",
     "docs/evidence/M05/commands.txt",
     "docs/decisions/ADR-060.md",
+    "docs/decisions/ADR-061.md",
     "scripts/validate-github-state-network-gate.mjs"
   ],
   "externalGates": [
@@ -210,7 +211,7 @@
       "evidenceRequired": "temporary least-privilege state-network method and viable operator recovery path",
       "id": "workflow-state-network-access-and-operator-recovery",
       "ownerRole": "security_reviewer",
-      "status": "design_complete_owner_approval_pending"
+      "status": "paid_private_runner_deferred_free_local_operator_selected"
     },
     {
       "approvalRequired": true,

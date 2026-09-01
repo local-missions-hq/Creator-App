@@ -110,6 +110,28 @@
     "postApplyKnownSecretValueCount": 0,
     "postApplyIdentifierRedactionIncidentRecorded": true
   },
+  "federationMigrationPlanEvidence": {
+    "checkpoint": "M05-free-org-federation-saved-plan-reviewed-027",
+    "sha256": "5fbc63430b4778a3e18039109bbe66c065663621fd0025cbd51cffc71a0d3903",
+    "byteSize": 26493,
+    "generatedAtUtc": "2026-09-01T14:03:04Z",
+    "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
+    "controlPlaneSourceSha256Current": "affc528869586c544a7ad1bee0128d772a6e9023c5c1eab9d45cd6d1c75f4917",
+    "sourceSetSha256": "0b598cdfa432aec14ee5ddebc02c772dc2031bc77501164ef69c3b645b59dcfc",
+    "binaryStoredInRepository": false,
+    "rawJsonStoredInRepository": false,
+    "resourcesToAdd": 0,
+    "resourcesToChange": 3,
+    "resourcesToDestroy": 0,
+    "resourcesToReplace": 0,
+    "networkChanges": 0,
+    "rbacChanges": 0,
+    "budgetChanges": 0,
+    "workloadChanges": 0,
+    "federatedCredentialSubjectUpdates": 3,
+    "terraformApplyExecuted": false,
+    "repositoryTransferred": false
+  },
   "architecture": {
     "terraformRoots": 3,
     "bootstrapRetainedResources": 3,

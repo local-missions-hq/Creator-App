@@ -406,3 +406,25 @@ pnpm test:security && pnpm test:gitleaks
 PASS — the local high-confidence scan passed for 643 text files and Gitleaks found no leaks in approximately 17.76 MB.
 
 No GitHub organization, paid plan, repository transfer, runner, provider registration, Azure network/firewall/RBAC mutation, Terraform plan/apply, workload action, Stripe action, customer data, or iOS deployment occurred. The next gate is the founder's explicit approval or rejection of the candidate organization, GitHub Team recurring cost, public repository transfer boundary, and first-run runner ceiling.
+
+M05-free-org-federation-saved-plan-reviewed-027 — 2026-09-01
+
+GitHub Free organization creation and read-only API verification
+PASS — created `local-missions-hq` under the personal `stratiosai` account on plan `free`; verified one active owner, zero repositories, no invitations, and no payment method. The paid Team checkout was abandoned before billing information or payment submission. No GitHub charge occurred.
+
+current public IPv4 and retained Storage boundary review
+PASS — the Mac's current public IPv4 still matched exactly one approved Storage rule; the account remained default deny with bypass `None`, Shared Key disabled, and TLS 1.2. No network rule changed.
+
+future immutable-subject preview and provider-backed Terraform plan
+PASS — used the verified future organization owner ID and stable repository ID process-only to preview the plan/apply/destroy environment subjects. Generated a mode-`0600` saved plan outside the repository and independently proved exactly three in-place `azurerm_federated_identity_credential` subject updates, zero creates/deletes/replacements, zero network/RBAC/budget/workload changes, and plan SHA-256 `5fbc63430b4778a3e18039109bbe66c065663621fd0025cbd51cffc71a0d3903`.
+
+source and provider binding
+PASS — source-set SHA-256 `0b598cdfa432aec14ee5ddebc02c772dc2031bc77501164ef69c3b645b59dcfc`; provider-lock SHA-256 `71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33`. Private intermediate logs, JSON, and the temporary working directory were moved to Trash; only the binary saved plan remains outside the repository.
+
+No Terraform apply, Azure create/update/delete, provider registration, firewall/RBAC mutation, repository transfer, paid GitHub feature, workload plan, registry/image action, Stripe action, customer data, or iOS deployment occurred. The next gate is approval bound to the exact plan digest and coordinated still-public repository transfer window.
+
+pnpm verify
+PASS — all policy/architecture contracts, all nine workspace lint/type/test/contract/build gates, 111 mobile tests, migration/OpenAPI contracts, and production-bundle smokes passed. Azure readiness separately preserves the previously applied source digest and the current reviewed-but-unapplied federation source digest.
+
+pnpm test:security && pnpm test:gitleaks
+PASS — the high-confidence scan passed for 644 text files and Gitleaks found no leaks in approximately 17.78 MB.

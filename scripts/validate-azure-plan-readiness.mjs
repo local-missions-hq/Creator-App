@@ -174,6 +174,30 @@ function validate(candidate) {
       controlAppliedAt < controlExpiresAt,
     'Control-plane plan expiry or apply time drifted.',
   );
+  const federationEvidence = candidate.federationMigrationPlanEvidence;
+  assert(
+    federationEvidence.checkpoint === 'M05-free-org-federation-saved-plan-reviewed-027' &&
+      /^[0-9a-f]{64}$/.test(federationEvidence.sha256) &&
+      federationEvidence.byteSize === 26493 &&
+      federationEvidence.generatedAtUtc === '2026-09-01T14:03:04Z' &&
+      federationEvidence.providerLockSha256 === controlEvidence.providerLockSha256 &&
+      /^[0-9a-f]{64}$/.test(federationEvidence.controlPlaneSourceSha256Current) &&
+      /^[0-9a-f]{64}$/.test(federationEvidence.sourceSetSha256) &&
+      federationEvidence.binaryStoredInRepository === false &&
+      federationEvidence.rawJsonStoredInRepository === false &&
+      federationEvidence.resourcesToAdd === 0 &&
+      federationEvidence.resourcesToChange === 3 &&
+      federationEvidence.resourcesToDestroy === 0 &&
+      federationEvidence.resourcesToReplace === 0 &&
+      federationEvidence.networkChanges === 0 &&
+      federationEvidence.rbacChanges === 0 &&
+      federationEvidence.budgetChanges === 0 &&
+      federationEvidence.workloadChanges === 0 &&
+      federationEvidence.federatedCredentialSubjectUpdates === 3 &&
+      federationEvidence.terraformApplyExecuted === false &&
+      federationEvidence.repositoryTransferred === false,
+    'Federation migration saved-plan evidence drifted.',
+  );
   const lockBytes = readFileSync(
     join(repositoryRoot, 'infra/terraform/bootstrap/.terraform.lock.hcl'),
   );
@@ -203,8 +227,13 @@ function validate(candidate) {
     .join('');
   assert(
     createHash('sha256').update(controlSourceLines).digest('hex') ===
-      controlEvidence.controlPlaneSourceSha256AfterApply,
-    'Control-plane source digest drifted from post-apply evidence.',
+      federationEvidence.controlPlaneSourceSha256Current,
+    'Control-plane source digest drifted from the reviewed federation plan.',
+  );
+  assert(
+    controlEvidence.controlPlaneSourceSha256AfterApply ===
+      'eee9a24837e0cd856e4370ec386ce08681ede230a4150278f8fcfdfcf4013f61',
+    'Applied control-plane source evidence was overwritten by the pending migration.',
   );
   const bootstrapRoot = join(repositoryRoot, 'infra/terraform/bootstrap');
   const sourceLines = readdirSync(bootstrapRoot)
@@ -409,6 +438,18 @@ const refusalCases = [
   ],
   ['plan resource count drift', (value) => (value.bootstrapPlanEvidence.resourcesToAdd = 4)],
   ['control plan digest drift', (value) => (value.controlPlanePlanEvidence.sha256 = 'invalid')],
+  [
+    'federation plan digest drift',
+    (value) => (value.federationMigrationPlanEvidence.sha256 = 'invalid'),
+  ],
+  [
+    'federation plan apply claimed',
+    (value) => (value.federationMigrationPlanEvidence.terraformApplyExecuted = true),
+  ],
+  [
+    'federation plan network drift',
+    (value) => (value.federationMigrationPlanEvidence.networkChanges = 1),
+  ],
   [
     'control plan resource count drift',
     (value) => (value.controlPlanePlanEvidence.resourcesToAdd = 19),

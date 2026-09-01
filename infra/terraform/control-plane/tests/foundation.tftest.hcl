@@ -37,13 +37,14 @@ run "mock_enabled_control_plane_contract" {
     control_plane_approval_reference       = "mock-control-approval"
     expected_subscription_id               = "00000000-0000-4000-8000-000000000003"
     expected_tenant_id                     = "00000000-0000-4000-8000-000000000003"
+    github_repository_owner                = "local-missions-hq"
     github_oidc_subjects_revalidated       = true
     subscription_placement                 = "shared-nonproduction"
     shared_subscription_cotenancy_approved = true
     github_oidc_subjects = {
-      plan    = "repo:stratiosai@123456/Creator-App@789012:environment:azure-development-plan"
-      apply   = "repo:stratiosai@123456/Creator-App@789012:environment:azure-development-apply"
-      destroy = "repo:stratiosai@123456/Creator-App@789012:environment:azure-development-destroy"
+      plan    = "repo:local-missions-hq@123456/Creator-App@789012:environment:azure-development-plan"
+      apply   = "repo:local-missions-hq@123456/Creator-App@789012:environment:azure-development-apply"
+      destroy = "repo:local-missions-hq@123456/Creator-App@789012:environment:azure-development-destroy"
     }
   }
 

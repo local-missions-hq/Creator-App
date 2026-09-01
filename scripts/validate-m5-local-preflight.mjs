@@ -90,17 +90,17 @@ function assertUniqueExact(actual, expected, label) {
 function validateManifest(candidate) {
   assert(candidate.schemaVersion === 1, 'Preflight schema version drifted.');
   assert(
-    candidate.activationStatus === 'github_state_network_design_review_pending',
+    candidate.activationStatus === 'github_free_org_federation_plan_reviewed_no_apply',
     'Activation status drifted.',
   );
   assert(
-    candidate.checkpoint === 'M05-github-state-network-design-local-025',
+    candidate.checkpoint === 'M05-free-org-federation-saved-plan-reviewed-027',
     'Checkpoint drifted.',
   );
   assert(candidate.milestoneComplete === false, 'M5 cannot be claimed complete locally.');
   assert(candidate.syntheticDataOnly === true, 'Only synthetic data is allowed.');
   assert(
-    candidate.nextBoundary === 'github_org_team_transfer_owner_approval_required',
+    candidate.nextBoundary === 'exact_federation_plan_and_public_transfer_approval_required',
     'Next boundary drifted.',
   );
   assert(candidate.verificationCommand === 'pnpm m5:preflight', 'Verification command drifted.');
@@ -138,7 +138,7 @@ function validateManifest(candidate) {
         'control_plane_applied_verified',
         'github_environments_configured_azure_execution_disabled',
         'github_oidc_arm_proof_passed_network_access_pending',
-        'proposal_review_pending_no_external_change',
+        'github_free_org_created_federation_plan_reviewed_no_apply',
       ].includes(contract.activationStatus),
       `${contract.path} activation status is not local-only.`,
     );
@@ -161,7 +161,7 @@ function validateManifest(candidate) {
     candidate.requiredArtifacts.length === new Set(candidate.requiredArtifacts).size,
     'Required artifacts contain a duplicate.',
   );
-  assert(candidate.requiredArtifacts.length === 21, 'Required artifact count drifted.');
+  assert(candidate.requiredArtifacts.length === 22, 'Required artifact count drifted.');
 
   assertUniqueExact(
     candidate.externalGates.map((gate) => gate.id),
@@ -179,7 +179,7 @@ function validateManifest(candidate) {
       gate.id === 'oidc-identities-and-environment-protection'
         ? 'completed_no_apply_proof'
         : gate.id === 'workflow-state-network-access-and-operator-recovery'
-          ? 'design_complete_owner_approval_pending'
+          ? 'paid_private_runner_deferred_free_local_operator_selected'
           : completedControlApplyGates.has(gate.id)
             ? 'completed_for_control_plane_apply'
             : completedControlPlanGates.has(gate.id)

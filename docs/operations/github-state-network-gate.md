@@ -1,40 +1,38 @@
 # GitHub workflow state-network gate
 
-Status: local design passed; founder and billing approval pending
+Status: GitHub Free selected; organization created; federation-only saved plan reviewed; no apply or transfer
 
-Checkpoint: `M05-github-state-network-design-local-025`
+Checkpoint: `M05-free-org-federation-saved-plan-reviewed-027`
 
-## Selected recommendation
+## Current no-charge decision
 
-Use a Local Missions-only GitHub Team organization, a two-core Linux larger runner with maximum concurrency one, and GitHub's Azure VNet private-network integration. Permit the retained state account only from the exact dedicated runner subnet through the `Microsoft.Storage` service endpoint. Keep default deny, Entra-only data access, TLS, disabled Shared Key, disabled anonymous access, no trusted-service bypass, and protected environment review.
+Use the `local-missions-hq` GitHub Free organization with no payment method. Keep the existing repository public and personal-owner hosted until the exact federation plan and coordinated transfer window are separately approved. Continue GitHub-hosted verification and no-apply OIDC/ARM proof, but keep provider-backed Terraform state operations on the reviewed local operator path while Storage remains default-deny, Entra-only, TLS-protected, Shared Key disabled, anonymous access disabled, and trusted-service bypass disabled.
 
-The currently visible candidate organization slug is `local-missions-hq`. It is not reserved. Creating it, purchasing Team, transferring the repository, or changing Azure is prohibited until the owner approves the exact external impact.
+GitHub's read-only API verified the organization on plan `free`, one active owner, zero repositories, and no transfer. The billing UI verified that no payment method exists. A budget cannot be created without adding payment information, so paid products remain prohibited rather than enabled with a nonzero limit.
 
 ## Ordered migration
 
-1. Record the approved organization slug, one-seat Team ceiling, runner-minute ceiling, and transfer window.
-2. Create the organization and Team subscription; do not transfer yet.
-3. Generate the new immutable GitHub owner/repository subject preview and a complete federation/network migration plan, including failure recovery and repository-transfer rollback.
-4. Generate and independently review one retained-control-plane saved plan containing only the exact federation replacements and retained network resources. Include provider registration, resource counts, cost meters, security rules, source/lock digests, expiry, and zero workload resources.
-5. Obtain approval bound to that artifact. Apply only the reviewed retained delta and reconcile Azure independently.
-6. Transfer the public repository during the approved window, configure only the selected repository/runner group, and keep all three protected environments main-only with required review.
-7. Run a no-Terraform three-identity Blob read/write/lock/delete proof against three distinct disposable proof keys—not the real state objects—then delete the proof objects and verify version/soft-delete evidence without exposing payloads.
-8. Run one reviewed remote-backend initialization per identity/key, with no workload plan. Reconcile Storage firewall, VNet/subnet/NSG/network settings, OIDC subjects, RBAC, proof-object cleanup, and cost.
-9. Approve and test an operator recovery method. Only then remove the temporary operator data-role assignment through a separately reviewed control-plane plan and prove recovery still works.
+1. Create the GitHub Free organization with one personal-account owner, no invitations, no repositories, and no payment method. **Complete.**
+2. Preview the three future immutable organization/repository environment subjects while the repository ID remains stable. **Complete.**
+3. Generate and independently review one retained-control-plane saved plan containing only those three subject updates. **Complete:** three in-place updates; zero create/delete/replace/network/RBAC/budget/workload changes; SHA-256 `5fbc63430b4778a3e18039109bbe66c065663621fd0025cbd51cffc71a0d3903`.
+4. Obtain approval bound to the exact plan digest and one coordinated transfer window. Stop before both apply and transfer.
+5. Revalidate plan/source/provider-lock digests, unchanged Azure inventory, current personal repository ownership, organization ownership, and operator state access. Apply only the reviewed three updates and reconcile Azure independently.
+6. Transfer the still-public repository immediately afterward. Verify its stable repository ID, redirects, branch/default settings, protected environments, required reviewer, main-only rules, immutable OIDC setting, and Actions permissions.
+7. Run the no-Terraform three-identity OIDC/ARM proof. The real Blob read must remain refused by the default-deny firewall; GitHub workflow state access stays deferred.
+8. Keep remote-backend plan/apply/destroy on the reviewed local operator path and retain the temporary operator Blob role until a later private-runner/recovery proof is separately approved.
 
 ## Fail-closed requirements
 
 - No self-hosted runner on the public repository or founder's daily-use Mac.
 - No global GitHub Actions IP allowlist, dynamic runner-IP workaround, all-networks mode, or trusted-services bypass.
-- No repository transfer before both old/new subject and rollback procedures are reviewed.
+- No repository transfer before the exact federation saved plan, old/new subjects, rollback procedure, and coordinated window are approved.
 - No federation replacement or network change outside a saved Terraform plan.
-- No runner group access beyond `Creator-App`; no pull-request, fork, or unreviewed branch execution.
-- No concurrency above one for the first proof.
+- No paid runner, payment method, or GitHub subscription under the current decision.
 - No real Terraform state payload printed, copied to artifacts, or used as a network test object.
 - No operator-role removal before separate recovery proof.
 - No workload plan, image publication, application activation, or Stripe action under this gate.
 
-## Cost model
+## Deferred paid option
 
 Public estimates reviewed 2026-09-01:
 
@@ -43,8 +41,8 @@ Public estimates reviewed 2026-09-01:
 - Idle larger runner: `$0` according to GitHub's current billing documentation.
 - Azure VNet base: `$0`; associated services, traffic, logs, taxes, and offer-specific charges remain unapproved until the exact saved plan and billing screen are reviewed.
 
-The `$100` Azure budget does not include or authorize GitHub charges. Configure a separate GitHub Actions budget/spend limit before the first paid runner job.
+The owner deferred this option to M14. The `$100` Azure budget does not include or authorize GitHub charges. A future paid proposal requires fresh pricing, a separate GitHub approval and spending control, and an exact Azure network saved plan.
 
 ## Current stop
 
-No external change is authorized. The next owner decision is whether to approve the candidate `local-missions-hq` organization, one GitHub Team seat at the current `$4/month` public price, repository transfer while remaining public, and a first-run larger-runner ceiling of 60 minutes (`$0.36`).
+The free organization exists and the federation-only saved plan has been reviewed. No payment, Azure mutation, or repository transfer occurred. The next owner decision is whether to approve exact plan SHA-256 `5fbc63430b4778a3e18039109bbe66c065663621fd0025cbd51cffc71a0d3903` and the coordinated still-public repository transfer window. Plan approval does not authorize a workload plan, paid GitHub feature, Storage firewall change, or operator-role removal.

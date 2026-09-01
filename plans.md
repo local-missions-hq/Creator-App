@@ -12,9 +12,9 @@ Cloud: Microsoft Azure
 
 Current milestone: **M5 — Azure development foundation and continuous delivery**
 
-Current checkpoint: **M05-github-state-network-design-local-025**
+Current checkpoint: **M05-free-org-federation-saved-plan-reviewed-027**
 
-Next exact task: **Approve or reject the `local-missions-hq` GitHub Team organization, public repository transfer, `$4/month` seat, and `$0.36` first-run runner ceiling; no account, billing, transfer, or Azure change before approval**
+Next exact task: **Approve or reject federation-only plan SHA-256 `5fbc63430b4778a3e18039109bbe66c065663621fd0025cbd51cffc71a0d3903` and the coordinated still-public repository transfer window; no apply or transfer before approval**
 
 Last updated: 2026-09-01
 
@@ -41,7 +41,7 @@ The former detailed build contract, verification protocols, and dated work entri
 | iOS | Shared Expo/React Native Creator and Business prototype builds and runs in Simulator with local adapters and automated UI evidence. | External Identity sign-in, Azure API connectivity, physical-iPhone VoiceOver, signed TestFlight build, and App Store release. |
 | Web/API/worker | Local dashboard, API, worker boundaries, authorization, audit, queue, upload, and recovery contracts exist. | Running Azure endpoints and production operations. |
 | Azure | Dedicated `Local Missions Development` subscription contains the applied three-resource retained-state bootstrap and 20-resource retained control/landing-zone plane. The empty workload landing zone, budget, alerting, least-privilege workflow RBAC, remote state, locking, and live security controls were independently verified. | Disposable workload, immutable images, endpoints, cloud tests, and same-day teardown. |
-| Identity | OIDC/PKCE, token verification, server session, role/workspace, and secretless workflow contracts pass locally. Three protected GitHub environment identities successfully exchanged immutable-subject OIDC tokens and proved their exact live ARM/data permissions without mutation. | Entra External ID tenant/app activation, customer registrations, real-user sign-in, and end-to-end workflow state access through the default-deny network. |
+| Identity | OIDC/PKCE, token verification, server session, role/workspace, and secretless workflow contracts pass locally. Three protected GitHub environment identities successfully exchanged immutable-subject OIDC tokens and proved their exact live ARM/data permissions without mutation. The `local-missions-hq` GitHub Free organization now exists with one owner and no payment method; its future immutable subjects produced an independently reviewed three-update federation-only saved plan. | Entra External ID tenant/app activation, customer registrations, real-user sign-in, coordinated federation apply/public repository transfer, and end-to-end workflow state access through a later paid private-network path. |
 | Stripe | Ledger, funding, payout, refund, idempotency, reconciliation, and webhook behavior are modeled and tested locally with no provider contact. | Stripe test-mode Connect configuration, real test webhooks/transactions, live-mode approval, and real-money operation. |
 | Release | Local quality gates and Simulator evidence exist. | Physical-device release candidate, TestFlight, App Review, and controlled Orlando production launch. |
 
@@ -151,12 +151,14 @@ Goal: prove a reproducible, least-privilege Azure development deployment using s
 - [x] Obtain separate approval to activate a no-apply GitHub OIDC proof that each workflow identity receives only its intended environment subject, control command policy, remote-state access, and landing-zone permissions.
 - [x] Approve and complete the three protected GitHub environment jobs. Prove OIDC token exchange, exact landing-zone ARM permissions, control-group denial, and state data-action assignment without Azure mutation. The actual Blob read remained blocked by the default-deny firewall as designed.
 - [x] Design and locally validate the least-privilege workflow state-network method and operator recovery sequence. Reject global/dynamic IP allowlists, all-networks mode, trusted-service bypass, and a self-hosted runner on the public repository; propose an organization-scoped GitHub Team larger runner in an exact East US 2 VNet subnet.
-- [ ] Approve or reject the currently unreserved `local-missions-hq` organization candidate, one GitHub Team seat at the current `$4/month` public price, transfer of the still-public repository, and a first-run 60-minute larger-runner ceiling of `$0.36`. The `$100` Azure budget does not authorize GitHub billing.
-- [ ] If approved, create only the organization/Team boundary first. Preview the new immutable owner/repository subjects and generate one retained federation/network migration saved plan; stop before transfer or apply.
-- [ ] Independently review and separately approve the exact federation/network saved plan, provider registration, retained resource count, security rules, and cost meters.
-- [ ] Apply only the reviewed retained delta, reconcile Azure, transfer the repository in the approved window, and configure a maximum-concurrency-one runner group restricted to `Creator-App`.
-- [ ] Prove all three workflow identities can use their distinct remote-state keys through only the approved temporary network exception, then remove that exception and independently reconcile the default-deny firewall.
-- [ ] Remove the temporary operator state-container role only after all three workflow identities prove remote-state access and an approved operator recovery path exists.
+- [x] Reject the current paid GitHub Team/larger-runner option and defer its `$4/month` seat, paid minutes, and Azure VNet integration to M14. No payment information was entered and no paid plan or runner was created.
+- [x] Create `local-missions-hq` on GitHub Free under the personal `stratiosai` account, with one owner, zero repositories, no invitations, and no payment method. Keep the existing repository public and untransferred.
+- [x] Preview the future immutable organization/repository subjects and generate one federation-only retained saved plan. Independent review proved exactly three in-place federated-credential subject updates, zero creates/deletes/replacements, zero network/RBAC/budget/workload changes, mode `0600`, and SHA-256 `5fbc63430b4778a3e18039109bbe66c065663621fd0025cbd51cffc71a0d3903`.
+- [ ] Independently approve or reject that exact saved plan and a coordinated transfer window. The apply must occur immediately before the still-public repository transfer, with rollback and environment reconciliation ready; approval authorizes neither workload planning nor any paid GitHub feature.
+- [ ] Revalidate the plan/source/provider-lock digests, current personal repository ownership, free organization ownership, unchanged Azure inventory, and current operator state access; apply only the three reviewed subject updates and independently reconcile Azure.
+- [ ] Transfer the still-public `Creator-App` repository to `local-missions-hq`, verify the stable repository ID, all three protected environments, main-only review rules, immutable OIDC setting, branch protection, Actions permissions, and origin redirect, then run a no-Terraform OIDC/ARM proof that still expects the default-deny Blob refusal.
+- [ ] Keep provider-backed Terraform plan/apply/destroy on the reviewed local operator path while GitHub Free is selected. Do not allowlist standard-runner IP ranges, discover/add dynamic runner IPs, open Storage, enable trusted-service bypass, or attach a self-hosted runner to the public repository.
+- [ ] Retain the temporary operator state-container role until a separately approved recovery path and later paid private-runner proof exist; do not misreport GitHub workflow remote-state access as complete.
 - [ ] Prove plan cannot apply/delete, apply cannot delete, destroy cannot delete the landing-zone group, and delegated RBAC is limited to the five approved application data roles.
 
 ### M5.5 — Disposable workload core and immutable images
@@ -264,6 +266,7 @@ Goal: prove the marketplace money lifecycle in Stripe test mode before any live-
 
 ## M14 — Private staging and production-grade Azure foundation
 
+- [ ] Revisit the deferred GitHub Team/larger-runner private-network option only if automated Terraform state access is still justified; recheck current pricing, use a separate GitHub spend approval/budget, and require an exact Azure VNet/network-settings saved plan before any purchase or network change.
 - [ ] Create separate staging and production naming, subscriptions/resource groups, Terraform state, identities, secrets, databases, storage, queues, telemetry, budgets, and approval environments.
 - [ ] Revalidate architecture, East US 2 availability, low-cost production-capable SKUs, quotas, pricing, backup retention, scaling assumptions, and cost alerts.
 - [ ] Add VNet integration, private endpoints, private DNS, disabled public data-service access, egress controls, WAF/managed edge decision, custom domains, and certificates.

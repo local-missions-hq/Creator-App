@@ -1,6 +1,6 @@
 {
-  "activationStatus": "proposal_review_pending_no_external_change",
-  "checkpoint": "M05-github-state-network-design-local-025",
+  "activationStatus": "github_free_org_created_federation_plan_reviewed_no_apply",
+  "checkpoint": "M05-free-org-federation-saved-plan-reviewed-027",
   "costReview": {
     "currency": "USD",
     "githubTeamPerUserMonthly": 4,
@@ -19,12 +19,24 @@
   },
   "currentExecution": {
     "azureNetworkMutationExecuted": false,
-    "githubOrganizationCreated": false,
+    "federationSavedPlanGenerated": true,
+    "githubOrganizationCreated": true,
     "githubPlanPurchased": false,
     "repositoryTransferred": false,
     "runnerCreated": false,
     "storageFirewallMutationExecuted": false,
     "workflowStateReadExecuted": false
+  },
+  "currentFreePath": {
+    "contactVerifiedProcessOnly": true,
+    "memberCount": 1,
+    "organization": "local-missions-hq",
+    "organizationOwnedRepositories": 0,
+    "organizationOwnerType": "personal_account",
+    "paymentMethodPresent": false,
+    "plan": "free",
+    "providerBackedTerraformExecution": "reviewed_local_operator_only",
+    "standardHostedRunnerRemoteStateAllowed": false
   },
   "currentRepository": {
     "checkedAt": "2026-09-01",
@@ -44,7 +56,7 @@
     "stateDataActionsProven": true,
     "workflowBlobReadBlockedByFirewall": true
   },
-  "recommendation": {
+  "deferredPaidRecommendation": {
     "azureNetwork": {
       "defaultAction": "Deny",
       "dedicatedRunnerSubnet": true,
@@ -65,7 +77,7 @@
       "maximumConcurrency": 1,
       "organizationAccountRequired": true,
       "organizationCandidate": "local-missions-hq",
-      "organizationCandidateStatus": "no_visible_account_not_reserved",
+      "organizationCandidateStatus": "created_on_free_plan",
       "plan": "Team",
       "repositoryTransferRequired": true,
       "runnerArchitecture": "x64",
@@ -75,9 +87,24 @@
       "staticPublicIp": false
     },
     "id": "organization_team_larger_runner_azure_vnet_service_endpoint",
+    "deferredToMilestone": "M14",
     "ownerApprovalRequired": true,
     "securityOutcome": "default_deny_exact_subnet_and_short_lived_oidc",
     "supersedesAcceptedAdr": false
+  },
+  "federationSavedPlan": {
+    "actions": ["update"],
+    "artifactOutsideRepository": true,
+    "changeCount": 3,
+    "deletes": 0,
+    "networkChanges": 0,
+    "replacements": 0,
+    "resourceType": "azurerm_federated_identity_credential",
+    "sha256": "5fbc63430b4778a3e18039109bbe66c065663621fd0025cbd51cffc71a0d3903",
+    "sourceSetSha256": "0b598cdfa432aec14ee5ddebc02c772dc2031bc77501164ef69c3b645b59dcfc",
+    "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
+    "terraformApplyExecuted": false,
+    "workloadChanges": 0
   },
   "rejectedAlternatives": [
     {
@@ -102,13 +129,13 @@
     }
   ],
   "requiredApprovalGates": [
-    "approve-github-organization-name-and-repository-transfer",
-    "approve-github-team-recurring-cost-and-runner-minute-ceiling",
-    "preview-new-immutable-github-owner-and-repository-subjects",
-    "generate-and-review-retained-network-and-federation-saved-plan",
-    "approve-exact-retained-network-and-federation-plan",
-    "apply-and-reconcile-only-the-reviewed-retained-delta",
-    "approve-and-run-three-key-remote-state-proof",
+    "approve-exact-federation-plan-and-transfer-window",
+    "revalidate-plan-source-lock-and-repository-ownership",
+    "apply-only-three-federated-subject-updates",
+    "transfer-public-repository-and-reconcile-protections",
+    "run-post-transfer-no-apply-oidc-proof",
+    "retain-local-operator-state-path",
+    "revisit-paid-private-runner-at-m14",
     "remove-temporary-operator-role-only-after-recovery-proof"
   ],
   "schemaVersion": 1,

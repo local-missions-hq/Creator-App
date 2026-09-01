@@ -43,4 +43,4 @@ The expected state Blob read failed from each GitHub-hosted runner because the S
 
 ## Next gate
 
-The local state-network review is recorded at checkpoint `M05-github-state-network-design-local-025`. The next owner gate is approval or rejection of the `local-missions-hq` GitHub Team organization, public repository transfer, recurring seat cost, and first-run larger-runner ceiling. Do not alter GitHub billing/ownership, the Storage firewall, federation, networking, RBAC, or workload state under the completed proof approval.
+The owner subsequently selected GitHub Free, created `local-missions-hq` without a payment method, and deferred the paid private-runner/VNet design to M14. Checkpoint `M05-free-org-federation-saved-plan-reviewed-027` contains an independently reviewed three-update federation-only saved plan. The next gate is approval bound to that exact plan digest and a coordinated still-public repository transfer window. Do not alter the Storage firewall, networking, RBAC, workload state, or paid GitHub settings under the completed proof approval.
