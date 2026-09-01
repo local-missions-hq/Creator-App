@@ -8,6 +8,7 @@ import {
   readFileSync,
   realpathSync,
   rmSync,
+  writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -446,12 +447,50 @@ function runBuildInputValidator(fixture) {
   });
 }
 
+function projectProductionRoot(sourceRoot) {
+  const rootManifest = readJson(join(repositoryRoot, 'package.json'));
+  writeFileSync(
+    join(sourceRoot, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: rootManifest.name,
+        private: rootManifest.private,
+        packageManager: rootManifest.packageManager,
+        engines: rootManifest.engines,
+      },
+      null,
+      2,
+    )}\n`,
+  );
+
+  const lockfilePath = join(sourceRoot, 'pnpm-lock.yaml');
+  const lockfile = readText(lockfilePath);
+  const rootImporter = /\n {2}\.:\n[\s\S]*?(?=\n {2}apps\/api:\n)/;
+  assert(
+    rootImporter.test(lockfile),
+    'Shared lockfile root importer could not be projected for production deploy.',
+  );
+  writeFileSync(lockfilePath, lockfile.replace(rootImporter, '\n  .: {}\n'));
+}
+
+function offlineDeployEnvironment() {
+  return {
+    ...process.env,
+    CI: 'true',
+    // The repository install has already verified the original frozen lockfile. The
+    // production projection removes only the root development importer, so replay it
+    // without asking pnpm 11 to re-check release ages using unavailable offline metadata.
+    PNPM_CONFIG_MINIMUM_RELEASE_AGE: '0',
+  };
+}
+
 function prepareDeployWorkspace(temporaryRoot) {
   const sourceRoot = join(temporaryRoot, 'deploy-source');
   mkdirSync(sourceRoot, { recursive: true });
   for (const file of ['.npmrc', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml']) {
     cpSync(join(repositoryRoot, file), join(sourceRoot, file));
   }
+  projectProductionRoot(sourceRoot);
   for (const relativePath of [
     'apps/api',
     'apps/worker',
@@ -476,7 +515,7 @@ function prepareDeployWorkspace(temporaryRoot) {
     {
       cwd: sourceRoot,
       encoding: 'utf8',
-      env: { ...process.env, CI: 'true' },
+      env: offlineDeployEnvironment(),
       stdio: 'pipe',
     },
   );
@@ -496,7 +535,12 @@ function deployPackage(sourceRoot, packageName, target) {
       '--offline',
       target,
     ],
-    { cwd: sourceRoot, encoding: 'utf8', env: { ...process.env, CI: 'true' }, stdio: 'pipe' },
+    {
+      cwd: sourceRoot,
+      encoding: 'utf8',
+      env: offlineDeployEnvironment(),
+      stdio: 'pipe',
+    },
   );
 }
 
