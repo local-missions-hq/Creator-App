@@ -31,7 +31,7 @@ COPY packages/contracts packages/contracts
 COPY packages/db packages/db
 
 RUN pnpm --filter @local-missions/api... build
-RUN pnpm --config.ignore-scripts=true --filter @local-missions/api deploy --legacy --prod --offline /output
+RUN pnpm --config.ignore-scripts=true --filter @local-missions/api deploy --legacy --prod --prefer-offline /output
 
 FROM ${NODE_IMAGE} AS runtime
 ARG BUILD_COMMIT

@@ -8,7 +8,6 @@ import {
   readFileSync,
   realpathSync,
   rmSync,
-  writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -234,8 +233,8 @@ function assertDockerfile(image, source, contract) {
   }
   if (image.bundleKind === 'pnpm_deploy') {
     assert(
-      source.includes('deploy --legacy --prod --offline /output'),
-      `${image.id} deploy must be production-only and offline.`,
+      source.includes('deploy --legacy --prod --prefer-offline /output'),
+      `${image.id} deploy must be production-only and prefer the local package store.`,
     );
   } else {
     assert(source.includes('.next/standalone'), `${image.id} must copy Next standalone output.`);
@@ -423,7 +422,10 @@ function runRefusalCoverage(contract, fixture) {
       (value) => value.replace('CMD ["node", "dist/main.js"]', 'CMD ["sh"]'),
     ],
     ['docker-pnpm-drift', (value) => value.replace('pnpm@11.24.0', 'pnpm@latest')],
-    ['docker-online-deploy', (value) => value.replace(' --offline /output', ' /output')],
+    [
+      'docker-prefer-offline-removed',
+      (value) => value.replace(' --prefer-offline /output', ' /output'),
+    ],
   ];
   for (const [name, mutate] of sourceCases) {
     expectRefusal(name, () => assertDockerfile(api, mutate(apiSource), contract), refusals);
@@ -447,57 +449,20 @@ function runBuildInputValidator(fixture) {
   });
 }
 
-function projectProductionRoot(sourceRoot) {
-  const rootManifest = readJson(join(repositoryRoot, 'package.json'));
-  writeFileSync(
-    join(sourceRoot, 'package.json'),
-    `${JSON.stringify(
-      {
-        name: rootManifest.name,
-        private: rootManifest.private,
-        packageManager: rootManifest.packageManager,
-        engines: rootManifest.engines,
-      },
-      null,
-      2,
-    )}\n`,
-  );
-
-  const lockfilePath = join(sourceRoot, 'pnpm-lock.yaml');
-  const lockfile = readText(lockfilePath);
-  const rootImporter = /\n {2}\.:\n[\s\S]*?(?=\n {2}apps\/api:\n)/;
-  assert(
-    rootImporter.test(lockfile),
-    'Shared lockfile root importer could not be projected for production deploy.',
-  );
-  writeFileSync(lockfilePath, lockfile.replace(rootImporter, '\n  .: {}\n'));
-}
-
-function offlineDeployEnvironment() {
-  return {
-    ...process.env,
-    CI: 'true',
-    // The repository install has already verified the original frozen lockfile. The
-    // production projection removes only the root development importer, so replay it
-    // without asking pnpm 11 to re-check release ages using unavailable offline metadata.
-    PNPM_CONFIG_MINIMUM_RELEASE_AGE: '0',
-  };
-}
-
 function prepareDeployWorkspace(temporaryRoot) {
   const sourceRoot = join(temporaryRoot, 'deploy-source');
   mkdirSync(sourceRoot, { recursive: true });
   for (const file of ['.npmrc', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml']) {
     cpSync(join(repositoryRoot, file), join(sourceRoot, file));
   }
-  projectProductionRoot(sourceRoot);
-  for (const relativePath of [
+  const productionPackages = [
     'apps/api',
     'apps/worker',
     'packages/config',
     'packages/contracts',
     'packages/db',
-  ]) {
+  ];
+  for (const relativePath of productionPackages) {
     const packageTarget = join(sourceRoot, relativePath);
     mkdirSync(packageTarget, { recursive: true });
     cpSync(join(repositoryRoot, relativePath, 'package.json'), join(packageTarget, 'package.json'));
@@ -515,7 +480,7 @@ function prepareDeployWorkspace(temporaryRoot) {
     {
       cwd: sourceRoot,
       encoding: 'utf8',
-      env: offlineDeployEnvironment(),
+      env: { ...process.env, CI: 'true' },
       stdio: 'pipe',
     },
   );
@@ -532,13 +497,13 @@ function deployPackage(sourceRoot, packageName, target) {
       'deploy',
       '--legacy',
       '--prod',
-      '--offline',
+      '--prefer-offline',
       target,
     ],
     {
       cwd: sourceRoot,
       encoding: 'utf8',
-      env: offlineDeployEnvironment(),
+      env: { ...process.env, CI: 'true' },
       stdio: 'pipe',
     },
   );

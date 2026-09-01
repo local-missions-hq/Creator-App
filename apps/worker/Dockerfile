@@ -25,7 +25,7 @@ RUN pnpm install --frozen-lockfile
 COPY apps/worker apps/worker
 
 RUN pnpm --filter @local-missions/worker build
-RUN pnpm --config.ignore-scripts=true --filter @local-missions/worker deploy --legacy --prod --offline /output
+RUN pnpm --config.ignore-scripts=true --filter @local-missions/worker deploy --legacy --prod --prefer-offline /output
 
 FROM ${NODE_IMAGE} AS runtime
 ARG BUILD_COMMIT
