@@ -1,10 +1,10 @@
 # M05 Azure foundation evidence
 
-Status: M5.5 V2 activation lifecycle contract complete locally; local-operator state path retained; no workload deployed
+Status: M5.5 read-only workload pre-plan review complete; blocked on six provider registrations and quota; no workload deployed
 
 Date: 2026-09-01
 
-Checkpoint: `M05-activation-lifecycle-contract-local-032`
+Checkpoint: `M05-workload-preplan-readonly-revalidation-033`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
@@ -13,6 +13,8 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - Replaced the historical single-apply activation assumption with V2 saved-plan and run-ledger contracts covering five separately bound Terraform operations, three non-Terraform gates, and twelve ordered success states from retained verification through independent teardown reconciliation. Historical V1 fixtures remain regression-only and activation-blocked.
 - Added synthetic V2 fixtures that require a 27-resource core with no Container Apps, three commit-bound immutable image digests with scan/signature/provenance success, a three-app activation reaching 30 disposable resources, all eleven critical tests, exact 30-resource destroy with zero retained targets, and independent zero state/live reconciliation.
 - Added 43 V2 refusal mutations for false execution claims, phase ordering, root/backend/count drift, image mutability or missing security evidence, identity/approval/expiry drift, destructive non-destroy changes, retained-target deletion, skipped tests, nonzero teardown inventories, or secret-shaped evidence. No Terraform or Azure command runs in the validator.
+- Detected and rejected the other-project Azure CLI default, uniquely resolved the Local Missions subscription by its three retained tagged groups, and completed read-only current-IP, East US 2 resource-type, PostgreSQL capability, 17-meter price, official Node manifest/provenance, frozen lockfile, and tracked Docker-input revalidation without retaining account or IP values.
+- Stopped before mutation because six workload resource providers remain unregistered and subscription quota/capacity is therefore not proven. No workload plan may be generated until those exact registrations receive separate approval and the quota/capacity check is repeated.
 
 - Applied only the independently reviewed replacement three-resource bootstrap after rejecting the expired prior artifact; registered only `Microsoft.Storage` and preserved automatic provider registration as disabled.
 - Verified the retained resource group, hardened Standard LRS Storage account, and private state container against the default-deny network, Entra-default authentication, disabled Shared Key/local-user/anonymous access, TLS, encryption, versioning, recovery, tags, and destroy-protection contracts.
@@ -167,6 +169,10 @@ Operations boundary: [`../../operations/ephemeral-azure-development.md`](../../o
 
 Command evidence: [`commands.txt`](./commands.txt)
 
+Workload pre-plan read-only review: [`azure-workload-preplan-revalidation.md`](./azure-workload-preplan-revalidation.md)
+
+Workload pre-plan machine evidence: [`../../../config/azure-workload-preplan-revalidation.v1.json`](../../../config/azure-workload-preplan-revalidation.v1.json)
+
 ## Boundary
 
-The preflight, container, dashboard, and recovery work remains static/local. The only new external read was Microsoft's public unauthenticated Retail Prices API and public Microsoft Learn documentation. No container build, base-image pull, package/container registry request, image scan, signature, publication, GitHub environment, Azure/Entra identity, federated credential, Azure login, tenant/account/subscription identifier, credential, subscription read, remote backend, account-specific offer request, provider-backed refresh/plan, Terraform plan binary, resource, networking activation, import, apply, restore, rollback, destroy, live-state query, customer data, or cost-incurring action was created or used. Current CI remains non-deploying. Public meters are estimates, not an Azure quote, approved budget, subscription availability proof, or measured RTO/RPO. M5 is not complete, the provider-plan and later mutation gates remain deferred, and final M4 Entra/provider/native-device proof remains open.
+The latest review used explicitly targeted Azure read-only inventory/capability calls, two public IPv4 echo sources, Microsoft's public Retail Prices API, official Microsoft/Node documentation, and Docker Official Image manifest metadata. It retained no account identifier or IP value. No provider registration, Terraform command/plan, Azure resource mutation, remote-backend change, image pull/build/scan/signature/publication, account-specific offer request, customer data, or cost-incurring workload action occurred. Current CI remains non-deploying. Public meters and location/capability records are estimates and availability evidence, not an Azure quote, quota reservation, capacity guarantee, or measured RTO/RPO. M5 is not complete; workload planning, provider registration, apply, and later mutation gates remain separately approval-bound, and final M4 Entra/provider/native-device proof remains open.

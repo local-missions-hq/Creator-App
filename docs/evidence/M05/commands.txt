@@ -510,3 +510,31 @@ PASS — formatting, all historical and V2 policy/architecture gates, three Terr
 
 pnpm test:security && pnpm test:gitleaks
 PASS — the high-confidence scan passed for 649 text files and Gitleaks found no leaks in approximately 17.87 MB.
+
+M05-workload-preplan-readonly-revalidation-033 — 2026-09-01
+
+explicit subscription discovery and current-IP comparison
+PASS — the CLI default contained four non-Local-Missions groups, so it was rejected. Read-only discovery found exactly one enabled subscription containing three Local Missions groups and no other groups. Two public IPv4 sources agreed and the process-only value matched the single default-deny state rule; no identifier or address was retained.
+
+Azure provider/resource-type/PostgreSQL capability queries
+PARTIAL PASS — all planned resource types publish East US 2 locations, PostgreSQL 16/Standard_B1ms/32 GiB are present, and policy assignments remain zero. Six required workload providers remain unregistered, so subscription quota/capacity is not yet proven and no registration was attempted.
+
+Microsoft Retail Prices API requery
+PASS — all 17 configured East US 2 USD meters still include the reviewed exact values; price drift count is zero. The `$0.85` raw two-hour model, `$2` ceiling, `$5` fallback ceiling, and `$100` alert budget remain unchanged.
+
+docker buildx imagetools inspect docker.io/library/node:24.19.0-bookworm-slim
+PASS — queried manifest metadata only. Recorded the official OCI index, immutable Linux/AMD64 manifest, Node Docker source revision, and Node 24.19.0 Dockerfile provenance. No layer was pulled and no image was built or published.
+
+node scripts/validate-azure-workload-preplan-revalidation.mjs
+PASS — checked the sanitized live-review record, current repository root/lock digests, exact API/dashboard/worker input-set hashes, and 21 refusal scenarios. The validator retains no subscription, tenant, account, public-IP, or credential value.
+
+GitHub Verify run 33526734483
+PASS — checkpoint 032 commit `1107947d9d25ef5649a4fb5afb2e3968484a0f9a` passed the complete non-deploying repository gate before the build-input hashes were captured.
+
+No provider registration, Terraform command/plan/apply/destroy, Azure resource mutation, image pull/build/push, workload cost, customer data, Stripe action, or iOS deployment occurred. The next gate is separate approval for exactly six provider registrations followed by quota/capacity revalidation; workload planning remains blocked.
+
+pnpm verify && node scripts/validate-azure-workload-preplan-revalidation.mjs
+PASS — the complete repository gate and the new 21-refusal sanitized pre-plan evidence gate passed under Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security && pnpm test:gitleaks
+PASS — the high-confidence scan passed for 652 text files and Gitleaks found no leaks in approximately 17.89 MB.

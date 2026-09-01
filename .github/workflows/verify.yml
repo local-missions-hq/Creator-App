@@ -27,4 +27,5 @@ jobs:
           terraform_wrapper: false
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
+      - run: node scripts/validate-azure-workload-preplan-revalidation.mjs
       - run: pnpm test:security

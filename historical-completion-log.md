@@ -4607,3 +4607,12 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Negative proof: The V2 validator passed 43 mutations covering false cloud claims, ordering, root/backend/count drift, core Container Apps, mutable/unscanned/unsigned images, commit drift, approval/identity/expiry failures, retained deletion, skipped tests, nonzero reconciliation, or secret-shaped evidence.
 - Safety: All V2 fixtures are explicitly synthetic. The work ran no Terraform command, Azure command, registry contact, image build/publication, workload plan/apply/destroy, network/RBAC/budget change, Stripe action, customer data, or iOS deployment.
 - Next exact task: Revalidate current public IPv4, Node base-image digest, lockfiles and Docker inputs, East US 2 SKUs/quota/prices, and the `$2` two-hour ceiling. Stop before generating the workload-core plan.
+
+### 2026-09-01 — Workload pre-plan read-only review stopped at provider registration
+
+- Checkpoint: `M05-workload-preplan-readonly-revalidation-033`.
+- Target safety: Detected that the Azure CLI default was the other project, then uniquely resolved the three-group Local Missions subscription by retained tags and used it explicitly without retaining account identifiers. The current public IPv4 matched the one default-deny state rule; the address was not retained.
+- Cost/build proof: Rechecked 17 public meters with zero drift, retained the `$0.85` estimate/`$2` ceiling, verified the official Node 24.19.0 `linux/amd64` manifest and provenance, and bound the frozen lock/root files plus all three tracked Docker input sets by SHA-256.
+- Availability: East US 2 resource-type records and PostgreSQL 16/B1ms/32 GiB capability passed. Subscription quota remains unproven because six workload providers are not registered.
+- Safety: No provider registration, Terraform command/plan, Azure mutation, image pull/build/push, workload cost, Stripe action, customer data, or iOS deployment occurred.
+- Next exact task: Obtain separate approval for exactly the six listed provider registrations, then rerun quota/capacity checks. Do not generate the workload-core plan yet.

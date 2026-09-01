@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "M05-workload-preplan-readonly-revalidation-033",
+  "status": "read_only_revalidation_blocked_on_provider_registration_and_quota",
+  "reviewedAtUtc": "2026-09-01T15:41:53Z",
+  "target": {
+    "region": "eastus2",
+    "resolvedByRetainedBoundaryTags": true,
+    "uniqueSubscriptionCandidate": true,
+    "defaultCliSubscriptionWasTarget": false,
+    "subscriptionIdentifierRetained": false,
+    "subscriptionNameRetained": false,
+    "localMissionsResourceGroupCount": 3,
+    "otherResourceGroupCount": 0,
+    "disposableWorkloadResourceCount": 0,
+    "subscriptionPolicyAssignmentCount": 0
+  },
+  "network": {
+    "publicIpv4Sources": 2,
+    "publicIpv4SourcesAgree": true,
+    "publicIpv4ValueRetained": false,
+    "currentIpv4MatchesStateRule": true,
+    "stateIpRuleCount": 1,
+    "defaultAction": "Deny",
+    "bypass": "None",
+    "publicNetworkAccess": "Enabled",
+    "sharedKeyEnabled": false,
+    "networkMutationExecuted": false
+  },
+  "providerRegistration": {
+    "requiredNamespaces": [
+      "Microsoft.App",
+      "Microsoft.Authorization",
+      "Microsoft.Consumption",
+      "Microsoft.ContainerRegistry",
+      "Microsoft.DBforPostgreSQL",
+      "Microsoft.Insights",
+      "Microsoft.KeyVault",
+      "Microsoft.ManagedIdentity",
+      "Microsoft.OperationalInsights",
+      "Microsoft.ServiceBus",
+      "Microsoft.Storage"
+    ],
+    "registeredNamespaces": [
+      "Microsoft.Authorization",
+      "Microsoft.Consumption",
+      "Microsoft.Insights",
+      "Microsoft.ManagedIdentity",
+      "Microsoft.Storage"
+    ],
+    "unregisteredNamespaces": [
+      "Microsoft.App",
+      "Microsoft.ContainerRegistry",
+      "Microsoft.DBforPostgreSQL",
+      "Microsoft.KeyVault",
+      "Microsoft.OperationalInsights",
+      "Microsoft.ServiceBus"
+    ],
+    "registrationExecuted": false,
+    "separateApprovalRequired": true
+  },
+  "availability": {
+    "eastUs2ResourceTypeRecords": {
+      "containerAppsManagedEnvironments": 1,
+      "containerRegistryRegistries": 1,
+      "keyVaultVaults": 1,
+      "logAnalyticsWorkspaces": 1,
+      "applicationInsightsComponents": 1,
+      "serviceBusNamespaces": 1
+    },
+    "postgresql": {
+      "serverVersion16Present": true,
+      "standardB1msPresent": true,
+      "standardB1msVcores": 1,
+      "standardB1msMemoryPerVcoreMb": 2048,
+      "storage32768MbPresent": true
+    },
+    "subscriptionQuotaVerified": false,
+    "capacityGuaranteed": false
+  },
+  "pricing": {
+    "source": "https://prices.azure.com/api/retail/prices",
+    "currency": "USD",
+    "reviewedMeterCount": 17,
+    "priceDriftCount": 0,
+    "smokeHours": 2,
+    "rawSmokeEstimateUsd": 0.85,
+    "approvedRunCeilingUsd": 2,
+    "fallbackEightHourCeilingUsd": 5,
+    "monthlyBudgetAlertUsd": 100,
+    "retailPriceApiQueried": true,
+    "subscriptionOfferPriceRequested": false
+  },
+  "baseImage": {
+    "repository": "docker.io/library/node",
+    "tagReviewed": "24.19.0-bookworm-slim",
+    "indexDigest": "sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df",
+    "linuxAmd64ManifestDigest": "sha256:e5a8dee7bc1e6a215d224a7ef8206f7e77271bc3cabd5febf2beafac0674f174",
+    "sourceRepository": "https://github.com/nodejs/docker-node",
+    "sourceRevision": "fd1bf45c51970427bc899084b5381f6827722246",
+    "createdAtUtc": "2026-08-25T00:55:03Z",
+    "nodeVersionInOfficialDockerfile": "24.19.0",
+    "platform": "linux/amd64",
+    "registryContacted": true,
+    "imagePulled": false,
+    "imageBuilt": false,
+    "imagePublished": false
+  },
+  "buildInputs": {
+    "reviewedCommitSha": "1107947d9d25ef5649a4fb5afb2e3968484a0f9a",
+    "packageManager": "pnpm@11.24.0",
+    "rootFileSha256": {
+      ".npmrc": "3b88d1057add6f92ec23dc22dd017e312ded13a042deb0ba6f08bad85d936456",
+      "package.json": "64db20d98ce956858de07a12c7ad27361b37f6a0631ae14903b0bd5aff5480f4",
+      "pnpm-lock.yaml": "e719d61b892efe439ccbda4117121b45b472ab2e762268cda0b785b8e79543ab",
+      "pnpm-workspace.yaml": "8beeefcc3b1cff586cd26020e69235ab00872d49831203c6b69171c864fafc87",
+      "tsconfig.base.json": "717ff55b27ddcca40feab9323149f4e2f99679f95a55d3cc74822420df6ceee0",
+      "turbo.json": "4a4615e5305410c85060d085fb98fa4f97872005cba10c24f03886ea4ecb2ff0"
+    },
+    "images": [
+      {
+        "id": "api",
+        "inputFileCount": 141,
+        "inputSetSha256": "6764cbaf72054a316876b81d3f6b6ebf56f8dc5d8ffa945c17ee0af238f4f7ad"
+      },
+      {
+        "id": "dashboard",
+        "inputFileCount": 31,
+        "inputSetSha256": "436dffb4c0fc23f383f71a5461ce0564bef80c21ace529e85a1069c8424448da"
+      },
+      {
+        "id": "worker",
+        "inputFileCount": 14,
+        "inputSetSha256": "bd51e8273f2de3fb6fc74eb5189c3742cd3051d9f8093fa3f95d8a6c98554c7b"
+      }
+    ],
+    "frozenLockfileVerified": true,
+    "dockerInputsVerified": true
+  },
+  "executionBoundary": {
+    "azureReadOnlyQueriesExecuted": true,
+    "publicCatalogQueried": true,
+    "publicRegistryManifestQueried": true,
+    "providerRegistrationExecuted": false,
+    "terraformCommandExecuted": false,
+    "terraformPlanGenerated": false,
+    "azureResourceMutationExecuted": false,
+    "cloudCostIncurredByThisReview": false,
+    "customerDataUsed": false
+  },
+  "nextGate": {
+    "action": "Approve registration of exactly six required workload resource providers, then repeat subscription quota/capacity checks before workload-core planning",
+    "providerRegistrationApprovalRequired": true,
+    "workloadPlanAllowed": false,
+    "workloadApplyAllowed": false
+  }
+}
