@@ -5,6 +5,14 @@
 > log. It is historical context, not the active execution checklist. The authoritative
 > current roadmap and first unchecked task are in [`plans.md`](plans.md).
 
+### 2026-09-01 — Retained-state recovery gate passed locally
+
+- Checkpoint: `M05-retained-state-recovery-gate-local-037`.
+- Bound the two private mode-`0600` state backups by exact SHA-256, byte size, Terraform format, backend key, and managed-resource inventory. The validator prints no private state values and rejects backups inside the repository, symlinks, permission drift, digest/size/inventory drift, and tracked Terraform artifacts.
+- Defined eight separately approved recovery stages: read-only preflight; bootstrap recovery plan; exact plan apply; exact temporary operator container role; exact two-key state restore; control-plane reconciliation plan; exact three-role apply; and independent zero-change/live-inventory proof.
+- Passed static validation, read-only private-byte validation, ESLint, and 30 mutation/refusal scenarios. No Azure CLI, Terraform, network, RBAC, state upload, resource creation, workload planning, Stripe, or iOS deployment action ran.
+- Next exact task remains separately approved retained-state restoration and reconciliation. The cost pause remains active.
+
 ### 2026-09-01 — Retained state Storage removed for owner-directed cost pause
 
 - Checkpoint: `M05-retained-state-cost-teardown-reconciled-036`.

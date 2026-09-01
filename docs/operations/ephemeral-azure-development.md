@@ -1,8 +1,8 @@
 # Ephemeral Azure development boundary
 
-Status: retained bootstrap/control plane and workflow authorization verified; V2 lifecycle contract ready; workload remains empty
+Status: retained control resources preserved; state backend intentionally offline for cost pause; local recovery gate ready; workload remains empty
 
-This runbook separates the retained rebuild/cleanup control plane from the same-day disposable development workload. The three-resource retained-state bootstrap has been applied and migrated to its Entra-backed Blob backend under explicit authorization. This runbook does not by itself authorize the 20-resource control-plane apply, any disposable workload apply, deployment, or destroy.
+This runbook separates the retained rebuild/cleanup control plane from the same-day disposable development workload. The three-resource retained-state bootstrap was previously applied and migrated under explicit authorization. On 2026-09-01, the owner directed a cost pause: both current states were privately backed up and the sole metered state Storage account was deleted. The retained control resources remain, but remote state is intentionally offline. Follow [the retained-state recovery gate](./azure-retained-state-recovery.md) before any future Terraform plan or apply. This runbook does not authorize recovery, disposable workload planning/apply, deployment, or destroy.
 
 ## Root ownership
 
@@ -64,9 +64,10 @@ The checked-in defaults are ceilings for review, not an approved subscription qu
 8. Approve and run a no-apply GitHub OIDC access-policy proof before removing temporary operator state access. **Complete on 2026-09-01; all three identities passed, while the default-deny firewall correctly blocked the real Blob read.**
 9. Use `local-missions-hq` on GitHub Free with no payment method, keep provider-backed Terraform on the reviewed local operator path, and defer paid private-runner/VNet state networking to M14. **Complete and retained as the current operating boundary.**
 10. Approve and apply only correction plan SHA-256 `de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c`, then rerun the no-Terraform OIDC/ARM proof while default-deny Blob refusal remains expected. Retain temporary operator access until a later private-runner/recovery proof exists. **Complete on 2026-09-01: zero added, three changed, zero destroyed; normal plan zero-change; all three proof jobs passed; Blob refusal preserved.**
-11. Revalidate current IP, base digest, build inputs, SKUs, quota, prices, and the `$2` two-hour ceiling; then generate/review and separately approve/apply the 27-resource core before building/scanning/signing/pushing immutable images.
-12. Generate/review and separately approve/apply the three-Container-App activation delta.
-13. Test with synthetic data, capture evidence, and stop new writes.
-14. Review the exact stamped destroy target, destroy while attached without deleting the landing zone, then reconcile Terraform state and live Azure independently. Report **Disposable workload: empty** separately from **Retained control plane and landing zone: expected list**. Any orphan or mismatch is a teardown failure.
+11. Restore and independently reconcile the retained state backend through the separately approved eight-stage recovery gate. **Local contract ready; no recovery action approved.**
+12. Revalidate current IP, base digest, build inputs, SKUs, quota, prices, and the `$2` two-hour ceiling; then generate/review and separately approve/apply the 27-resource core before building/scanning/signing/pushing immutable images.
+13. Generate/review and separately approve/apply the three-Container-App activation delta.
+14. Test with synthetic data, capture evidence, and stop new writes.
+15. Review the exact stamped destroy target, destroy while attached without deleting the landing zone, then reconcile Terraform state and live Azure independently. Report **Disposable workload: empty** separately from **Retained control plane and landing zone: expected list**. Any orphan or mismatch is a teardown failure.
 
 Private networking remains deferred until the infrastructure and UI are functionally complete. The first ephemeral deployment still requires TLS, authentication, managed identity/RBAC, disabled anonymous Blob access, and narrow firewall allowlists.

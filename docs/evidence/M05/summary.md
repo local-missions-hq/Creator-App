@@ -1,16 +1,18 @@
 # M05 Azure foundation evidence
 
-Status: M5.5 owner-directed Azure cost pause; no workload deployed and remote Terraform state intentionally offline
+Status: M5.5 owner-directed Azure cost pause; local retained-state recovery gate ready; no workload deployed and remote Terraform state intentionally offline
 
 Date: 2026-09-01
 
-Checkpoint: `M05-retained-state-cost-teardown-reconciled-036`
+Checkpoint: `M05-retained-state-recovery-gate-local-037`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
 ## Current cost-pause state
 
 The owner instructed an immediate Azure cost teardown. Read-only discovery rejected the other-project CLI default, uniquely resolved the dedicated Local Missions subscription, and proved the disposable landing zone was already empty. The current bootstrap and control-plane Terraform states were copied to a private mode-`0600` recovery directory outside the repository and structurally validated. The sole metered retained-state `Standard_LRS` Storage account was then deleted directly and live inventory reconciled to zero Storage, compute, database, registry, queue, telemetry, Key Vault, or workload resources. Three empty retained resource groups, three managed identities, an email-only action group, budget, custom roles/RBAC, and provider registrations remain. No Terraform command ran, and remote Terraform state must be restored and reconciled before any future plan or apply.
+
+The local recovery gate now binds both private backups by exact SHA-256, size, Terraform-state format, exact backend key, and managed-resource inventory without retaining state content. Static and private-byte validation pass. The eight-stage restore sequence separates read-only preflight, bootstrap plan, bootstrap apply, temporary operator data role, exact state upload, control-plane reconciliation plan, exact missing-role apply, and independent zero-change proof. Thirty refusal scenarios keep every Azure, Terraform, RBAC, state-upload, and workload action unauthorized until its separate approval.
 
 ## Implemented
 

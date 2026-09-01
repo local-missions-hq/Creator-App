@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "activationStatus": "cost_pause_active_local_recovery_contract_only",
+  "checkpoint": "M05-retained-state-recovery-gate-local-037",
+  "status": "local_recovery_gate_ready_cost_pause_active",
+  "costPause": {
+    "active": true,
+    "remoteBackendAvailable": false,
+    "standingMeteredResourceCount": 0,
+    "disposableWorkloadResourceCount": 0,
+    "retainedResourceGroupCount": 3,
+    "retainedManagedIdentityCount": 3,
+    "retainedEmailOnlyActionGroupCount": 1,
+    "terraformCommandAllowed": false,
+    "azureMutationAllowed": false
+  },
+  "privateBackupContract": {
+    "directoryEnvironmentVariable": "LOCAL_MISSIONS_PRIVATE_STATE_BACKUP_DIRECTORY",
+    "mustResolveOutsideRepository": true,
+    "mustNotBeSymlink": true,
+    "requiredFileMode": "0600",
+    "terraformStateFormatVersion": 4,
+    "files": [
+      {
+        "logicalRoot": "bootstrap",
+        "fileName": "bootstrap.tfstate",
+        "backendKey": "local-missions/bootstrap.tfstate",
+        "sha256": "47b089ac5fbe51dd156a06e2447b7caa51c7d9145a6fc221369bc2af35654125",
+        "bytes": 21838,
+        "managedResourceInstanceCount": 3,
+        "managedResources": [
+          "azurerm_resource_group.state:1",
+          "azurerm_storage_account.state:1",
+          "azurerm_storage_container.state:1"
+        ]
+      },
+      {
+        "logicalRoot": "control-plane",
+        "fileName": "control-plane.tfstate",
+        "backendKey": "local-missions/control-plane.tfstate",
+        "sha256": "f4bfb41835edcc3263587d14c1113d2d83ea2850266f62750ff037fb7e7ad369",
+        "bytes": 54068,
+        "managedResourceInstanceCount": 20,
+        "managedResources": [
+          "azurerm_consumption_budget_subscription.development:1",
+          "azurerm_federated_identity_credential.github:3",
+          "azurerm_monitor_action_group.cost:1",
+          "azurerm_resource_group.control:1",
+          "azurerm_resource_group.workload_landing_zone:1",
+          "azurerm_role_assignment.state_backend:3",
+          "azurerm_role_assignment.workflow:5",
+          "azurerm_role_definition.workload:2",
+          "azurerm_user_assigned_identity.terraform:3"
+        ]
+      }
+    ]
+  },
+  "recoverySequence": [
+    {
+      "order": 1,
+      "action": "read_only_live_inventory_and_current_ipv4_revalidation",
+      "approvalKind": "read_only_recovery_preflight",
+      "mutationAllowed": false
+    },
+    {
+      "order": 2,
+      "action": "generate_and_independently_review_bootstrap_recovery_saved_plan_from_private_state_copy",
+      "approvalKind": "bootstrap_recovery_plan_generation",
+      "mutationAllowed": false
+    },
+    {
+      "order": 3,
+      "action": "apply_only_reviewed_bootstrap_recovery_saved_plan",
+      "approvalKind": "exact_bootstrap_recovery_plan_apply",
+      "mutationAllowed": true
+    },
+    {
+      "order": 4,
+      "action": "restore_temporary_operator_container_data_role",
+      "approvalKind": "exact_temporary_operator_role_assignment",
+      "mutationAllowed": true
+    },
+    {
+      "order": 5,
+      "action": "restore_bootstrap_and_control_plane_state_to_exact_backend_keys",
+      "approvalKind": "exact_state_upload_and_migration",
+      "mutationAllowed": true
+    },
+    {
+      "order": 6,
+      "action": "generate_and_independently_review_control_plane_reconciliation_saved_plan",
+      "approvalKind": "control_plane_reconciliation_plan_generation",
+      "mutationAllowed": false
+    },
+    {
+      "order": 7,
+      "action": "apply_only_reviewed_missing_state_backend_role_assignments",
+      "approvalKind": "exact_control_plane_reconciliation_plan_apply",
+      "mutationAllowed": true
+    },
+    {
+      "order": 8,
+      "action": "independently_prove_both_roots_zero_change_and_live_retained_inventory_exact",
+      "approvalKind": "read_only_post_restore_reconciliation",
+      "mutationAllowed": false
+    }
+  ],
+  "restorePlanAllowlist": {
+    "bootstrapCreatesOnly": ["azurerm_storage_account.state", "azurerm_storage_container.state"],
+    "controlPlaneCreatesOnly": ["azurerm_role_assignment.state_backend[0..2]"],
+    "maximumStandingMeteredResourceCountAfterRestore": 1,
+    "maximumRetainedMonthlyCeilingUsd": 1,
+    "deletesAllowed": 0,
+    "replacementsAllowed": 0,
+    "updatesAllowed": 0,
+    "disposableWorkloadResourcesAllowed": 0,
+    "containerAppsAllowed": 0
+  },
+  "mandatorySafety": {
+    "useIsolatedTemporaryTerraformDataDirectory": true,
+    "copyPrivateStateNeverMoveOriginal": true,
+    "savedPlansOutsideRepositoryMode0600": true,
+    "bindPlanToSourceProviderLockStateAndCurrentIp": true,
+    "explicitSubscriptionAndTenantProcessOnly": true,
+    "storageDefaultDeny": true,
+    "storageCurrentIpv4Only": true,
+    "storageSharedKeyDisabled": true,
+    "storageAnonymousAccessDisabled": true,
+    "storageMinimumTls12": true,
+    "storageInfrastructureEncryption": true,
+    "stateContainerPrivate": true,
+    "noSecretOrIdentifierInEvidence": true,
+    "otherProjectMutationForbidden": true,
+    "directTerraformDestroyForbidden": true,
+    "workloadPlanBeforeRecoveryForbidden": true
+  },
+  "currentAuthorization": {
+    "localContractValidationAllowed": true,
+    "privateBackupReadOnlyValidationAllowed": true,
+    "azureReadOnlyPreflightApproved": false,
+    "terraformPlanApproved": false,
+    "terraformApplyApproved": false,
+    "azureRoleMutationApproved": false,
+    "stateUploadApproved": false,
+    "workloadPlanApproved": false
+  }
+}

@@ -31,6 +31,7 @@ const expectedContractPaths = [
   'config/recovery-drill.v1.json',
   'config/container-image-contract.v1.json',
   'config/azure-workload-provider-registration-gate.v1.json',
+  'config/azure-retained-state-recovery-gate.v1.json',
 ];
 
 const expectedCoverageIds = [
@@ -45,6 +46,7 @@ const expectedCoverageIds = [
   'sanitized-evidence-and-boundary',
   'operator-boundary-and-same-day-teardown',
   'workload-provider-registration-and-usage-proof',
+  'retained-state-cost-pause-and-recovery-gate',
 ];
 
 const expectedExternalGateIds = [
@@ -74,6 +76,7 @@ const expectedCurrentExecutionKeys = [
   'azureReadOnlyInventoryExecuted',
   'azureResourcesCreated',
   'cloudCostIncurred',
+  'costPauseActive',
   'containerBuildExecuted',
   'customerDataAllowed',
   'externalRegistryContacted',
@@ -82,6 +85,8 @@ const expectedCurrentExecutionKeys = [
   'providerBackedPlanExecuted',
   'providerRegistrationExecuted',
   'remoteBackendInitialized',
+  'remoteBackendAvailable',
+  'standingMeteredResourceCount',
   'terraformMutationExecuted',
 ];
 
@@ -97,18 +102,17 @@ function assertUniqueExact(actual, expected, label) {
 function validateManifest(candidate) {
   assert(candidate.schemaVersion === 1, 'Preflight schema version drifted.');
   assert(
-    candidate.activationStatus ===
-      'workload_provider_registration_proof_passed_before_core_planning',
+    candidate.activationStatus === 'retained_state_cost_pause_local_recovery_gate_ready',
     'Activation status drifted.',
   );
   assert(
-    candidate.checkpoint === 'M05-workload-provider-registration-proof-passed-035',
+    candidate.checkpoint === 'M05-retained-state-recovery-gate-local-037',
     'Checkpoint drifted.',
   );
   assert(candidate.milestoneComplete === false, 'M5 cannot be claimed complete locally.');
   assert(candidate.syntheticDataOnly === true, 'Only synthetic data is allowed.');
   assert(
-    candidate.nextBoundary === 'exact_27_resource_workload_core_saved_plan_approval_required',
+    candidate.nextBoundary === 'retained_state_backend_restore_approval_required',
     'Next boundary drifted.',
   );
   assert(candidate.verificationCommand === 'pnpm m5:preflight', 'Verification command drifted.');
@@ -116,16 +120,18 @@ function validateManifest(candidate) {
   const executionKeys = Object.keys(candidate.currentExecution ?? {});
   assertUniqueExact(executionKeys, expectedCurrentExecutionKeys, 'Current execution fields');
   for (const key of expectedCurrentExecutionKeys) {
-    const expected = [
+    const historicallyExecuted = [
       'azureAuthenticated',
       'azureReadOnlyInventoryExecuted',
       'azureResourcesCreated',
       'cloudCostIncurred',
+      'costPauseActive',
       'providerBackedPlanExecuted',
       'providerRegistrationExecuted',
       'remoteBackendInitialized',
       'terraformMutationExecuted',
     ].includes(key);
+    const expected = key === 'standingMeteredResourceCount' ? 0 : historicallyExecuted;
     assert(candidate.currentExecution[key] === expected, `${key} execution state drifted.`);
   }
 
@@ -134,7 +140,10 @@ function validateManifest(candidate) {
   for (const contract of candidate.machineContracts) {
     assert(
       /^pnpm [a-z0-9-]+:check$/.test(contract.command) ||
-        contract.command === 'node scripts/validate-azure-workload-provider-registration-gate.mjs',
+        [
+          'node scripts/validate-azure-workload-provider-registration-gate.mjs',
+          'node scripts/validate-azure-retained-state-recovery-gate.mjs',
+        ].includes(contract.command),
       `${contract.path} command drifted.`,
     );
     assert(
@@ -155,6 +164,7 @@ function validateManifest(candidate) {
         'post_transfer_oidc_proof_passed_local_operator_state_retained',
         'activation_valid_contract_local_only',
         'workload_provider_registration_proof_passed',
+        'cost_pause_active_local_recovery_contract_only',
       ].includes(contract.activationStatus),
       `${contract.path} activation status is not allowed.`,
     );
@@ -177,39 +187,38 @@ function validateManifest(candidate) {
     candidate.requiredArtifacts.length === new Set(candidate.requiredArtifacts).size,
     'Required artifacts contain a duplicate.',
   );
-  assert(candidate.requiredArtifacts.length === 30, 'Required artifact count drifted.');
+  assert(candidate.requiredArtifacts.length === 33, 'Required artifact count drifted.');
 
   assertUniqueExact(
     candidate.externalGates.map((gate) => gate.id),
     expectedExternalGateIds,
     'External gates',
   );
-  const completedBootstrapGates = new Set([
-    'azure-subscription-and-scope-review',
-    'remote-state-backend-and-locking',
-  ]);
+  const completedBootstrapGates = new Set(['azure-subscription-and-scope-review']);
   const completedControlPlanGates = new Set(['provider-backed-saved-plan-review']);
   const completedControlApplyGates = new Set(['explicit-apply-approval']);
   for (const gate of candidate.externalGates) {
     const expectedStatus =
       gate.id === 'oidc-identities-and-environment-protection'
         ? 'completed_no_apply_proof'
-        : gate.id === 'azure-service-sku-price-region-review' ||
-            gate.id === 'base-image-provenance-review'
-          ? 'completed_for_workload_preplan'
-          : gate.id === 'budget-alert-owner-and-delivery'
-            ? 'completed_for_control_plane'
-            : gate.id === 'workload-provider-registration-and-quota'
-              ? 'completed_exact_six_and_read_only_proof'
-              : gate.id === 'workflow-state-network-access-and-operator-recovery'
-                ? 'completed_with_default_deny_blob_refusal_and_local_operator_recovery_retained'
-                : completedControlApplyGates.has(gate.id)
-                  ? 'completed_for_control_plane_apply'
-                  : completedControlPlanGates.has(gate.id)
-                    ? 'completed_for_control_plane_plan'
-                    : completedBootstrapGates.has(gate.id)
-                      ? 'completed_for_retained_bootstrap'
-                      : 'deferred';
+        : gate.id === 'remote-state-backend-and-locking'
+          ? 'restore_required_after_cost_pause'
+          : gate.id === 'azure-service-sku-price-region-review' ||
+              gate.id === 'base-image-provenance-review'
+            ? 'completed_for_workload_preplan'
+            : gate.id === 'budget-alert-owner-and-delivery'
+              ? 'completed_for_control_plane'
+              : gate.id === 'workload-provider-registration-and-quota'
+                ? 'completed_exact_six_and_read_only_proof'
+                : gate.id === 'workflow-state-network-access-and-operator-recovery'
+                  ? 'local_restore_gate_ready_cost_pause_active'
+                  : completedControlApplyGates.has(gate.id)
+                    ? 'completed_for_control_plane_apply'
+                    : completedControlPlanGates.has(gate.id)
+                      ? 'completed_for_control_plane_plan'
+                      : completedBootstrapGates.has(gate.id)
+                        ? 'completed_for_retained_bootstrap'
+                        : 'deferred';
     assert(gate.status === expectedStatus, `${gate.id} status drifted.`);
     assert(gate.approvalRequired === true, `${gate.id} must require approval.`);
     assert(/^[a-z][a-z0-9_]+$/.test(gate.ownerRole), `${gate.id} owner role is missing.`);
@@ -263,6 +272,7 @@ function loadContracts() {
     oidc: readJson('config/azure-oidc-plan-gate.v1.json'),
     placement: readJson('config/azure-subscription-placement.v1.json'),
     provider: readJson('config/azure-workload-provider-registration-gate.v1.json'),
+    stateRecovery: readJson('config/azure-retained-state-recovery-gate.v1.json'),
     readiness: readJson('config/azure-plan-readiness.v1.json'),
     recovery: readJson('config/recovery-drill.v1.json'),
     savedPlan: readJson('config/saved-plan-evidence.v1.json'),
@@ -279,6 +289,7 @@ function validateCrossContractCoherence(contracts) {
     oidc,
     placement,
     provider,
+    stateRecovery,
     readiness,
     recovery,
     savedPlan,
@@ -313,7 +324,7 @@ function validateCrossContractCoherence(contracts) {
     'Activation-valid V2 contracts drifted or overclaimed execution.',
   );
   assert(
-    provider.checkpoint === manifest.checkpoint &&
+    provider.checkpoint === 'M05-workload-provider-registration-proof-passed-035' &&
       provider.activationStatus === 'workload_provider_registration_proof_passed' &&
       provider.providerRegistration.registrationExecuted === true &&
       provider.providerRegistration.exactProviderTransitionVerified === true &&
@@ -324,6 +335,17 @@ function validateCrossContractCoherence(contracts) {
       provider.nextGate.workloadPlanApprovalRequired === true &&
       provider.nextGate.workloadPlanAllowed === false,
     'Workload provider-registration proof drifted or enabled planning.',
+  );
+  assert(
+    stateRecovery.checkpoint === manifest.checkpoint &&
+      stateRecovery.activationStatus === 'cost_pause_active_local_recovery_contract_only' &&
+      stateRecovery.costPause.active === true &&
+      stateRecovery.costPause.remoteBackendAvailable === false &&
+      stateRecovery.costPause.standingMeteredResourceCount === 0 &&
+      stateRecovery.currentAuthorization.terraformPlanApproved === false &&
+      stateRecovery.currentAuthorization.terraformApplyApproved === false &&
+      stateRecovery.currentAuthorization.workloadPlanApproved === false,
+    'Retained-state cost-pause recovery contract drifted or enabled Azure/Terraform work.',
   );
   assert(
     savedPlanV2.operations.find(({ id }) => id === 'workload-core')?.expectedPlan.create ===
@@ -471,6 +493,7 @@ const manifestMutations = {
   'azure-resource-creation-erased': (value) =>
     (value.currentExecution.azureResourcesCreated = false),
   'cloud-cost-erased': (value) => (value.currentExecution.cloudCostIncurred = false),
+  'cost-pause-erased': (value) => (value.currentExecution.costPauseActive = false),
   'container-build-claimed': (value) => (value.currentExecution.containerBuildExecuted = true),
   'customer-data-allowed': (value) => (value.currentExecution.customerDataAllowed = true),
   'registry-contact-claimed': (value) => (value.currentExecution.externalRegistryContacted = true),
@@ -479,7 +502,12 @@ const manifestMutations = {
   'provider-plan-erased': (value) => (value.currentExecution.providerBackedPlanExecuted = false),
   'provider-registration-erased': (value) =>
     (value.currentExecution.providerRegistrationExecuted = false),
-  'remote-backend-erased': (value) => (value.currentExecution.remoteBackendInitialized = false),
+  'remote-backend-history-erased': (value) =>
+    (value.currentExecution.remoteBackendInitialized = false),
+  'remote-backend-availability-overclaimed': (value) =>
+    (value.currentExecution.remoteBackendAvailable = true),
+  'standing-metered-resource-overclaimed': (value) =>
+    (value.currentExecution.standingMeteredResourceCount = 1),
   'terraform-mutation-erased': (value) =>
     (value.currentExecution.terraformMutationExecuted = false),
   'missing-machine-contract': (value) => value.machineContracts.pop(),
@@ -600,6 +628,6 @@ console.log(
     `${manifest.localCoverage.length} local coverage areas,`,
     `${deferredGateCount} deferred external gates,`,
     `${refusalCount} refusal scenarios,`,
-    'the retained control-plane apply and exact-six provider registration recorded, and zero workload/registry execution claims.',
+    'the retained control-plane history and exact-six provider registration recorded, the cost pause active, remote state offline, and zero workload/registry execution claims.',
   ].join(' '),
 );

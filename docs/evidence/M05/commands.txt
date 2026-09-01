@@ -582,3 +582,19 @@ PASS — formatting, architecture/policy gates, all three Terraform roots, works
 
 pnpm test:security && pnpm test:gitleaks
 PASS — the high-confidence scan passed for 657 text files and Gitleaks found no leaks in approximately 17.95 MB.
+
+M05-retained-state-recovery-gate-local-037 — 2026-09-01
+
+node scripts/validate-azure-retained-state-recovery-gate.mjs
+PASS — validated two exact private state bindings, eight ordered approval stages, a one-resource/$1 retained cost ceiling after recovery, zero workload/Container Apps, and 30 refusal scenarios. Static mode contacted neither Azure nor Terraform.
+
+LOCAL_MISSIONS_PRIVATE_STATE_BACKUP_DIRECTORY=<private-outside-repository-directory> node scripts/validate-azure-retained-state-recovery-gate.mjs --verify-private-backups
+PASS — read both private mode-0600 backups without printing contents; verified exact SHA-256, byte size, Terraform state format 4, non-symlink/outside-repository placement, and exact 3-resource bootstrap plus 20-resource control-plane inventories.
+
+No Azure CLI or Terraform command, provider/resource/network/RBAC/budget mutation, state upload, image/registry action, workload plan, Stripe action, customer data, or iOS deployment occurred. The state backend remains intentionally offline and the cost pause remains active. The next gate requires separate owner approval for read-only recovery preflight before any Terraform plan or Azure mutation.
+
+pnpm m5:preflight
+PASS — reconciled 13 machine contracts, 12 local coverage areas, nine deferred external gates, and 50 refusal scenarios. The aggregate status now records the cost pause, zero standing metered resources, unavailable remote backend, exact-six provider history, and zero workload/registry execution.
+
+pnpm verify && pnpm test:security && pnpm test:gitleaks
+PASS — formatting, architecture/policy contracts, three local Terraform roots, all nine workspace lint/type/test/contract/build gates, 111 mobile tests, the 660-file high-confidence scan, and Gitleaks over approximately 17.99 MB passed under Node 24.19.0 and pnpm 11.24.0.

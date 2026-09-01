@@ -1,11 +1,12 @@
 {
-  "activationStatus": "workload_provider_registration_proof_passed_before_core_planning",
-  "checkpoint": "M05-workload-provider-registration-proof-passed-035",
+  "activationStatus": "retained_state_cost_pause_local_recovery_gate_ready",
+  "checkpoint": "M05-retained-state-recovery-gate-local-037",
   "currentExecution": {
     "azureAuthenticated": true,
     "azureReadOnlyInventoryExecuted": true,
     "azureResourcesCreated": true,
     "cloudCostIncurred": true,
+    "costPauseActive": true,
     "containerBuildExecuted": false,
     "customerDataAllowed": false,
     "externalRegistryContacted": false,
@@ -14,6 +15,8 @@
     "providerBackedPlanExecuted": true,
     "providerRegistrationExecuted": true,
     "remoteBackendInitialized": true,
+    "remoteBackendAvailable": false,
+    "standingMeteredResourceCount": 0,
     "terraformMutationExecuted": true
   },
   "localCoverage": [
@@ -71,6 +74,11 @@
       "evidence": "config/azure-workload-provider-registration-gate.v1.json",
       "id": "workload-provider-registration-and-usage-proof",
       "proofClass": "sanitized_azure_registration_evidence"
+    },
+    {
+      "evidence": "config/azure-retained-state-recovery-gate.v1.json",
+      "id": "retained-state-cost-pause-and-recovery-gate",
+      "proofClass": "local_contract_and_private_backup_binding"
     }
   ],
   "machineContracts": [
@@ -145,10 +153,16 @@
       "checkpoint": "M05-workload-provider-registration-proof-passed-035",
       "command": "node scripts/validate-azure-workload-provider-registration-gate.mjs",
       "path": "config/azure-workload-provider-registration-gate.v1.json"
+    },
+    {
+      "activationStatus": "cost_pause_active_local_recovery_contract_only",
+      "checkpoint": "M05-retained-state-recovery-gate-local-037",
+      "command": "node scripts/validate-azure-retained-state-recovery-gate.mjs",
+      "path": "config/azure-retained-state-recovery-gate.v1.json"
     }
   ],
   "milestoneComplete": false,
-  "nextBoundary": "exact_27_resource_workload_core_saved_plan_approval_required",
+  "nextBoundary": "retained_state_backend_restore_approval_required",
   "requiredArtifacts": [
     ".github/workflows/azure-oidc-proof.yml",
     ".github/workflows/verify.yml",
@@ -179,7 +193,10 @@
     "docs/evidence/M05/azure-workload-provider-registration-gate.md",
     "scripts/azure-workload-provider-registration.mjs",
     "scripts/validate-azure-workload-provider-registration-gate.mjs",
-    "scripts/validate-azure-workload-provider-registration-tool.mjs"
+    "scripts/validate-azure-workload-provider-registration-tool.mjs",
+    "config/azure-retained-state-recovery-gate.v1.json",
+    "docs/operations/azure-retained-state-recovery.md",
+    "scripts/validate-azure-retained-state-recovery-gate.mjs"
   ],
   "externalGates": [
     {
@@ -236,14 +253,14 @@
       "evidenceRequired": "retained backend state locking scope and access review",
       "id": "remote-state-backend-and-locking",
       "ownerRole": "platform_owner",
-      "status": "completed_for_retained_bootstrap"
+      "status": "restore_required_after_cost_pause"
     },
     {
       "approvalRequired": true,
       "evidenceRequired": "temporary least-privilege state-network method and viable operator recovery path",
       "id": "workflow-state-network-access-and-operator-recovery",
       "ownerRole": "security_reviewer",
-      "status": "completed_with_default_deny_blob_refusal_and_local_operator_recovery_retained"
+      "status": "local_restore_gate_ready_cost_pause_active"
     },
     {
       "approvalRequired": true,
@@ -325,6 +342,7 @@
     "azure-read-only-inventory-erased",
     "azure-resource-creation-erased",
     "cloud-cost-erased",
+    "cost-pause-erased",
     "container-build-claimed",
     "customer-data-allowed",
     "registry-contact-claimed",
@@ -332,7 +350,9 @@
     "live-recovery-claimed",
     "provider-plan-erased",
     "provider-registration-erased",
-    "remote-backend-erased",
+    "remote-backend-history-erased",
+    "remote-backend-availability-overclaimed",
+    "standing-metered-resource-overclaimed",
     "terraform-mutation-erased",
     "missing-machine-contract",
     "duplicate-machine-contract",
