@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
-  "checkpoint": "M05-provider-registration-gate-local-034",
-  "status": "locally_ready_awaiting_explicit_provider_registration_approval",
+  "activationStatus": "workload_provider_registration_proof_passed",
+  "checkpoint": "M05-workload-provider-registration-proof-passed-035",
+  "status": "exact_six_registered_read_only_proof_passed",
+  "completedAtUtc": "2026-09-01T16:17:16Z",
   "target": {
     "region": "eastus2",
     "resolution": "unique-subscription-with-exactly-three-local-missions-tagged-resource-groups-and-no-other-resource-groups",
@@ -52,8 +54,11 @@
       "Microsoft.Storage"
     ],
     "approvalRequired": true,
-    "approvalReceived": false,
-    "registrationExecuted": false,
+    "approvalReceived": true,
+    "approvalSha256": "08c3b30897c8013089fa450e34409ddee94060e82efe73baff44922ed3d448f9",
+    "registrationExecuted": true,
+    "exactProviderTransitionVerified": true,
+    "nonTargetProviderStateChanged": false,
     "unregistrationAllowed": false,
     "automaticTerraformRegistrationAllowed": false,
     "acceptThirdPartyTermsAllowed": false,
@@ -61,7 +66,12 @@
     "waitForRegisteredState": true
   },
   "executionProcedure": {
-    "mode": "documented_not_executed",
+    "mode": "completed_exact_six_registration_and_read_only_proof",
+    "operatorTool": "scripts/azure-workload-provider-registration.mjs",
+    "defaultMode": "preview",
+    "mutationMode": "register",
+    "mutationModeRequiresRecordedApprovalDigest": true,
+    "mutationModeRequiresRuntimeEnableVariable": "LOCAL_MISSIONS_EXACT_SIX_PROVIDER_REGISTRATION_ENABLED",
     "preconditions": [
       "record-explicit-owner-approval-for-the-exact-six-namespace-allowlist",
       "resolve-one-target-subscription-process-only-from-the-retained-tag-boundary",
@@ -116,9 +126,15 @@
       "documentedLimitReviewRequired": true,
       "globalNameAvailabilityDeferredToPlanTime": true
     },
-    "subscriptionQuotaVerified": false,
+    "allServicesSubscriptionQuotaVerified": false,
     "capacityGuaranteed": false,
-    "proofExecuted": false
+    "containerAppsRegionalQuotaVerified": true,
+    "availableSubscriptionUsageVerified": true,
+    "managedEnvironmentCurrent": 0,
+    "managedEnvironmentLimit": 20,
+    "reviewedRegionalResourceTypeCount": 10,
+    "allReviewedRegionalResourceTypesAvailable": true,
+    "proofExecuted": true
   },
   "forbiddenActions": {
     "terraformCommand": true,
@@ -136,8 +152,9 @@
     "iosDeployment": true
   },
   "nextGate": {
-    "action": "Receive explicit approval, register only the exact six providers, and perform read-only post-registration proof",
-    "providerRegistrationApprovalRequired": true,
+    "action": "Obtain separate approval to generate and independently review only the exact 27-resource workload-core saved plan with zero Container Apps; stop before apply",
+    "providerRegistrationApprovalRequired": false,
+    "workloadPlanApprovalRequired": true,
     "workloadPlanAllowed": false,
     "workloadApplyAllowed": false
   }

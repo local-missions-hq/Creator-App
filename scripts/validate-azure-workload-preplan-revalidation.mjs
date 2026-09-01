@@ -240,5 +240,5 @@ for (const [name, mutate] of Object.entries(mutations)) {
 }
 
 console.log(
-  `Azure workload pre-plan read-only revalidation passed ${Object.keys(mutations).length} refusal scenarios; six provider registrations and subscription quota proof remain blocked before workload planning.`,
+  `Historical checkpoint 033 workload pre-plan record passed ${Object.keys(mutations).length} refusal scenarios and correctly preserves its then-unregistered six-provider boundary; current registration status is tracked by the checkpoint 035 provider proof.`,
 );

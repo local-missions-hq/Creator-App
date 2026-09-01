@@ -29,4 +29,5 @@ jobs:
       - run: pnpm verify
       - run: node scripts/validate-azure-workload-preplan-revalidation.mjs
       - run: node scripts/validate-azure-workload-provider-registration-gate.mjs
+      - run: node scripts/validate-azure-workload-provider-registration-tool.mjs
       - run: pnpm test:security

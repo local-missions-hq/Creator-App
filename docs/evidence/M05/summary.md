@@ -1,10 +1,10 @@
 # M05 Azure foundation evidence
 
-Status: M5.5 exact-six provider-registration gate ready locally; awaiting approval; no workload deployed
+Status: M5.5 exact-six providers registered and read-only proof passed; no workload deployed
 
 Date: 2026-09-01
 
-Checkpoint: `M05-provider-registration-gate-local-034`
+Checkpoint: `M05-workload-provider-registration-proof-passed-035`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
@@ -14,8 +14,11 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - Added synthetic V2 fixtures that require a 27-resource core with no Container Apps, three commit-bound immutable image digests with scan/signature/provenance success, a three-app activation reaching 30 disposable resources, all eleven critical tests, exact 30-resource destroy with zero retained targets, and independent zero state/live reconciliation.
 - Added 43 V2 refusal mutations for false execution claims, phase ordering, root/backend/count drift, image mutability or missing security evidence, identity/approval/expiry drift, destructive non-destroy changes, retained-target deletion, skipped tests, nonzero teardown inventories, or secret-shaped evidence. No Terraform or Azure command runs in the validator.
 - Detected and rejected the other-project Azure CLI default, uniquely resolved the Local Missions subscription by its three retained tagged groups, and completed read-only current-IP, East US 2 resource-type, PostgreSQL capability, 17-meter price, official Node manifest/provenance, frozen lockfile, and tracked Docker-input revalidation without retaining account or IP values.
-- Stopped before mutation because six workload resource providers remain unregistered and subscription quota/capacity is therefore not proven. No workload plan may be generated until those exact registrations receive separate approval and the quota/capacity check is repeated.
+- The prior read-only checkpoint stopped before mutation because six workload resource providers were unregistered. That exact gate has now been separately approved, executed, and verified; workload planning still requires its own approval.
 - Mapped all 17 active workload Terraform resource types to 11 provider namespaces and locally validated the exact-six registration boundary. The gate requires unique process-only subscription resolution, sequential explicit-subscription registration, unchanged non-target provider and retained-resource state, and a read-only post-registration usage/capability proof. It passed 24 refusal scenarios and ran no Azure or Terraform command.
+- Bound the owner's exact-six approval to SHA-256 `08c3b30897c8013089fa450e34409ddee94060e82efe73baff44922ed3d448f9`, registered only those six namespaces sequentially, and proved all are `Registered` while non-target provider state, the three retained groups, the empty workload, and the default-deny Entra-only Storage boundary remained unchanged.
+- The post-registration read-only proof reported Container Apps managed-environment usage `0/20`, PostgreSQL 16/B1ms/32 GiB capability, and East US 2 support for all ten reviewed regional resource types. Capacity is not reserved or guaranteed. No Terraform command or workload plan ran.
+- Reconciled the aggregate M5 preflight to checkpoint 035: 12 machine contracts, 11 coverage areas, nine still-deferred external gates, and 47 refusal scenarios now distinguish completed retained/provider work from the separately gated 27-resource workload-core plan.
 
 - Applied only the independently reviewed replacement three-resource bootstrap after rejecting the expired prior artifact; registered only `Microsoft.Storage` and preserved automatic provider registration as disabled.
 - Verified the retained resource group, hardened Standard LRS Storage account, and private state container against the default-deny network, Entra-default authentication, disabled Shared Key/local-user/anonymous access, TLS, encryption, versioning, recovery, tags, and destroy-protection contracts.
@@ -174,6 +177,10 @@ Workload pre-plan read-only review: [`azure-workload-preplan-revalidation.md`](.
 
 Workload pre-plan machine evidence: [`../../../config/azure-workload-preplan-revalidation.v1.json`](../../../config/azure-workload-preplan-revalidation.v1.json)
 
+Workload provider-registration evidence: [`azure-workload-provider-registration-gate.md`](./azure-workload-provider-registration-gate.md)
+
+Workload provider-registration machine evidence: [`../../../config/azure-workload-provider-registration-gate.v1.json`](../../../config/azure-workload-provider-registration-gate.v1.json)
+
 ## Boundary
 
-The latest review used explicitly targeted Azure read-only inventory/capability calls, two public IPv4 echo sources, Microsoft's public Retail Prices API, official Microsoft/Node documentation, and Docker Official Image manifest metadata. It retained no account identifier or IP value. No provider registration, Terraform command/plan, Azure resource mutation, remote-backend change, image pull/build/scan/signature/publication, account-specific offer request, customer data, or cost-incurring workload action occurred. Current CI remains non-deploying. Public meters and location/capability records are estimates and availability evidence, not an Azure quote, quota reservation, capacity guarantee, or measured RTO/RPO. M5 is not complete; workload planning, provider registration, apply, and later mutation gates remain separately approval-bound, and final M4 Entra/provider/native-device proof remains open.
+The latest action uniquely targeted the isolated Local Missions subscription, sequentially registered only the six approved workload providers, and then used read-only inventory/usage/capability calls plus two public IPv4 sources. It retained no account identifier or IP value. No Terraform command/plan, Azure resource creation/update/deletion, remote-backend/network/RBAC/budget change, image pull/build/scan/signature/publication, customer data, or cost-incurring workload action occurred. Current CI remains non-deploying. Public meters, quota headroom, and location/capability records are availability evidence, not an Azure quote, capacity reservation/guarantee, or measured RTO/RPO. M5 is not complete; workload planning, apply, and later mutation gates remain separately approval-bound, and final M4 Entra/provider/native-device proof remains open.

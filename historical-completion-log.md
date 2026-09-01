@@ -4626,3 +4626,13 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Negative proof: The validator rejects expanded/reordered provider lists, default-subscription trust, account/IP retention, unregister/terms/parallel modes, missing wait or explicit subscription, Terraform/resource/image follow-on actions, and false quota/capacity/execution claims.
 - Safety: No provider registration, Terraform command, Azure mutation, image operation, Stripe action, customer data, or iOS deployment occurred.
 - Next exact task: Obtain explicit owner approval for the exact-six registration list. That approval authorizes only sequential provider registration plus the read-only post-registration proof; it does not authorize a Terraform plan or apply.
+
+### 2026-09-01 — Exact-six workload providers registered and verified
+
+- Checkpoint: `M05-workload-provider-registration-proof-passed-035`.
+- Approval: Bound the owner's exact six-provider approval to SHA-256 `08c3b30897c8013089fa450e34409ddee94060e82efe73baff44922ed3d448f9`; the approval explicitly excluded Terraform plan and apply.
+- Registration: Uniquely resolved the isolated three-group Local Missions subscription process-only and sequentially registered only `Microsoft.App`, `Microsoft.ContainerRegistry`, `Microsoft.DBforPostgreSQL`, `Microsoft.KeyVault`, `Microsoft.OperationalInsights`, and `Microsoft.ServiceBus`. All six reached `Registered`; non-target provider state remained unchanged.
+- Read-only proof: Container Apps regional managed-environment usage is `0/20`; PostgreSQL 16, `Standard_B1ms`, and 32 GiB are present; and all ten reviewed regional resource types support East US 2. This is availability/headroom evidence, not a capacity reservation or guarantee.
+- Safety: The workload landing zone remains empty and the retained Storage account remains default deny, no bypass, Shared Key disabled, and restricted to the current process-only operator IPv4. No Terraform command/plan/apply, Azure resource creation/update/deletion, network/RBAC/budget change, image action, Stripe action, customer data, or iOS deployment occurred.
+- Correction: The safety tool refused before mutation when Azure returned the registered Insights namespace as lowercase in one API and title case in another. Namespace comparisons were made case-insensitive and regression-tested. After registration, the same issue in the location reader was corrected before rerunning read-only proof only; providers were not registered twice.
+- Next exact task: Obtain separate approval to generate and independently review only the exact 27-resource workload-core saved plan with zero Container Apps. Stop before apply.

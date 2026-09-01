@@ -39,12 +39,17 @@ function terraformResourceTypes(candidate) {
 function validate(candidate) {
   assert(candidate.schemaVersion === 1, 'Provider-registration gate schema drifted.');
   assert(
-    candidate.checkpoint === 'M05-provider-registration-gate-local-034',
+    candidate.activationStatus === 'workload_provider_registration_proof_passed',
+    'Provider-registration activation status drifted.',
+  );
+  assert(
+    candidate.checkpoint === 'M05-workload-provider-registration-proof-passed-035',
     'Provider-registration checkpoint drifted.',
   );
   assert(
-    candidate.status === 'locally_ready_awaiting_explicit_provider_registration_approval',
-    'Provider registration must remain pending explicit approval.',
+    candidate.status === 'exact_six_registered_read_only_proof_passed' &&
+      /^2026-09-01T\d{2}:\d{2}:\d{2}Z$/.test(candidate.completedAtUtc),
+    'Provider registration completion record drifted.',
   );
 }
 
@@ -94,14 +99,29 @@ function validateComplete(candidate) {
   );
   assert(
     registration.approvalRequired === true &&
-      registration.approvalReceived === false &&
-      registration.registrationExecuted === false &&
+      registration.approvalReceived === true &&
+      registration.approvalSha256 ===
+        '08c3b30897c8013089fa450e34409ddee94060e82efe73baff44922ed3d448f9' &&
+      registration.registrationExecuted === true &&
+      registration.exactProviderTransitionVerified === true &&
+      registration.nonTargetProviderStateChanged === false &&
       registration.unregistrationAllowed === false &&
       registration.automaticTerraformRegistrationAllowed === false &&
       registration.acceptThirdPartyTermsAllowed === false &&
       registration.parallelRegistrationAllowed === false &&
       registration.waitForRegisteredState === true,
-    'Provider mutation boundary drifted or execution was overclaimed.',
+    'Provider approval, transition, or mutation boundary drifted.',
+  );
+  assert(
+    candidate.executionProcedure.mode === 'completed_exact_six_registration_and_read_only_proof' &&
+      candidate.executionProcedure.operatorTool ===
+        'scripts/azure-workload-provider-registration.mjs' &&
+      candidate.executionProcedure.defaultMode === 'preview' &&
+      candidate.executionProcedure.mutationMode === 'register' &&
+      candidate.executionProcedure.mutationModeRequiresRecordedApprovalDigest === true &&
+      candidate.executionProcedure.mutationModeRequiresRuntimeEnableVariable ===
+        'LOCAL_MISSIONS_EXACT_SIX_PROVIDER_REGISTRATION_ENABLED',
+    'Operator-tool execution boundary drifted.',
   );
   assert(
     JSON.stringify(registration.registrationOrder) === undefined,
@@ -137,14 +157,21 @@ function validateComplete(candidate) {
       candidate.postRegistrationProof.postgresql.storage32768MbRequired === true &&
       candidate.postRegistrationProof.postgresql.capacityReservationClaimAllowed === false &&
       candidate.postRegistrationProof.otherServices.currentWorkloadResourceCountRequired === 0 &&
-      candidate.postRegistrationProof.subscriptionQuotaVerified === false &&
+      candidate.postRegistrationProof.allServicesSubscriptionQuotaVerified === false &&
       candidate.postRegistrationProof.capacityGuaranteed === false &&
-      candidate.postRegistrationProof.proofExecuted === false,
-    'Post-registration proof was weakened or falsely claimed.',
+      candidate.postRegistrationProof.containerAppsRegionalQuotaVerified === true &&
+      candidate.postRegistrationProof.availableSubscriptionUsageVerified === true &&
+      candidate.postRegistrationProof.managedEnvironmentCurrent === 0 &&
+      candidate.postRegistrationProof.managedEnvironmentLimit === 20 &&
+      candidate.postRegistrationProof.reviewedRegionalResourceTypeCount === 10 &&
+      candidate.postRegistrationProof.allReviewedRegionalResourceTypesAvailable === true &&
+      candidate.postRegistrationProof.proofExecuted === true,
+    'Post-registration proof drifted or overclaimed capacity.',
   );
   assert(
     Object.values(candidate.forbiddenActions).every((forbidden) => forbidden === true) &&
-      candidate.nextGate.providerRegistrationApprovalRequired === true &&
+      candidate.nextGate.providerRegistrationApprovalRequired === false &&
+      candidate.nextGate.workloadPlanApprovalRequired === true &&
       candidate.nextGate.workloadPlanAllowed === false &&
       candidate.nextGate.workloadApplyAllowed === false,
     'A forbidden follow-on action was enabled.',
@@ -162,8 +189,14 @@ validate(contract);
 validateComplete(contract);
 
 const mutations = {
-  'approval-overclaim': (value) => (value.providerRegistration.approvalReceived = true),
-  'registration-overclaim': (value) => (value.providerRegistration.registrationExecuted = true),
+  'approval-missing': (value) => (value.providerRegistration.approvalReceived = false),
+  'approval-digest-missing': (value) => (value.providerRegistration.approvalSha256 = ''),
+  'approval-digest-drift': (value) => (value.providerRegistration.approvalSha256 = '0'.repeat(64)),
+  'registration-not-recorded': (value) => (value.providerRegistration.registrationExecuted = false),
+  'provider-transition-unverified': (value) =>
+    (value.providerRegistration.exactProviderTransitionVerified = false),
+  'non-target-provider-changed': (value) =>
+    (value.providerRegistration.nonTargetProviderStateChanged = true),
   'trust-default-subscription': (value) => (value.target.trustAzureCliDefault = true),
   'retain-subscription-id': (value) => (value.target.subscriptionIdentifier = crypto.randomUUID()),
   'retain-public-ipv4': (value) => (value.target.publicIpv4 = '198.51.100.1'),
@@ -177,6 +210,11 @@ const mutations = {
   'allow-terms': (value) => (value.providerRegistration.acceptThirdPartyTermsAllowed = true),
   'parallel-registration': (value) =>
     (value.providerRegistration.parallelRegistrationAllowed = true),
+  'active-default-mode': (value) => (value.executionProcedure.defaultMode = 'register'),
+  'approval-digest-not-required': (value) =>
+    (value.executionProcedure.mutationModeRequiresRecordedApprovalDigest = false),
+  'runtime-enable-not-required': (value) =>
+    (value.executionProcedure.mutationModeRequiresRuntimeEnableVariable = ''),
   'omit-wait': (value) => value.executionProcedure.registrationCommandShape.splice(-2, 1),
   'omit-subscription': (value) => value.executionProcedure.registrationCommandShape.splice(5, 2),
   'wrong-target-count': (value) => (value.target.expectedOtherResourceGroupCount = 1),
@@ -184,13 +222,23 @@ const mutations = {
     delete value.terraformInventory.resourceTypes.azurerm_key_vault,
   'unknown-resource-type': (value) =>
     (value.terraformInventory.resourceTypes.azurerm_linux_virtual_machine = 'Microsoft.Compute'),
-  'quota-overclaim': (value) => (value.postRegistrationProof.subscriptionQuotaVerified = true),
+  'all-services-quota-overclaim': (value) =>
+    (value.postRegistrationProof.allServicesSubscriptionQuotaVerified = true),
   'capacity-overclaim': (value) => (value.postRegistrationProof.capacityGuaranteed = true),
-  'proof-overclaim': (value) => (value.postRegistrationProof.proofExecuted = true),
+  'quota-proof-removed': (value) =>
+    (value.postRegistrationProof.containerAppsRegionalQuotaVerified = false),
+  'usage-proof-removed': (value) =>
+    (value.postRegistrationProof.availableSubscriptionUsageVerified = false),
+  'quota-headroom-removed': (value) => (value.postRegistrationProof.managedEnvironmentLimit = 0),
+  'regional-type-proof-removed': (value) =>
+    (value.postRegistrationProof.allReviewedRegionalResourceTypesAvailable = false),
+  'proof-not-executed': (value) => (value.postRegistrationProof.proofExecuted = false),
   'terraform-plan-enabled': (value) => (value.forbiddenActions.terraformPlan = false),
   'resource-create-enabled': (value) => (value.forbiddenActions.resourceCreation = false),
   'image-push-enabled': (value) => (value.forbiddenActions.imagePullBuildScanSignOrPush = false),
   'workload-plan-allowed': (value) => (value.nextGate.workloadPlanAllowed = true),
+  'workload-plan-approval-removed': (value) =>
+    (value.nextGate.workloadPlanApprovalRequired = false),
 };
 
 for (const [name, mutate] of Object.entries(mutations)) {
@@ -207,5 +255,5 @@ for (const [name, mutate] of Object.entries(mutations)) {
 }
 
 console.log(
-  `Azure workload provider-registration gate passed ${Object.keys(mutations).length} refusal scenarios; exact-six registration remains unexecuted and blocked on explicit approval.`,
+  `Azure workload provider-registration proof passed ${Object.keys(mutations).length} refusal scenarios; the exact six are registered, read-only usage/capability proof passed, and workload planning remains separately approval-gated.`,
 );

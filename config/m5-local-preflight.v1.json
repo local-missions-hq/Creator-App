@@ -1,6 +1,6 @@
 {
-  "activationStatus": "activation_lifecycle_v2_contract_ready_before_workload_planning",
-  "checkpoint": "M05-activation-lifecycle-contract-local-032",
+  "activationStatus": "workload_provider_registration_proof_passed_before_core_planning",
+  "checkpoint": "M05-workload-provider-registration-proof-passed-035",
   "currentExecution": {
     "azureAuthenticated": true,
     "azureReadOnlyInventoryExecuted": true,
@@ -12,6 +12,7 @@
     "livePriceRequested": false,
     "liveRecoveryExecuted": false,
     "providerBackedPlanExecuted": true,
+    "providerRegistrationExecuted": true,
     "remoteBackendInitialized": true,
     "terraformMutationExecuted": true
   },
@@ -65,6 +66,11 @@
       "evidence": "docs/operations/ephemeral-azure-development.md",
       "id": "operator-boundary-and-same-day-teardown",
       "proofClass": "operations_contract"
+    },
+    {
+      "evidence": "config/azure-workload-provider-registration-gate.v1.json",
+      "id": "workload-provider-registration-and-usage-proof",
+      "proofClass": "sanitized_azure_registration_evidence"
     }
   ],
   "machineContracts": [
@@ -133,10 +139,16 @@
       "checkpoint": "M05-container-image-contract-local-009",
       "command": "pnpm container:check",
       "path": "config/container-image-contract.v1.json"
+    },
+    {
+      "activationStatus": "workload_provider_registration_proof_passed",
+      "checkpoint": "M05-workload-provider-registration-proof-passed-035",
+      "command": "node scripts/validate-azure-workload-provider-registration-gate.mjs",
+      "path": "config/azure-workload-provider-registration-gate.v1.json"
     }
   ],
   "milestoneComplete": false,
-  "nextBoundary": "current_ip_sku_quota_cost_and_base_image_revalidation_required",
+  "nextBoundary": "exact_27_resource_workload_core_saved_plan_approval_required",
   "requiredArtifacts": [
     ".github/workflows/azure-oidc-proof.yml",
     ".github/workflows/verify.yml",
@@ -162,7 +174,12 @@
     "docs/decisions/ADR-060.md",
     "docs/decisions/ADR-061.md",
     "scripts/validate-github-state-network-gate.mjs",
-    "scripts/validate-activation-lifecycle-v2.mjs"
+    "scripts/validate-activation-lifecycle-v2.mjs",
+    "config/azure-workload-provider-registration-gate.v1.json",
+    "docs/evidence/M05/azure-workload-provider-registration-gate.md",
+    "scripts/azure-workload-provider-registration.mjs",
+    "scripts/validate-azure-workload-provider-registration-gate.mjs",
+    "scripts/validate-azure-workload-provider-registration-tool.mjs"
   ],
   "externalGates": [
     {
@@ -177,21 +194,21 @@
       "evidenceRequired": "current service SKU policy price and region review",
       "id": "azure-service-sku-price-region-review",
       "ownerRole": "cost_owner",
-      "status": "deferred"
+      "status": "completed_for_workload_preplan"
     },
     {
       "approvalRequired": true,
       "evidenceRequired": "named cost owner budget thresholds and monitored destination test",
       "id": "budget-alert-owner-and-delivery",
       "ownerRole": "cost_owner",
-      "status": "deferred"
+      "status": "completed_for_control_plane"
     },
     {
       "approvalRequired": true,
       "evidenceRequired": "reviewed Node base digest provenance",
       "id": "base-image-provenance-review",
       "ownerRole": "security_reviewer",
-      "status": "deferred"
+      "status": "completed_for_workload_preplan"
     },
     {
       "approvalRequired": true,
@@ -241,6 +258,20 @@
       "id": "explicit-apply-approval",
       "ownerRole": "independent_approver",
       "status": "completed_for_control_plane_apply"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "exact six provider registration and read-only subscription usage capability proof",
+      "id": "workload-provider-registration-and-quota",
+      "ownerRole": "platform_owner",
+      "status": "completed_exact_six_and_read_only_proof"
+    },
+    {
+      "approvalRequired": true,
+      "evidenceRequired": "reviewed exact 27-resource workload-core saved plan with zero Container Apps",
+      "id": "workload-core-saved-plan-review",
+      "ownerRole": "plan_reviewer",
+      "status": "deferred"
     },
     {
       "approvalRequired": true,
@@ -300,6 +331,7 @@
     "live-price-request-claimed",
     "live-recovery-claimed",
     "provider-plan-erased",
+    "provider-registration-erased",
     "remote-backend-erased",
     "terraform-mutation-erased",
     "missing-machine-contract",

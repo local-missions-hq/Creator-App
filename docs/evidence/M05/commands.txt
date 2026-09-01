@@ -554,3 +554,31 @@ PASS — formatting, architecture/policy gates, all three Terraform roots, works
 
 pnpm test:security && pnpm test:gitleaks
 PASS — the high-confidence scan passed for 655 text files and Gitleaks found no leaks in approximately 17.92 MB.
+
+M05-workload-provider-registration-proof-passed-035 — 2026-09-01
+
+owner approval binding
+PASS — bound the exact six-provider approval, which explicitly excluded Terraform plan/apply, to SHA-256 `08c3b30897c8013089fa450e34409ddee94060e82efe73baff44922ed3d448f9`.
+
+node scripts/validate-azure-workload-provider-registration-tool.mjs
+PASS — fixture-tested unique target resolution, exact provider-state transitions, case-insensitive Azure namespace handling, Container Apps headroom, PostgreSQL capability, East US 2 regional types, inactive preview, and register-mode refusal without all runtime gates. The default path contacted neither Azure nor Terraform.
+
+exact-six sequential provider registration
+PASS — after unique subscription, empty-workload, current-IP Storage, and provider-baseline revalidation, sequentially registered only Microsoft.App, Microsoft.ContainerRegistry, Microsoft.DBforPostgreSQL, Microsoft.KeyVault, Microsoft.OperationalInsights, and Microsoft.ServiceBus. Each reached Registered; every non-target provider state remained unchanged.
+
+node scripts/azure-workload-provider-registration.mjs --mode verify
+PASS — all six targets are Registered; the workload count is zero; the retained Storage boundary is unchanged; Container Apps regional managed-environment usage is 0/20; PostgreSQL 16/Standard_B1ms/32 GiB capability is present; and all ten reviewed regional resource types support East US 2. Capacity is not reserved or guaranteed.
+
+safe parser corrections
+PASS — the tool refused before any registration when provider-list namespace casing differed, then was regression-fixed. After all six registrations, the regional reader refused on the same casing variation; it was fixed and only read-only verification was rerun. No provider was registered twice and no refusal broadened the approved scope.
+
+No Terraform command/plan/apply/destroy, Azure resource creation/update/deletion, network/RBAC/budget change, image action, workload cost, Stripe action, customer data, or iOS deployment occurred. The next gate is separate approval to generate and independently review only the exact 27-resource workload-core saved plan with zero Container Apps; apply remains unauthorized.
+
+pnpm m5:preflight
+PASS — reconciled 12 machine contracts, 11 local coverage areas, nine deferred external gates, and 47 refusal scenarios. The aggregate record now includes the exact-six registration proof while continuing to report zero workload/registry execution.
+
+pnpm verify && provider/pre-plan validators
+PASS — formatting, architecture/policy gates, all three Terraform roots, workspace lint/type/test/contracts/build, 111 mobile tests, production bundles, the historical 21-refusal pre-plan record, the current 36-refusal provider proof, and the operator fixture suite passed under Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security && pnpm test:gitleaks
+PASS — the high-confidence scan passed for 657 text files and Gitleaks found no leaks in approximately 17.95 MB.

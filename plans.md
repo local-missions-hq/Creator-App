@@ -12,9 +12,9 @@ Cloud: Microsoft Azure
 
 Current milestone: **M5 — Azure development foundation and continuous delivery**
 
-Current checkpoint: **M05-provider-registration-gate-local-034**
+Current checkpoint: **M05-workload-provider-registration-proof-passed-035**
 
-Next exact task: **Approve registration of exactly six required workload resource providers, then run the defined read-only usage/capability proof; no workload plan yet**
+Next exact task: **Approve generation and independent review of only the exact 27-resource workload-core saved plan with zero Container Apps; no apply**
 
 Last updated: 2026-09-01
 
@@ -40,7 +40,7 @@ The former detailed build contract, verification protocols, and dated work entri
 | Product and domain | Founder-approved V1 contract, state machines, PostgreSQL migrations, API contracts, and synthetic workflows are implemented locally. | Production data behavior and provider-backed end-to-end operation. |
 | iOS | Shared Expo/React Native Creator and Business prototype builds and runs in Simulator with local adapters and automated UI evidence. | External Identity sign-in, Azure API connectivity, physical-iPhone VoiceOver, signed TestFlight build, and App Store release. |
 | Web/API/worker | Local dashboard, API, worker boundaries, authorization, audit, queue, upload, and recovery contracts exist. | Running Azure endpoints and production operations. |
-| Azure | Dedicated `Local Missions Development` subscription contains the applied three-resource retained-state bootstrap and 20-resource retained control/landing-zone plane. The empty workload landing zone, budget, alerting, least-privilege workflow RBAC, remote state, locking, and live security controls were independently verified. | Disposable workload, immutable images, endpoints, cloud tests, and same-day teardown. |
+| Azure | Dedicated `Local Missions Development` subscription contains the applied three-resource retained-state bootstrap and 20-resource retained control/landing-zone plane. The exact six workload providers are registered; current Container Apps quota, PostgreSQL capability, East US 2 availability, the empty workload, budget, alerting, least-privilege workflow RBAC, remote state, locking, and live security controls were independently verified. | Disposable workload, immutable images, endpoints, cloud tests, and same-day teardown. |
 | Identity | OIDC/PKCE, token verification, server session, role/workspace, and secretless workflow contracts pass locally. The public repository belongs to the free `local-missions-hq` organization with one owner and no payment method. The exact three-update subject correction is applied, a normal provider-backed plan is zero-change, and all three post-transfer no-Terraform OIDC/ARM jobs passed while the Blob read remained blocked by the default-deny firewall. | Complete negative workflow-role boundary proof, activate Entra External ID tenant/apps and real-user sign-in, and later justify any paid private workflow-state path. |
 | Stripe | Ledger, funding, payout, refund, idempotency, reconciliation, and webhook behavior are modeled and tested locally with no provider contact. | Stripe test-mode Connect configuration, real test webhooks/transactions, live-mode approval, and real-money operation. |
 | Release | Local quality gates and Simulator evidence exist. | Physical-device release candidate, TestFlight, App Review, and controlled Orlando production launch. |
@@ -168,10 +168,10 @@ Goal: prove a reproducible, least-privilege Azure development deployment using s
 ### M5.5 — Disposable workload core and immutable images
 
 - [x] Replace the historical single-plan evidence/run-ledger fixtures with an activation-valid V2 contract covering bootstrap, control plane, core, image publication, app activation, tests, destroy, and reconciliation.
-- [ ] Revalidate the Node base-image digest, dependency lockfiles, Docker build inputs, current public IP allowlist, low-cost SKUs, quota, and the selected `$2` two-hour smoke duration; use the `$5` eight-hour tier only after a separately recorded need.
+- [x] Revalidate the Node base-image digest, dependency lockfiles, Docker build inputs, current public IP allowlist, low-cost SKUs, quota, and the selected `$2` two-hour smoke duration; use the `$5` eight-hour tier only after a separately recorded need.
   - [x] Complete the non-mutating portions: uniquely resolve the retained Local Missions subscription by tags, verify the current IPv4 rule without retaining the address, recheck 17 public meters with zero price drift, verify East US 2 resource-type/PostgreSQL capability, bind the official Node 24.19.0 `linux/amd64` manifest digest, and hash every tracked Docker build input.
   - [x] Derive all 17 workload Terraform resource types, map them to the exact required provider namespaces, and locally validate a sequential exact-six registration gate with explicit-subscription targeting, drift refusal, and no Terraform or follow-on mutation.
-  - [ ] Separately approve and register only `Microsoft.App`, `Microsoft.ContainerRegistry`, `Microsoft.DBforPostgreSQL`, `Microsoft.KeyVault`, `Microsoft.OperationalInsights`, and `Microsoft.ServiceBus`; then repeat subscription-specific quota/capacity checks. No registration or workload plan has run.
+  - [x] Separately approve and register only `Microsoft.App`, `Microsoft.ContainerRegistry`, `Microsoft.DBforPostgreSQL`, `Microsoft.KeyVault`, `Microsoft.OperationalInsights`, and `Microsoft.ServiceBus`; then prove Container Apps regional usage `0/20`, PostgreSQL 16/B1ms/32 GiB capability, all ten required East US 2 resource types, zero workload resources, and the unchanged retained Storage boundary. No Terraform command or workload plan ran.
 - [ ] Generate and independently review a saved plan containing exactly the 27-resource workload core and no Container Apps; stop before apply.
 - [ ] Obtain separate approval for the exact core plan and cost ceiling.
 - [ ] Apply the core plan, run migrations, and seed synthetic data only.

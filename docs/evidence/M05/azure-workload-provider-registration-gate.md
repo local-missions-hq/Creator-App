@@ -1,14 +1,14 @@
 # Azure workload provider-registration gate
 
-Checkpoint: `M05-provider-registration-gate-local-034`
+Checkpoint: `M05-workload-provider-registration-proof-passed-035`
 
-Status: local fail-closed gate complete; exact-six Azure registration awaits explicit owner approval
+Status: exact-six Azure registration and read-only usage/capability proof passed; no Terraform plan
 
 ## Exact scope derived from code
 
 The active development root and its modules declare 17 AzureRM resource types. A validator scans the tracked Terraform files and requires every type to map to one provider namespace. Five required namespaces are already registered and must not be mutated: `Microsoft.Authorization`, `Microsoft.Insights`, `Microsoft.ManagedIdentity`, `Microsoft.Resources`, and `Microsoft.Storage`.
 
-Only these six currently missing namespaces may be registered after explicit approval, sequentially and against the process-only subscription ID:
+The owner approved SHA-256-bound sequential registration of exactly these six previously missing namespaces against the process-only subscription ID:
 
 1. `Microsoft.App`
 2. `Microsoft.ContainerRegistry`
@@ -19,17 +19,17 @@ Only these six currently missing namespaces may be registered after explicit app
 
 The registration command shape requires `--subscription`, `--wait`, and an exact allowlisted namespace. It cannot accept marketplace terms, unregister a provider, use Terraform automatic registration, trust the Azure CLI default, or run registrations in parallel.
 
-## Required preconditions and postconditions
+## Executed preconditions and postconditions
 
-Before any mutation, the operator must record approval for the exact list, uniquely rediscover the Local Missions subscription from the retained tag/resource-group boundary, reprove the empty disposable workload, recheck the current-IP state firewall rule, and snapshot all 11 provider states. Any ambiguity or drift is a stop.
+Before mutation, the tool recorded approval SHA-256 `08c3b30897c8013089fa450e34409ddee94060e82efe73baff44922ed3d448f9`, uniquely rediscovered the Local Missions subscription from the retained tag/resource-group boundary, reproved the empty disposable workload, rechecked the current-IP state firewall rule, and snapshotted provider states. An initial dry-run defect safely refused before mutation because Azure returned `microsoft.insights` with different casing; case-insensitive namespace matching was added and regression-tested before resuming the same approved sequence.
 
-After registration, all six targets must report `Registered`; all five preexisting namespaces and every non-target provider state must remain unchanged; the retained group count and Storage security boundary must remain unchanged; and the disposable workload must still contain zero resources.
+After sequential registration, all six targets report `Registered`; the preexisting namespaces and every non-target provider state remained unchanged; the retained group count and Storage security boundary remained unchanged; and the disposable workload still contains zero resources. Provider registration created no workload resource and incurs no workload runtime charge.
 
-The subsequent proof is read-only. It must query the official Container Apps regional subscription usage endpoint and require headroom for one managed environment, recheck PostgreSQL 16 / `Standard_B1ms` / 32 GiB capability, recheck East US 2 locations and documented service limits, and retain zero workload resources. These checks reduce deployment risk but do not reserve capacity or guarantee a successful future apply.
+The subsequent proof was read-only. The official Container Apps regional subscription usage endpoint reported `0/20` managed environments, leaving the required headroom. PostgreSQL 16 / `Standard_B1ms` / 32 GiB capability passed. Ten required regional resource types across Container Apps, ACR, PostgreSQL, Key Vault, Log Analytics, Service Bus, Application Insights, managed identities, and Storage report East US 2 support. These checks reduce deployment risk but do not reserve capacity or guarantee a successful future apply.
 
 ## Stop boundary
 
-This checkpoint ran no provider registration, Terraform command, Azure mutation, image operation, Stripe action, or iOS deployment. Registration approval will authorize only the exact six sequential provider registrations and the read-only post-registration proof. It will not authorize a Terraform plan or apply.
+This checkpoint performed only the six approved subscription provider registrations and read-only proof. It ran no Terraform command, plan, apply, resource creation/update/deletion, network/RBAC/budget change, image operation, Stripe action, or iOS deployment. The next separately gated action is generation and independent review of the exact 27-resource workload-core saved plan with zero Container Apps; apply remains unauthorized.
 
 Sources:
 
