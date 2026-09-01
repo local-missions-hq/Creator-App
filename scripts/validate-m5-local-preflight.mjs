@@ -90,17 +90,14 @@ function assertUniqueExact(actual, expected, label) {
 function validateManifest(candidate) {
   assert(candidate.schemaVersion === 1, 'Preflight schema version drifted.');
   assert(
-    candidate.activationStatus === 'post_transfer_oidc_correction_plan_reviewed_no_apply',
+    candidate.activationStatus === 'post_transfer_oidc_proof_passed_local_operator_state_retained',
     'Activation status drifted.',
   );
-  assert(
-    candidate.checkpoint === 'M05-post-transfer-oidc-correction-saved-plan-reviewed-029',
-    'Checkpoint drifted.',
-  );
+  assert(candidate.checkpoint === 'M05-post-transfer-oidc-proof-passed-030', 'Checkpoint drifted.');
   assert(candidate.milestoneComplete === false, 'M5 cannot be claimed complete locally.');
   assert(candidate.syntheticDataOnly === true, 'Only synthetic data is allowed.');
   assert(
-    candidate.nextBoundary === 'exact_oidc_subject_correction_plan_approval_required',
+    candidate.nextBoundary === 'workflow_rbac_negative_proof_before_workload_planning',
     'Next boundary drifted.',
   );
   assert(candidate.verificationCommand === 'pnpm m5:preflight', 'Verification command drifted.');
@@ -139,6 +136,7 @@ function validateManifest(candidate) {
         'github_environments_configured_azure_execution_disabled',
         'post_transfer_oidc_subject_mismatch_correction_plan_reviewed',
         'post_transfer_oidc_correction_plan_reviewed_no_apply',
+        'post_transfer_oidc_proof_passed_local_operator_state_retained',
       ].includes(contract.activationStatus),
       `${contract.path} activation status is not local-only.`,
     );

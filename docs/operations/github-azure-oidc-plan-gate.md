@@ -1,6 +1,6 @@
 # GitHub-to-Azure OIDC plan gate
 
-Status: historical personal-owner proof passed; post-transfer proof failed before ARM; exact correction plan awaits approval
+Status: corrected post-transfer proof passed; default-deny Blob refusal preserved; local-operator state path retained
 
 This runbook defines and constrains the approved secretless identity proof. The protected GitHub environments, three Microsoft Entra identities/federated credentials, and retained scoped role assignments are live. [`../../.github/workflows/azure-oidc-proof.yml`](../../.github/workflows/azure-oidc-proof.yml) may exchange OIDC tokens and inspect effective permissions, but it contains no Terraform command or Azure mutation. The machine contract is [`../../config/azure-oidc-plan-gate.v1.json`](../../config/azure-oidc-plan-gate.v1.json).
 
@@ -58,4 +58,4 @@ Direct `terraform destroy`, direct/unreviewed `terraform apply`, `-auto-approve`
 6. Run a separately approved read-only identity/plan probe, capture sanitized evidence, and stop. A successful token exchange does not approve apply.
 7. Review the saved plan and current cost, obtain explicit same-day apply approval, then follow the ephemeral build/test/destroy/reconciliation runbook.
 
-Steps 1 through 5 are complete for the retained control plane and transferred public repository. The first post-transfer step 6 attempt failed before ARM because the initial preview used a name-decorated subject that did not match GitHub's emitted claim-key subject. An exact three-update correction plan is reviewed but unapplied. The correction and proof rerun require separate digest-bound approval and do not authorize step 7, a state firewall exception, temporary operator-role removal, workload planning, or workload apply.
+Steps 1 through 6 are complete for the retained control plane and transferred public repository. The first post-transfer step 6 attempt failed before ARM because the initial preview used a name-decorated subject that did not match GitHub's emitted claim-key subject. Exact correction plan SHA-256 `de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c` then applied only three subject updates, reconciled to a zero-change normal plan, and corrected run `33521970773` passed all three no-Terraform jobs while Blob access remained blocked. This does not authorize step 7, a state firewall exception, temporary operator-role removal, workload planning, or workload apply.

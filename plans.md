@@ -12,9 +12,9 @@ Cloud: Microsoft Azure
 
 Current milestone: **M5 — Azure development foundation and continuous delivery**
 
-Current checkpoint: **M05-post-transfer-oidc-correction-saved-plan-reviewed-029**
+Current checkpoint: **M05-post-transfer-oidc-proof-passed-030**
 
-Next exact task: **Approve or reject OIDC subject-correction plan SHA-256 `de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c`; no correction apply or proof rerun before approval**
+Next exact task: **Prove the plan/apply/destroy workflow roles cannot cross their lifecycle boundaries; no workload plan or apply yet**
 
 Last updated: 2026-09-01
 
@@ -41,7 +41,7 @@ The former detailed build contract, verification protocols, and dated work entri
 | iOS | Shared Expo/React Native Creator and Business prototype builds and runs in Simulator with local adapters and automated UI evidence. | External Identity sign-in, Azure API connectivity, physical-iPhone VoiceOver, signed TestFlight build, and App Store release. |
 | Web/API/worker | Local dashboard, API, worker boundaries, authorization, audit, queue, upload, and recovery contracts exist. | Running Azure endpoints and production operations. |
 | Azure | Dedicated `Local Missions Development` subscription contains the applied three-resource retained-state bootstrap and 20-resource retained control/landing-zone plane. The empty workload landing zone, budget, alerting, least-privilege workflow RBAC, remote state, locking, and live security controls were independently verified. | Disposable workload, immutable images, endpoints, cloud tests, and same-day teardown. |
-| Identity | OIDC/PKCE, token verification, server session, role/workspace, and secretless workflow contracts pass locally. The public repository now belongs to the free `local-missions-hq` organization with one owner and no payment method. The first post-transfer proof failed safely before ARM because the previewed subject string differed from GitHub's emitted immutable-claim format; an exact three-update correction saved plan is reviewed but unapplied. | Apply the separately approved OIDC correction, pass the no-Terraform proof, activate Entra External ID tenant/apps and real-user sign-in, and later justify any paid private workflow-state path. |
+| Identity | OIDC/PKCE, token verification, server session, role/workspace, and secretless workflow contracts pass locally. The public repository belongs to the free `local-missions-hq` organization with one owner and no payment method. The exact three-update subject correction is applied, a normal provider-backed plan is zero-change, and all three post-transfer no-Terraform OIDC/ARM jobs passed while the Blob read remained blocked by the default-deny firewall. | Complete negative workflow-role boundary proof, activate Entra External ID tenant/apps and real-user sign-in, and later justify any paid private workflow-state path. |
 | Stripe | Ledger, funding, payout, refund, idempotency, reconciliation, and webhook behavior are modeled and tested locally with no provider contact. | Stripe test-mode Connect configuration, real test webhooks/transactions, live-mode approval, and real-money operation. |
 | Release | Local quality gates and Simulator evidence exist. | Physical-device release candidate, TestFlight, App Review, and controlled Orlando production launch. |
 
@@ -159,10 +159,10 @@ Goal: prove a reproducible, least-privilege Azure development deployment using s
 - [x] Transfer the still-public `Creator-App` repository to `local-missions-hq`; verify stable repository ID, public visibility, redirect, three protected environments, main-only policies, identifier variables, and zero secrets. Restore transfer-reset immutable OIDC, selected Actions, and solo-founder `main` protection without a paid feature.
 - [x] Run the post-transfer no-Terraform proof and record its fail-closed result before ARM access: GitHub emitted `repository_owner_id:{id}:repository_id:{id}:environment:{name}`, while the first preview encoded an incorrect name-decorated `repo:...@...` form. No Azure permission, Blob access, Terraform command, or Azure mutation occurred.
 - [x] Correct the Terraform/OIDC contract to the observed immutable claim format and independently review a replacement saved plan. It contains exactly three in-place federated-credential subject updates, zero creates/deletes/replacements, zero network/RBAC/budget/workload changes, mode `0600`, and SHA-256 `de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c`.
-- [ ] Approve or reject that exact correction saved plan. This approval authorizes only the three subject updates and the immediate no-Terraform OIDC/ARM proof rerun; it authorizes no workload, network, RBAC, budget, Stripe, paid GitHub, or iOS deployment action.
-- [ ] Revalidate the correction plan/source/provider-lock digests and live mismatched subjects, apply only the three reviewed corrections, prove a zero-change normal plan, rerun all three protected OIDC/ARM jobs, and confirm the default-deny Blob refusal.
-- [ ] Keep provider-backed Terraform plan/apply/destroy on the reviewed local operator path while GitHub Free is selected. Do not allowlist standard-runner IP ranges, discover/add dynamic runner IPs, open Storage, enable trusted-service bypass, or attach a self-hosted runner to the public repository.
-- [ ] Retain the temporary operator state-container role until a separately approved recovery path and later paid private-runner proof exist; do not misreport GitHub workflow remote-state access as complete.
+- [x] Approve exact correction saved plan SHA-256 `de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c`. The approval authorized only the three subject updates and immediate no-Terraform OIDC/ARM proof rerun; no workload, network, RBAC, budget, Stripe, paid GitHub, or iOS deployment action was performed.
+- [x] Revalidate the correction plan/source/provider-lock digests and live mismatched subjects, apply only the three reviewed corrections, prove a zero-change normal plan, rerun all three protected OIDC/ARM jobs, and confirm the default-deny Blob refusal.
+- [x] Keep provider-backed Terraform plan/apply/destroy on the reviewed local operator path while GitHub Free is selected. Do not allowlist standard-runner IP ranges, discover/add dynamic runner IPs, open Storage, enable trusted-service bypass, or attach a self-hosted runner to the public repository.
+- [x] Retain the temporary operator state-container role until a separately approved recovery path and later paid private-runner proof exist; do not misreport GitHub workflow remote-state access as complete.
 - [ ] Prove plan cannot apply/delete, apply cannot delete, destroy cannot delete the landing-zone group, and delegated RBAC is limited to the five approved application data roles.
 
 ### M5.5 — Disposable workload core and immutable images

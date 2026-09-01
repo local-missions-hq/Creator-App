@@ -66,7 +66,7 @@ This fresh check did not boot an iOS Simulator. The retained actual native/Simul
 
 ### 3. Current Azure execution gate
 
-The dedicated subscription, three-resource retained-state bootstrap, and exact 20-resource retained control plane are live. Remote locking, exact inventory, scoped RBAC, budget/alerts, and a zero-change normal Terraform plan passed. The public repository now belongs to GitHub Free organization `local-missions-hq`; paid private-runner/VNet integration remains deferred to M14. The first post-transfer proof failed safely before ARM because the first subject preview used the wrong string format. An exact three-update correction saved plan is reviewed but unapplied. Provider-backed Terraform remains on the reviewed local operator path and the default-deny firewall remains unchanged. Verification established:
+The dedicated subscription, three-resource retained-state bootstrap, and exact 20-resource retained control plane are live. Remote locking, exact inventory, scoped RBAC, budget/alerts, and a zero-change normal Terraform plan passed. The public repository belongs to GitHub Free organization `local-missions-hq`; paid private-runner/VNet integration remains deferred to M14. The first post-transfer proof failed safely before ARM because the first subject preview used the wrong string format. The exact three-update correction applied with zero creates/deletes, reconciled to no changes, and corrected run `33521970773` passed all three no-Terraform OIDC/ARM jobs while the real Blob read remained blocked. Provider-backed Terraform remains on the reviewed local operator path and the default-deny firewall remains unchanged. Verification established:
 
 1. Exact subscription, tenant, East US 2 availability, provider registration, quota, policy, and resource naming.
 2. Exact retained state backend and locking bootstrap, with separate state, control, and retained Local Missions workload landing-zone groups.
@@ -77,7 +77,7 @@ The dedicated subscription, three-resource retained-state bootstrap, and exact 2
 7. Real monitored budget/expiry alert delivery and the retained cleanup controller.
 8. Current SKU/price/availability against the saved plan. The first future workload run is the `$2` two-hour smoke tier; `$5`/eight hours is a fallback only. The revised `$100` monthly budget is an alert threshold, not a spend target or hard cap.
 
-The bootstrap, control-plane apply, no-apply OIDC proof, and free-organization creation authorizations have been consumed. The reviewed federation plan has not been applied and the repository has not been transferred. These actions do not authorize a paid GitHub feature, Storage firewall change, temporary-role removal, workload planning, registry push, application deployment, live tests, rollback, restore, or destroy. Every later external action remains separately reviewed and approved.
+The bootstrap, control-plane apply, free-organization creation, repository transfer, both federation subject applies, and corrected no-apply OIDC proof authorizations have been consumed. These actions do not authorize a paid GitHub feature, Storage firewall change, temporary-role removal, workload planning, registry push, application deployment, live tests, rollback, restore, or destroy. The next M5.4 task is negative lifecycle-boundary proof for the three workflow roles; every later external action remains separately reviewed and approved.
 
 ### 4. Tests only after a separately approved ephemeral deployment
 

@@ -1,8 +1,8 @@
 # GitHub OIDC no-apply proof evidence
 
-Status: passed; three protected environment jobs completed without mutation
+Status: passed after repository transfer and subject correction; three protected environment jobs completed without mutation
 Date: 2026-09-01
-Checkpoint: `M05-github-oidc-arm-proof-passed-024`
+Checkpoint: `M05-post-transfer-oidc-proof-passed-030`
 
 ## Approved boundary
 
@@ -43,4 +43,8 @@ The expected state Blob read failed from each GitHub-hosted runner because the S
 
 ## Next gate
 
-The owner subsequently selected GitHub Free and transferred the still-public repository to `local-missions-hq` without a payment method. Post-transfer run `33519420112` failed before ARM because the first subject preview did not match GitHub's emitted claim-key format. Checkpoint `M05-post-transfer-oidc-correction-saved-plan-reviewed-029` contains the exact three-update correction plan. Do not apply it, rerun the proof, alter Storage/network/RBAC, touch workload state, or enable paid GitHub settings without the next explicit approval.
+The owner subsequently selected GitHub Free and transferred the still-public repository to `local-missions-hq` without a payment method. Post-transfer run `33519420112` failed before ARM because the first subject preview did not match GitHub's emitted claim-key format. The owner approved exact correction plan SHA-256 `de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c`; Terraform applied only three in-place subject updates and a normal plan reconciled to zero change.
+
+Corrected run [33521970773](https://github.com/local-missions-hq/Creator-App/actions/runs/33521970773) completed successfully on commit `76803cde194dfc8965bf6114690f47a0dabcdf79`. All three jobs passed OIDC exchange, exact ARM and data-action checks, retained-control denial, expected Blob refusal, and logout. Independent post-run review found zero Azure write/delete/action operations, an empty workload group, unchanged Storage firewall controls, GitHub Free, and zero repository/environment secrets.
+
+The next M5.4 task is negative lifecycle-boundary proof for the plan/apply/destroy roles. Provider-backed Terraform remains on the reviewed local operator path and the temporary operator container role remains in place. No workload planning, firewall change, paid GitHub feature, operator-role removal, Stripe action, or iOS deployment is authorized by this checkpoint.

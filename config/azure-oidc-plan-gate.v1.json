@@ -1,5 +1,5 @@
 {
-  "activationStatus": "post_transfer_oidc_subject_mismatch_correction_plan_reviewed",
+  "activationStatus": "post_transfer_oidc_proof_passed_local_operator_state_retained",
   "activeWorkflowPresent": true,
   "actionPolicy": {
     "azureLoginAction": "azure/login",
@@ -10,7 +10,7 @@
     "unpinnedActionsAllowed": false
   },
   "azureExecutionEnabled": true,
-  "checkpoint": "M05-post-transfer-oidc-correction-saved-plan-reviewed-029",
+  "checkpoint": "M05-post-transfer-oidc-proof-passed-030",
   "credentialContract": {
     "externalIdentifierVariables": ["AZURE_CLIENT_ID", "AZURE_SUBSCRIPTION_ID", "AZURE_TENANT_ID"],
     "forbiddenInputs": [
@@ -181,7 +181,19 @@
     "azureMutationCommandsExecuted": 0,
     "terraformCommandsExecuted": 0,
     "subjectFormatMismatchRecorded": true,
-    "replacementSavedPlanApproved": false
+    "replacementSavedPlanApproved": true
+  },
+  "correctedPostTransferProofResult": {
+    "runId": 33521970773,
+    "headCommitSha": "76803cde194dfc8965bf6114690f47a0dabcdf79",
+    "conclusion": "success",
+    "allIdentityJobsPassed": true,
+    "approvalCompleted": true,
+    "azureMutationCommandsExecuted": 0,
+    "terraformCommandsExecuted": 0,
+    "stateDataActionsProven": true,
+    "stateBlobReadBlockedByFirewall": true,
+    "defaultDenyFirewallPreserved": true
   },
   "refusalScenarios": [
     "pull-request-event",

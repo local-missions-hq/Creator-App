@@ -1,6 +1,6 @@
 {
-  "activationStatus": "post_transfer_oidc_correction_plan_reviewed_no_apply",
-  "checkpoint": "M05-post-transfer-oidc-correction-saved-plan-reviewed-029",
+  "activationStatus": "post_transfer_oidc_proof_passed_local_operator_state_retained",
+  "checkpoint": "M05-post-transfer-oidc-proof-passed-030",
   "costReview": {
     "currency": "USD",
     "githubTeamPerUserMonthly": 4,
@@ -23,6 +23,8 @@
     "federationSavedPlanApplied": true,
     "githubOrganizationCreated": true,
     "githubPlanPurchased": false,
+    "oidcCorrectionSavedPlanApplied": true,
+    "postTransferOidcProofExecuted": true,
     "repositoryTransferred": true,
     "runnerCreated": false,
     "storageFirewallMutationExecuted": false,
@@ -54,9 +56,11 @@
     "oidcProofCommit": "73ef5bd5e3251a95347aeb7449d4365745e4c5c4",
     "oidcProofPassed": true,
     "oidcProofRunId": 33513053687,
-    "postTransferOidcProofPassed": false,
-    "postTransferOidcProofRunId": 33519420112,
+    "failedPostTransferOidcProofRunId": 33519420112,
     "postTransferProofFailedBeforeArm": true,
+    "postTransferOidcProofPassed": true,
+    "postTransferOidcProofRunId": 33521970773,
+    "postTransferOidcProofCommit": "76803cde194dfc8965bf6114690f47a0dabcdf79",
     "stateDataActionsProven": true,
     "workflowBlobReadBlockedByFirewall": true
   },
@@ -121,7 +125,12 @@
     "sha256": "de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c",
     "sourceSetSha256": "d941ebfdb933a151b57f2261ad9feafc2405db26d7ea448cf72f79b22d4aac20",
     "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
-    "terraformApplyExecuted": false,
+    "terraformApplyExecuted": true,
+    "appliedAtUtc": "2026-09-01T14:49:05Z",
+    "resourcesChangedByApply": 3,
+    "normalPlanAfterApplyIsZeroChange": true,
+    "postCorrectionProofRunId": 33521970773,
+    "postCorrectionProofPassed": true,
     "postTransferProofFailedBeforeArm": true,
     "workloadChanges": 0
   },
@@ -148,10 +157,6 @@
     }
   ],
   "requiredApprovalGates": [
-    "approve-exact-oidc-subject-correction-plan",
-    "revalidate-correction-plan-source-lock-and-live-subjects",
-    "apply-only-three-corrected-federated-subject-updates",
-    "rerun-post-transfer-no-apply-oidc-proof",
     "retain-local-operator-state-path",
     "revisit-paid-private-runner-at-m14",
     "remove-temporary-operator-role-only-after-recovery-proof"

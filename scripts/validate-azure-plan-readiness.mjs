@@ -221,7 +221,18 @@ function validate(candidate) {
       correctionEvidence.budgetChanges === 0 &&
       correctionEvidence.workloadChanges === 0 &&
       correctionEvidence.federatedCredentialSubjectUpdates === 3 &&
-      correctionEvidence.terraformApplyExecuted === false &&
+      correctionEvidence.terraformApplyExecuted === true &&
+      correctionEvidence.appliedAtUtc === '2026-09-01T14:49:05Z' &&
+      correctionEvidence.resourcesAddedByApply === 0 &&
+      correctionEvidence.resourcesChangedByApply === 3 &&
+      correctionEvidence.resourcesDestroyedByApply === 0 &&
+      correctionEvidence.binaryConsumedAfterApply === true &&
+      correctionEvidence.normalPlanAfterApplyIsZeroChange === true &&
+      correctionEvidence.postCorrectionProofRunId === 33521970773 &&
+      correctionEvidence.postCorrectionProofPassed === true &&
+      correctionEvidence.postCorrectionProofTerraformCommandsExecuted === 0 &&
+      correctionEvidence.postCorrectionProofAzureMutationCommandsExecuted === 0 &&
+      correctionEvidence.stateBlobReadBlockedByFirewall === true &&
       correctionEvidence.expectedSubjectFormat ===
         'repository_owner_id:{id}:repository_id:{id}:environment:{name}',
     'OIDC subject-correction saved-plan evidence drifted.',
@@ -483,8 +494,8 @@ const refusalCases = [
     (value) => (value.oidcSubjectCorrectionPlanEvidence.sha256 = 'invalid'),
   ],
   [
-    'OIDC correction plan apply claimed',
-    (value) => (value.oidcSubjectCorrectionPlanEvidence.terraformApplyExecuted = true),
+    'OIDC correction plan apply removed',
+    (value) => (value.oidcSubjectCorrectionPlanEvidence.terraformApplyExecuted = false),
   ],
   [
     'OIDC correction plan resource drift',

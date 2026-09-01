@@ -16,13 +16,13 @@ function assert(condition, message) {
 
 function assertProofBoundary() {
   assert(
-    manifest.activationStatus === 'post_transfer_oidc_subject_mismatch_correction_plan_reviewed',
+    manifest.activationStatus === 'post_transfer_oidc_proof_passed_local_operator_state_retained',
     'OIDC activation status drifted.',
   );
   assert(manifest.activeWorkflowPresent === true, 'The approved OIDC proof workflow is missing.');
   assert(manifest.azureExecutionEnabled === true, 'OIDC proof execution is not recorded.');
   assert(
-    manifest.checkpoint === 'M05-post-transfer-oidc-correction-saved-plan-reviewed-029',
+    manifest.checkpoint === 'M05-post-transfer-oidc-proof-passed-030',
     'OIDC checkpoint identifier drifted.',
   );
 
@@ -268,8 +268,22 @@ function assertIdentityContracts() {
       postTransferAttempt.azureMutationCommandsExecuted === 0 &&
       postTransferAttempt.terraformCommandsExecuted === 0 &&
       postTransferAttempt.subjectFormatMismatchRecorded === true &&
-      postTransferAttempt.replacementSavedPlanApproved === false,
+      postTransferAttempt.replacementSavedPlanApproved === true,
     'Post-transfer failed-safe proof evidence drifted.',
+  );
+  const correctedResult = manifest.correctedPostTransferProofResult;
+  assert(
+    correctedResult.runId === 33521970773 &&
+      correctedResult.headCommitSha === '76803cde194dfc8965bf6114690f47a0dabcdf79' &&
+      correctedResult.conclusion === 'success' &&
+      correctedResult.allIdentityJobsPassed === true &&
+      correctedResult.approvalCompleted === true &&
+      correctedResult.azureMutationCommandsExecuted === 0 &&
+      correctedResult.terraformCommandsExecuted === 0 &&
+      correctedResult.stateDataActionsProven === true &&
+      correctedResult.stateBlobReadBlockedByFirewall === true &&
+      correctedResult.defaultDenyFirewallPreserved === true,
+    'Corrected post-transfer proof evidence drifted.',
   );
 }
 
@@ -405,5 +419,5 @@ assertIdentityContracts();
 const invocationCounts = assertInvocationPolicy();
 
 console.log(
-  `Azure OIDC proof gate passed for ${manifest.identities.length} distinct identities, ${invocationCounts.accepted} accepted command invocations, ${invocationCounts.refused} refusal scenarios, one inactive deployment template, and ${activeWorkflowCount} active workflows; historical run ${manifest.proofResult.runId} passed, post-transfer run ${manifest.postTransferProofAttempt.runId} failed safely before ARM, and the correction saved plan remains approval-gated.`,
+  `Azure OIDC proof gate passed for ${manifest.identities.length} distinct identities, ${invocationCounts.accepted} accepted command invocations, ${invocationCounts.refused} refusal scenarios, one inactive deployment template, and ${activeWorkflowCount} active workflows; historical run ${manifest.proofResult.runId} passed, post-transfer run ${manifest.postTransferProofAttempt.runId} failed safely before ARM, and corrected run ${manifest.correctedPostTransferProofResult.runId} passed while default-deny Blob refusal remained intact.`,
 );

@@ -456,3 +456,22 @@ PASS — plan SHA-256, mode `0600`, byte size, AzureRM provider lock, and exact 
 
 consumed-plan retention
 PASS — moved the applied first-plan artifact recoverably to Trash to prevent accidental reuse. The unapplied correction plan remains mode `0600` outside the repository.
+
+M05-post-transfer-oidc-proof-passed-030 — 2026-09-01
+
+exact correction apply and reconciliation
+PASS — revalidated plan SHA-256 `de06a09c687092fce1af5476b9ff37fa82d41039c13130e7f51f6395a55f923c`, mode `0600`, byte size, source/provider lock, dedicated subscription, live old subjects, current-IP firewall rule, retained inventory, and empty workload group. Applied exactly `0` added, `3` changed, `0` destroyed. A fresh provider-backed normal plan returned exit `0` and no changes; the consumed artifact was then moved recoverably to Trash.
+
+GitHub Actions run 33521970773
+PASS — visually approved all three protected environments only for the post-correction no-Terraform proof. Plan, apply, and destroy jobs on commit `76803cde194dfc8965bf6114690f47a0dabcdf79` passed OIDC exchange, exact ARM/data-action checks, retained-control denial, expected default-deny Blob refusal, and Azure logout. Sanitized logs contained three proof successes and no Terraform command.
+
+post-proof independent reconciliation
+PASS — Azure activity logs contained zero write/delete/action operations during the proof; the workload landing zone remained empty; live corrected subjects, 20-resource control state, Storage default deny/no bypass/current-IP rule, GitHub Free, protected main-only environments, and zero repository/environment secrets remained unchanged.
+
+No workload plan/apply, network/RBAC/budget change, paid GitHub feature, operator-role removal, registry/image action, Stripe action, customer data, or iOS deployment occurred. The next exact task is negative lifecycle-boundary proof for the three workflow roles.
+
+pnpm verify
+PASS — formatting, all policy/architecture contracts, nine workspace lint/type/test/contract/build gates, 111 mobile tests, corrected OIDC proof evidence, three Terraform roots, and zero workload/registry execution claims passed under Node 24.19.0 and pnpm 11.24.0.
+
+pnpm test:security && pnpm test:gitleaks
+PASS — the high-confidence scan passed for 644 text files and Gitleaks found no leaks in approximately 17.81 MB.
