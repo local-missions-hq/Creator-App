@@ -14,12 +14,15 @@ function assert(condition, message) {
   if (!condition) fail(message);
 }
 
-function assertStaticBoundary() {
-  assert(manifest.activationStatus === 'static_contract_only', 'OIDC activation status drifted.');
-  assert(manifest.activeWorkflowPresent === false, 'An active Azure workflow was claimed.');
-  assert(manifest.azureExecutionEnabled === false, 'Azure execution must remain disabled.');
+function assertProofBoundary() {
   assert(
-    manifest.checkpoint === 'M05-secretless-oidc-plan-contract-local-004',
+    manifest.activationStatus === 'github_oidc_arm_proof_ready_pending_environment_review',
+    'OIDC activation status drifted.',
+  );
+  assert(manifest.activeWorkflowPresent === true, 'The approved OIDC proof workflow is missing.');
+  assert(manifest.azureExecutionEnabled === true, 'OIDC proof execution is not recorded.');
+  assert(
+    manifest.checkpoint === 'M05-github-oidc-arm-proof-ready-023',
     'OIDC checkpoint identifier drifted.',
   );
 
@@ -31,9 +34,10 @@ function assertStaticBoundary() {
     .filter((name) => name.endsWith('.yml') || name.endsWith('.yaml'))
     .sort();
   assert(workflowFiles.length > 0, 'At least one local verification workflow is required.');
+  assert(workflowFiles.includes('azure-oidc-proof.yml'), 'The OIDC proof workflow is missing.');
   assert(
     !workflowFiles.includes('azure-ephemeral.yml'),
-    'The future Azure workflow must not be active in the static checkpoint.',
+    'The deployment workflow must stay absent.',
   );
 
   for (const workflowFile of workflowFiles) {
@@ -43,13 +47,48 @@ function assertStaticBoundary() {
       /^permissions:\s*\n {2}contents:\s*read\s*$/m.test(source),
       `${label} must have a read-only top-level permission boundary.`,
     );
-    assert(!/id-token:\s*write\b/.test(source), `${label} must not request an OIDC token.`);
-    assert(
-      !/^\s+[a-z-]+:\s*write\s*$/m.test(source),
-      `${label} must not grant any write permission.`,
-    );
-    assert(!/azure\/login@/i.test(source), `${label} must not authenticate to Azure.`);
-    assert(!/\baz\s+login\b/i.test(source), `${label} must not invoke Azure login.`);
+    if (workflowFile === 'azure-oidc-proof.yml') {
+      assert(
+        (source.match(/id-token:\s*write\b/g) ?? []).length === 1,
+        'The proof must grant OIDC only at its single matrix job.',
+      );
+      assert(
+        source.includes('azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c'),
+        'The proof must pin the reviewed Azure login commit.',
+      );
+      assert(
+        source.includes('operation: [plan, apply, destroy]') &&
+          source.includes('environment: azure-development-${{ matrix.operation }}'),
+        'The proof must cover three separately protected identities.',
+      );
+      assert(
+        source.includes("github.event_name == 'workflow_dispatch'") &&
+          source.includes("github.ref == 'refs/heads/main'") &&
+          source.includes('runs-on: ubuntu-latest'),
+        'The proof must remain manual, main-only, and GitHub-hosted.',
+      );
+      assert(
+        (source.match(/az account get-access-token/g) ?? []).length === 2 &&
+          source.includes('Microsoft.Authorization/permissions') &&
+          source.includes('az storage blob show') &&
+          source.includes('test "$blob_status" -ne 0'),
+        'The proof must verify token exchange, ARM/RBAC, and the expected state firewall block.',
+      );
+      assert(
+        !/\baz\s+(?:group|resource|identity|role|storage\s+account)\s+(?:create|delete|update|set)\b/i.test(
+          source,
+        ),
+        'The proof must not mutate Azure resources, RBAC, identities, or networking.',
+      );
+    } else {
+      assert(!/id-token:\s*write\b/.test(source), `${label} must not request an OIDC token.`);
+      assert(
+        !/^\s+[a-z-]+:\s*write\s*$/m.test(source),
+        `${label} must not grant any write permission.`,
+      );
+      assert(!/azure\/login@/i.test(source), `${label} must not authenticate to Azure.`);
+      assert(!/\baz\s+login\b/i.test(source), `${label} must not invoke Azure login.`);
+    }
     assert(
       !/terraform\s+(?:apply|destroy|import|refresh|force-unlock|state|taint|untaint)\b/i.test(
         source,
@@ -105,9 +144,11 @@ function assertIdentityContracts() {
       protection.allowedTags.length === 0 &&
       protection.environmentRequired === true &&
       protection.independentApprovalRequired === true &&
-      protection.preventSelfReview === true &&
+      protection.preventSelfReview === false &&
       protection.pullRequestRunsAllowed === false &&
-      protection.repositoryOrEnvironmentSecretsAllowed === false,
+      protection.repositoryOrEnvironmentSecretsAllowed === false &&
+      protection.reviewerIndependentFromPlanProducer === true &&
+      protection.singleHumanReviewerException === true,
     'Protected GitHub environment contract drifted.',
   );
   assert(
@@ -124,7 +165,10 @@ function assertIdentityContracts() {
       JSON.stringify(manifest.githubContract.allowedEvents) ===
         JSON.stringify(['workflow_dispatch']) &&
       manifest.githubContract.githubHostedRunnerRequired === true &&
+      manifest.githubContract.environmentsConfigured === true &&
+      manifest.githubContract.immutableSubjectEnabled === true &&
       manifest.githubContract.immutableSubjectRequired === true &&
+      manifest.githubContract.reviewer === 'stratiosai' &&
       manifest.githubContract.subjectPreviewRequired === true &&
       manifest.githubContract.oidcPermissionScope === 'job_only',
     'GitHub issuer/repository/immutable-subject contract drifted.',
@@ -170,17 +214,38 @@ function assertIdentityContracts() {
   const serialized = JSON.stringify(manifest);
   assert(
     manifest.actionPolicy.azureLoginAction === 'azure/login' &&
-      manifest.actionPolicy.azureLoginActionPresent === false &&
+      manifest.actionPolicy.azureLoginActionPresent === true &&
+      /^[0-9a-f]{40}$/.test(manifest.actionPolicy.reviewedCommitSha) &&
+      manifest.actionPolicy.reviewedRelease === 'v3.0.2' &&
       manifest.actionPolicy.pinRequirement === 'reviewed_full_commit_sha' &&
       manifest.actionPolicy.unpinnedActionsAllowed === false &&
       manifest.credentialContract.longLivedSecretsAllowed === false &&
-      manifest.credentialContract.repositoryValuesArePlaceholdersOnly === true,
+      manifest.credentialContract.environmentIdentifierVariablesConfigured === true &&
+      manifest.credentialContract.repositoryValuesArePlaceholdersOnly === false,
     'Action pinning or long-lived credential boundary drifted.',
   );
   for (const forbiddenInput of manifest.credentialContract.forbiddenInputs) {
     const assignments = new RegExp(`"${forbiddenInput}"\\s*:\\s*"[^"{]`, 'i');
     assert(!assignments.test(serialized), `${forbiddenInput} must not have a repository value.`);
   }
+
+  const proof = manifest.proofContract;
+  assert(
+    proof.allowedAzureMutations === 0 &&
+      proof.actualBlobReadExpected === false &&
+      proof.actualBlobReadPendingTemporaryNetworkApproval === true &&
+      proof.armPermissionInspectionRequired === true &&
+      proof.controlGroupAccessMustFail === true &&
+      proof.environmentApprovalRequired === true &&
+      proof.githubHostedRunner === true &&
+      proof.identityCount === 3 &&
+      proof.oidcTokenExchangeRequired === true &&
+      proof.stateDataActionInspectionRequired === true &&
+      proof.stateFirewallExpectedToBlockRunner === true &&
+      proof.terraformCommandsAllowed.length === 0 &&
+      proof.workflowDispatchOnly === true,
+    'The no-apply OIDC proof boundary drifted.',
+  );
 }
 
 function evaluateInvocation(invocation) {
@@ -310,10 +375,10 @@ function assertInvocationPolicy() {
   return { accepted: accepted.length, refused: refusals.size };
 }
 
-const activeWorkflowCount = assertStaticBoundary();
+const activeWorkflowCount = assertProofBoundary();
 assertIdentityContracts();
 const invocationCounts = assertInvocationPolicy();
 
 console.log(
-  `Azure OIDC plan gate passed for ${manifest.identities.length} distinct identities, ${invocationCounts.accepted} accepted command invocations, ${invocationCounts.refused} refusal scenarios, one inactive workflow template, and ${activeWorkflowCount} active non-deploying workflow; Azure execution remains disabled.`,
+  `Azure OIDC proof gate passed for ${manifest.identities.length} distinct identities, ${invocationCounts.accepted} accepted command invocations, ${invocationCounts.refused} refusal scenarios, one inactive deployment template, and ${activeWorkflowCount} active workflows; only the no-mutation OIDC/ARM proof is enabled.`,
 );

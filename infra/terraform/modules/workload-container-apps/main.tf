@@ -19,7 +19,7 @@ locals {
   })
 
   dashboard_environment = {
-    API_BASE_URL = "https://${azurerm_container_app.api.latest_revision_fqdn}"
+    API_BASE_URL = var.application_activation_enabled ? "https://${azurerm_container_app.api[0].latest_revision_fqdn}" : "https://pending.local.invalid"
     APP_ENV      = "development"
   }
 
@@ -132,6 +132,8 @@ resource "azurerm_container_app_environment" "this" {
 }
 
 resource "azurerm_container_app" "api" {
+  count = var.application_activation_enabled ? 1 : 0
+
   name                         = var.api_app_name
   resource_group_name          = var.resource_group_name
   container_app_environment_id = azurerm_container_app_environment.this.id
@@ -200,6 +202,8 @@ resource "azurerm_container_app" "api" {
 }
 
 resource "azurerm_container_app" "worker" {
+  count = var.application_activation_enabled ? 1 : 0
+
   name                         = var.worker_app_name
   resource_group_name          = var.resource_group_name
   container_app_environment_id = azurerm_container_app_environment.this.id
@@ -252,6 +256,8 @@ resource "azurerm_container_app" "worker" {
 }
 
 resource "azurerm_container_app" "dashboard" {
+  count = var.application_activation_enabled ? 1 : 0
+
   name                         = var.dashboard_app_name
   resource_group_name          = var.resource_group_name
   container_app_environment_id = azurerm_container_app_environment.this.id

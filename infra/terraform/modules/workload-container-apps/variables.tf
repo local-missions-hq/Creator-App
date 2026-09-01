@@ -3,6 +3,12 @@ variable "environment_name" {
   nullable = false
 }
 
+variable "application_activation_enabled" {
+  description = "Creates API, dashboard, and worker only after their immutable images exist in the disposable registry."
+  type        = bool
+  nullable    = false
+}
+
 variable "api_app_name" {
   type     = string
   nullable = false

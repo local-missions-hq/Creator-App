@@ -1,0 +1,321 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "M05-control-plane-applied-verified-022",
+  "activationStatus": "control_plane_applied_verified",
+  "reviewDate": "2026-09-01",
+  "workload": "local-missions",
+  "region": "eastus2",
+  "subscriptionCreated": true,
+  "azureResourceMutationExecuted": true,
+  "providerRegistrationExecuted": true,
+  "savedPlanCreated": true,
+  "bootstrapPlanEvidence": {
+    "logicalName": "local-missions-bootstrap.tfplan",
+    "sha256": "4a35f1ca66da808e3c89b05df4cda7a94bee89c21980d347dba9261a056dbfec",
+    "byteSize": 11331,
+    "generatedAtUtc": "2026-09-01T11:18:28+00:00",
+    "expiresAtUtc": "2026-09-01T19:18:28+00:00",
+    "warningAtUtc": "2026-09-01T18:18:28+00:00",
+    "appliedAtUtc": "2026-09-01T11:23:00+00:00",
+    "migratedAtUtc": "2026-09-01T11:26:23+00:00",
+    "terraformVersion": "1.15.7",
+    "azurermProviderVersion": "5.0.1",
+    "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
+    "bootstrapSourceSha256AtPlan": "c3d31985c406313b5189bcc2bac381266250c4d0013cca8ae2e90b029afe18f7",
+    "bootstrapSourceSha256AfterMigration": "8b03482ebf9f40ca7f990c78da0b9e8f444edbb1d32f21e0c274e4b7dfa3e45d",
+    "gitHead": "d31d92a085f1d1e626c72456ec6609a9c5198208",
+    "gitWorktreeDirty": true,
+    "binaryStoredInRepository": false,
+    "rawJsonStoredInRepository": false,
+    "binaryDeletedAfterApply": true,
+    "localStateDeletedAfterMigration": true,
+    "knownSecretValueCount": 0,
+    "trustedIpv4RuleCount": 1,
+    "trustedIpv4ValueRetained": false,
+    "azureResourceGroupsAfterPlan": 0,
+    "azureResourcesAfterPlan": 0,
+    "storageProviderRegistrationBeforeApply": "Registered",
+    "resourcesToAdd": 3,
+    "resourcesToChange": 0,
+    "resourcesToDestroy": 0,
+    "independentReviewMode": "streamed_terraform_json_inspection",
+    "terraformManagedResourcesAfterApply": 3,
+    "azureResourceGroupsAfterApply": 1,
+    "azureTopLevelResourcesAfterApply": 1,
+    "privateStateContainersAfterApply": 1,
+    "temporaryOperatorContainerRoleAssignments": 1,
+    "remoteBackendKey": "local-missions/bootstrap.tfstate",
+    "remoteBackendUsesMicrosoftEntra": true,
+    "remoteStateVersionHistoryVerified": true,
+    "remoteStateLockVerified": true,
+    "sensitiveOutputIncidentRecorded": true,
+    "credentialOrSecretExposed": false
+  },
+  "controlPlanePlanEvidence": {
+    "logicalName": "local-missions-control-plane.tfplan",
+    "sha256": "ccd9fc52f84c0815326f9ec04ff57019ab43956a39c1fdcd4e36b7dc3b1aa951",
+    "byteSize": 15885,
+    "generatedAtUtc": "2026-09-01T12:02:48+00:00",
+    "expiresAtUtc": "2026-09-01T20:02:48+00:00",
+    "terraformVersion": "1.15.7",
+    "azurermProviderVersion": "5.0.1",
+    "providerLockSha256": "71dfddefb8c7d0b3c89bc300587ad764ccde47fce1c43f122f7e600ba4050c33",
+    "controlPlaneSourceSha256AtPlan": "b002fd24cec645b0258fc74926bb9aa95210c49de7e61b2515f52fb407915e91",
+    "controlPlaneSourceSha256AfterApply": "eee9a24837e0cd856e4370ec386ce08681ede230a4150278f8fcfdfcf4013f61",
+    "gitHead": "d31d92a085f1d1e626c72456ec6609a9c5198208",
+    "gitWorktreeDirty": true,
+    "binaryStoredInRepository": false,
+    "rawJsonStoredInRepository": false,
+    "resourcesToAdd": 20,
+    "resourcesToChange": 0,
+    "resourcesToDestroy": 0,
+    "resourcesToReplace": 0,
+    "reviewedResourceTypeCount": 7,
+    "knownSecretValueCount": 0,
+    "knownEmailValueCount": 1,
+    "alertDestinationRetainedInRepository": false,
+    "monthlyBudgetUsd": 100,
+    "actualBudgetAlertCount": 3,
+    "forecastBudgetAlertCount": 3,
+    "workflowIdentityCount": 3,
+    "immutableFederatedCredentialCount": 3,
+    "workflowRoleAssignmentCount": 5,
+    "stateBackendRoleAssignmentCount": 3,
+    "customRoleDefinitionCount": 2,
+    "paidWorkloadResourceCount": 0,
+    "remoteBackendKey": "local-missions/control-plane.tfstate",
+    "emptyRemoteStateCreatedByPlan": true,
+    "remoteStateManagedResourceCount": 0,
+    "independentReviewPassCount": 2,
+    "failedSubjectConstructionIncidentRecorded": true,
+    "credentialOrSecretExposed": false,
+    "azureResourceGroupsAfterPlan": 1,
+    "azureTopLevelResourcesAfterPlan": 1,
+    "azureRoleAssignmentsAfterPlan": 2,
+    "appliedAtUtc": "2026-09-01T12:25:26+00:00",
+    "binaryConsumedAfterApply": true,
+    "resourcesAddedByApply": 20,
+    "resourcesChangedByApply": 0,
+    "resourcesDestroyedByApply": 0,
+    "terraformManagedResourcesAfterApply": 20,
+    "terraformDataReferencesAfterApply": 1,
+    "azureResourceGroupsAfterApply": 3,
+    "emptyWorkloadLandingZoneVerified": true,
+    "workflowStateBackendRoleAssignmentsAfterApply": 3,
+    "temporaryOperatorStateBackendRoleAssignmentsAfterApply": 1,
+    "normalPlanAfterBudgetDateCorrectionIsZeroChange": true,
+    "budgetPeriodAzureNormalizationRecorded": true,
+    "budgetStartDateAfterNormalization": "2026-09-01T00:00:00Z",
+    "budgetEndDateAfterNormalization": "2027-09-01T00:00:00Z",
+    "postApplyKnownSecretValueCount": 0,
+    "postApplyIdentifierRedactionIncidentRecorded": true
+  },
+  "architecture": {
+    "terraformRoots": 3,
+    "bootstrapRetainedResources": 3,
+    "controlPlaneRetainedResources": 20,
+    "retainedWorkloadLandingZones": 1,
+    "workflowRoleAssignments": 5,
+    "stateBackendRoleAssignments": 3,
+    "customWorkloadRoleDefinitions": 2,
+    "delegatedWorkloadRoleDefinitions": 5,
+    "workloadCoreResources": 27,
+    "applicationActivationDeltaResources": 3,
+    "activatedWorkloadResources": 30,
+    "reviewedAzureResourceTypes": 21,
+    "defaultResourceChanges": 0,
+    "separateWorkflowIdentities": 3,
+    "budgetAlertRules": 6,
+    "monthlyBudgetUsd": 100,
+    "retainedStateMonthlyCeilingUsd": 1
+  },
+  "sequence": [
+    {
+      "order": 1,
+      "id": "subscription-placement",
+      "operation": "Make the owner-selected dedicated Local Missions subscription visible and prove zero other workloads",
+      "mutation": false,
+      "approvalRequired": true,
+      "status": "completed"
+    },
+    {
+      "order": 2,
+      "id": "bootstrap-plan",
+      "operation": "Generate and independently review the three-resource retained-state saved plan",
+      "mutation": false,
+      "approvalRequired": true,
+      "status": "completed"
+    },
+    {
+      "order": 3,
+      "id": "bootstrap-apply-migrate",
+      "operation": "Apply retained state, verify it, and migrate bootstrap state to the new Entra-backed backend",
+      "mutation": true,
+      "approvalRequired": true,
+      "status": "completed"
+    },
+    {
+      "order": 4,
+      "id": "control-plane-plan-apply",
+      "operation": "Plan then separately apply identities, immutable GitHub federation, tagged budget, alerts, the retained Local Missions landing zone, two lifecycle-separated custom roles, five landing-zone role assignments, and three state-container role assignments",
+      "mutation": true,
+      "approvalRequired": true,
+      "status": "completed"
+    },
+    {
+      "order": 5,
+      "id": "core-plan",
+      "operation": "Generate and independently review the 27-resource workload-core saved plan inside the retained Local Missions landing zone",
+      "mutation": false,
+      "approvalRequired": true,
+      "status": "pending"
+    },
+    {
+      "order": 6,
+      "id": "core-apply",
+      "operation": "Apply the reviewed core plan to create the disposable ACR and platform dependencies",
+      "mutation": true,
+      "approvalRequired": true,
+      "status": "pending"
+    },
+    {
+      "order": 7,
+      "id": "image-publication",
+      "operation": "Build, scan, sign, push, and verify immutable API, dashboard, and worker image digests",
+      "mutation": true,
+      "approvalRequired": true,
+      "status": "pending"
+    },
+    {
+      "order": 8,
+      "id": "application-plan-apply",
+      "operation": "Generate/review then separately apply the three-Container-App activation delta",
+      "mutation": true,
+      "approvalRequired": true,
+      "status": "pending"
+    },
+    {
+      "order": 9,
+      "id": "cloud-tests",
+      "operation": "Run approved identity, health, integration, recovery, and iOS connectivity tests",
+      "mutation": false,
+      "approvalRequired": true,
+      "status": "pending"
+    },
+    {
+      "order": 10,
+      "id": "destroy-reconcile",
+      "operation": "Apply reviewed destroy plan and independently reconcile zero stamped workload resources",
+      "mutation": true,
+      "approvalRequired": true,
+      "status": "pending"
+    }
+  ],
+  "readinessGates": [
+    {
+      "id": "provider-scope",
+      "status": "passed_for_bootstrap_apply",
+      "blocking": false
+    },
+    {
+      "id": "subscription-placement",
+      "status": "dedicated_subscription_contains_bootstrap_only",
+      "blocking": false
+    },
+    {
+      "id": "retained-state-cost",
+      "status": "approved_one_usd_ceiling",
+      "blocking": false
+    },
+    {
+      "id": "bootstrap-mutation",
+      "status": "passed_applied_and_migrated",
+      "blocking": false
+    },
+    {
+      "id": "monitored-alert-destination",
+      "status": "passed_supplied_process_only",
+      "blocking": false
+    },
+    {
+      "id": "github-immutable-subject-preview",
+      "status": "passed_immutable_subjects_and_environments",
+      "blocking": false
+    },
+    {
+      "id": "workflow-rbac-scopes",
+      "status": "passed_exact_control_plan_review",
+      "blocking": false
+    },
+    {
+      "id": "postgres-administrator-group",
+      "status": "passed_security_group_created",
+      "blocking": false
+    },
+    {
+      "id": "trusted-operator-network-rule",
+      "status": "passed_for_live_bootstrap_process_only",
+      "blocking": false
+    },
+    {
+      "id": "reviewed-node-base-digest",
+      "status": "bootstrap_consumed_later_phases_require_review",
+      "blocking": true
+    },
+    {
+      "id": "workload-core-saved-plan",
+      "status": "not_generated",
+      "blocking": true
+    },
+    {
+      "id": "immutable-application-images",
+      "status": "not_built_or_published",
+      "blocking": true
+    },
+    {
+      "id": "application-activation-saved-plan",
+      "status": "not_generated",
+      "blocking": true
+    },
+    {
+      "id": "apply-authorization",
+      "status": "passed_exact_saved_plan_applied",
+      "blocking": false
+    }
+  ],
+  "securityDecisions": {
+    "otherWorkloadTargetsAllowed": false,
+    "automaticProviderRegistrationAllowed": false,
+    "longLivedAzureCredentialsAllowed": false,
+    "sharedWorkflowIdentityAllowed": false,
+    "nameBasedGithubSubjectsAllowed": false,
+    "inlineAccountIdentifiersAllowed": false,
+    "inlineAlertDestinationAllowed": false,
+    "applicationPlanBeforeImagePublicationAllowed": false,
+    "dailyDestroyIncludesRetainedState": false,
+    "dailyDestroyIncludesWorkloadLandingZone": false,
+    "dailyDestroyIncludesOtherWorkloads": false,
+    "subscriptionScopeWorkloadRbacAllowed": false
+  },
+  "stateBackendAccess": {
+    "temporaryOperatorRole": "Storage Blob Data Contributor",
+    "temporaryOperatorScope": "state-container-only",
+    "temporaryOperatorAssignmentCount": 1,
+    "workflowRole": "Storage Blob Data Contributor",
+    "workflowScope": "state-container-only",
+    "plannedWorkflowAssignmentCount": 3,
+    "removeTemporaryOperatorAfterWorkflowProof": true
+  },
+  "sources": [
+    "https://docs.github.com/en/actions/reference/security/oidc",
+    "https://docs.github.com/en/rest/actions/oidc",
+    "https://learn.microsoft.com/en-us/entra/workload-id/workload-identities-github-immutable-subjects",
+    "https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-considerations",
+    "https://learn.microsoft.com/en-us/azure/role-based-access-control/delegate-role-assignments-overview",
+    "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions",
+    "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-portal",
+    "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/azure-services-resource-providers",
+    "https://learn.microsoft.com/en-us/azure/storage/blobs/assign-azure-role-data-access",
+    "https://developer.hashicorp.com/terraform/language/backend/azurerm"
+  ]
+}

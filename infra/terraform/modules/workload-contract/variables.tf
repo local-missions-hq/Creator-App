@@ -14,7 +14,7 @@ variable "workload_resource_group_name" {
 
   validation {
     condition     = can(regex("^rg-local-missions-dev-[a-z0-9-]+$", var.workload_resource_group_name))
-    error_message = "The workload contract requires the disposable development resource-group namespace."
+    error_message = "The workload contract requires the isolated Local Missions development resource-group namespace."
   }
 }
 

@@ -10,6 +10,9 @@ const foundationPath = join(repositoryRoot, 'config/terraform-foundation.v1.json
 const contract = JSON.parse(readFileSync(contractPath, 'utf8'));
 const oidcContract = JSON.parse(readFileSync(oidcContractPath, 'utf8'));
 const foundation = JSON.parse(readFileSync(foundationPath, 'utf8'));
+const readiness = JSON.parse(
+  readFileSync(join(repositoryRoot, 'config/azure-plan-readiness.v1.json'), 'utf8'),
+);
 const fixtureRoot = join(repositoryRoot, contract.fixtureRoot);
 const providerLockPath = join(
   repositoryRoot,
@@ -133,6 +136,12 @@ function assertStaticContract() {
     'Saved-plan evidence must remain synthetic and inactive.',
   );
   assert(
+    contract.activationUseAllowed === false &&
+      contract.historicalFixtureModel === 'single_apply_synthetic_only' &&
+      contract.supersededForActivationBy === readiness.checkpoint,
+    'The V1 saved-plan fixture must remain historical and superseded for Azure activation.',
+  );
+  assert(
     contract.checkpoint === 'M05-saved-plan-evidence-contract-local-005',
     'Saved-plan checkpoint identifier drifted.',
   );
@@ -152,9 +161,14 @@ function assertStaticContract() {
   const workloadRoot = foundation.roots.find(({ rootId }) => rootId === 'workload-dev');
   assert(
     workloadRoot?.path === contract.targetContract.exactTerraformRoot &&
-      workloadRoot.backendKey === contract.targetContract.backendKey &&
-      foundation.workloadResourceInventory.total === contract.targetContract.workloadResourceCount,
-    'Saved-plan target contract drifted from the Terraform foundation.',
+      workloadRoot.backendKey === contract.targetContract.backendKey,
+    'Saved-plan root/state binding drifted from the Terraform foundation.',
+  );
+  assert(
+    contract.targetContract.workloadResourceCount === 31 &&
+      foundation.workloadResourceInventory.total === 30 &&
+      contract.targetContract.workloadResourceCount !== foundation.workloadResourceInventory.total,
+    'Historical V1 must remain visibly incompatible with the current retained-landing-zone workload inventory.',
   );
   assert(
     contract.targetContract.retainedTargetCount === 0 &&
@@ -450,9 +464,10 @@ function validateManifest(manifest) {
     'Provider lock digest does not match the reviewed lock file.',
   );
   assert(
-    source.targetInventorySha256 ===
-      canonicalDigest(foundation.mockProviderContract.plannedResourceTypeCounts),
-    'Target inventory digest does not match the reviewed workload inventory.',
+    source.targetInventorySha256 === contract.targetContract.historicalTargetInventorySha256 &&
+      source.targetInventorySha256 !==
+        canonicalDigest(foundation.mockProviderContract.plannedResourceTypeCounts),
+    'Historical target inventory must remain bound to V1 and visibly differ from the current landing-zone workload.',
   );
   assert(
     source.workloadResourceCount === contract.targetContract.workloadResourceCount,
@@ -857,5 +872,5 @@ for (const operation of contract.operations) {
 const refusalCount = assertRefusalScenarios(validManifests);
 
 console.log(
-  `Saved-plan evidence gate passed for ${validManifests.size} synthetic producer-consumer manifests, ${refusalCount} refusal scenarios, ${contract.requiredEvidenceFieldsFromOidcContract.length} OIDC evidence fields, and zero checked-in Terraform plan/state artifacts; cloud execution remains disabled.`,
+  `Historical V1 saved-plan evidence passed for ${validManifests.size} synthetic producer-consumer manifests, ${refusalCount} refusal scenarios, ${contract.requiredEvidenceFieldsFromOidcContract.length} OIDC evidence fields, and zero checked-in Terraform plan/state artifacts; it is not valid for two-phase Azure activation.`,
 );

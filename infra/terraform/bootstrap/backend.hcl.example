@@ -1,0 +1,6 @@
+resource_group_name  = "rg-local-missions-state-eus2-001"
+storage_account_name = "stlmtfse2001"
+container_name       = "tfstate"
+key                  = "local-missions/bootstrap.tfstate"
+use_cli              = true
+use_azuread_auth     = true

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "M05-azure-naming-provider-scope-plan-012",
+  "activationStatus": "provider_scope_plan_only",
+  "reviewDate": "2026-08-31",
+  "workload": "local-missions",
+  "region": "eastus2",
+  "deploymentStamp": "e2r26083101",
+  "subscriptionIsolation": {
+    "visibleSubscriptionCount": 1,
+    "existingResourceGroupCount": 4,
+    "localMissionsResourceGroupCount": 0,
+    "otherWorkloadPrefixObserved": "rg-pp-",
+    "localMissionsPrefix": "rg-local-missions-",
+    "crossWorkloadTargets": 0,
+    "sharedNonproductionCoTenancyApplyApprovalRequired": true,
+    "dedicatedSubscriptionPreferredBeforeStaging": true
+  },
+  "nameAvailability": {
+    "resourceGroupAbsent": true,
+    "workloadStorageAvailable": true,
+    "containerRegistryAvailable": true,
+    "keyVaultAvailable": true,
+    "retainedStateStorageCandidateAvailable": true,
+    "checkedReadOnly": true,
+    "availabilityIsNotReservation": true
+  },
+  "providerContract": {
+    "source": "hashicorp/azurerm",
+    "version": "5.0.1",
+    "authentication": "azure_cli",
+    "automaticResourceProviderRegistration": false,
+    "resourceProviderRegistrations": "none",
+    "storageUsesMicrosoftEntra": true,
+    "inlineAccountIdentifiers": false,
+    "inlineCredentials": false
+  },
+  "planEvidence": {
+    "execution": "terraform_test_command_plan",
+    "backend": "ephemeral_test_state",
+    "remoteBackendInitialized": false,
+    "otherWorkloadBackendUsed": false,
+    "providerScopePlanTestsPassed": 1,
+    "providerScopePlanTestsFailed": 0,
+    "resourcesToAdd": 0,
+    "resourcesToChange": 0,
+    "resourcesToDestroy": 0,
+    "costProfile": "plan-only",
+    "runCeilingUsd": 0,
+    "savedPlanCreated": false,
+    "applyExecuted": false,
+    "azureMutationExecuted": false,
+    "accountIdentifiersRetained": false
+  },
+  "remainingGates": [
+    "Approve shared-subscription co-tenancy or provide a dedicated Local Missions subscription",
+    "Approve and bootstrap separate Local Missions retained state and control-plane resources",
+    "Provide a real monitored alert destination and approve the 25 USD monthly budget",
+    "Create and review separate least-privilege plan, apply, and destroy identities",
+    "Build, scan, sign, and publish immutable API, dashboard, and worker images",
+    "Generate and independently review a saved 31-resource provider-backed create plan",
+    "Separately approve apply and the selected same-day cost tier",
+    "Run cloud tests, destroy the exact stamped workload, and reconcile Terraform with live Azure"
+  ],
+  "sources": [
+    "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming",
+    "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+    "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/azure_cli"
+  ]
+}

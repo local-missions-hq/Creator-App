@@ -1,14 +1,16 @@
 {
-  "activationStatus": "static_contract_only",
-  "activeWorkflowPresent": false,
+  "activationStatus": "github_oidc_arm_proof_ready_pending_environment_review",
+  "activeWorkflowPresent": true,
   "actionPolicy": {
     "azureLoginAction": "azure/login",
-    "azureLoginActionPresent": false,
+    "azureLoginActionPresent": true,
+    "reviewedCommitSha": "7ddb5af1ef8758cf1353cf3b42f940aee27ba21c",
+    "reviewedRelease": "v3.0.2",
     "pinRequirement": "reviewed_full_commit_sha",
     "unpinnedActionsAllowed": false
   },
-  "azureExecutionEnabled": false,
-  "checkpoint": "M05-secretless-oidc-plan-contract-local-004",
+  "azureExecutionEnabled": true,
+  "checkpoint": "M05-github-oidc-arm-proof-ready-023",
   "credentialContract": {
     "externalIdentifierVariables": ["AZURE_CLIENT_ID", "AZURE_SUBSCRIPTION_ID", "AZURE_TENANT_ID"],
     "forbiddenInputs": [
@@ -19,7 +21,8 @@
       "creds"
     ],
     "longLivedSecretsAllowed": false,
-    "repositoryValuesArePlaceholdersOnly": true
+    "environmentIdentifierVariablesConfigured": true,
+    "repositoryValuesArePlaceholdersOnly": false
   },
   "githubContract": {
     "activeWorkflowDirectory": ".github/workflows",
@@ -27,14 +30,17 @@
     "audience": "api://AzureADTokenExchange",
     "defaultBranch": "main",
     "githubHostedRunnerRequired": true,
+    "environmentsConfigured": true,
+    "immutableSubjectEnabled": true,
     "immutableSubjectRequired": true,
     "inactiveTemplate": "infra/terraform/ci/azure-workload-identity.workflow.yml.example",
     "issuer": "https://token.actions.githubusercontent.com",
     "oidcPermissionScope": "job_only",
     "repository": "stratiosai/Creator-App",
+    "reviewer": "stratiosai",
     "repositoryNumericIdsSource": "external_subject_preview_only",
     "subjectPreviewRequired": true,
-    "workflowPath": ".github/workflows/azure-ephemeral.yml"
+    "workflowPath": ".github/workflows/azure-oidc-proof.yml"
   },
   "identities": [
     {
@@ -135,9 +141,26 @@
     "allowedTags": [],
     "environmentRequired": true,
     "independentApprovalRequired": true,
-    "preventSelfReview": true,
+    "preventSelfReview": false,
     "pullRequestRunsAllowed": false,
-    "repositoryOrEnvironmentSecretsAllowed": false
+    "repositoryOrEnvironmentSecretsAllowed": false,
+    "reviewerIndependentFromPlanProducer": true,
+    "singleHumanReviewerException": true
+  },
+  "proofContract": {
+    "allowedAzureMutations": 0,
+    "actualBlobReadExpected": false,
+    "actualBlobReadPendingTemporaryNetworkApproval": true,
+    "armPermissionInspectionRequired": true,
+    "controlGroupAccessMustFail": true,
+    "environmentApprovalRequired": true,
+    "githubHostedRunner": true,
+    "identityCount": 3,
+    "oidcTokenExchangeRequired": true,
+    "stateDataActionInspectionRequired": true,
+    "stateFirewallExpectedToBlockRunner": true,
+    "terraformCommandsAllowed": [],
+    "workflowDispatchOnly": true
   },
   "refusalScenarios": [
     "pull-request-event",

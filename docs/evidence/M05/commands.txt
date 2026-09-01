@@ -323,3 +323,57 @@ pnpm test:gitleaks
 PASS — Gitleaks found no leaks in approximately 15.74 MB.
 
 The review queried only Microsoft's public unauthenticated pricing/catalog and documentation endpoints. No Azure CLI command, login, tenant, subscription, quota, policy, account-specific offer, credential, remote backend, provider-backed Terraform plan, Terraform plan binary, registry, identity, networking, resource, customer data, or cost-incurring action was used. The `$25.00` budget and alert thresholds are proposals, the alert destination is unverified, and apply/destroy remain unauthorized. This is the stop point before Azure access.
+
+M05-control-plane-saved-plan-reviewed-021 — 2026-09-01
+
+Terraform 1.15.7, AzureRM 5.0.1, Node 24.19.0, and pnpm 11.24.0 were selected from the pinned local runtimes.
+
+terraform plan + two sanitized independent reviews
+PASS — generated the exact retained control-plane saved plan outside the repository and proved 20 creates, zero changes/deletes/replacements, seven resource types, zero paid workload resources, zero known secret values, three workflow identities/federated credentials, five landing-zone assignments, three state-container assignments, two custom roles, one Action Group, and one `$100` budget with three actual plus three forecast notifications. No apply occurred.
+
+pnpm verify
+PASS — formatting, prerequisite/auth/authorization contracts, OIDC, historical saved-plan/run-ledger, recovery, naming, provider scope, placement, current plan readiness, Terraform, public cost, M5 preflight, all nine workspace lint/type/test/contract/build gates, 111 mobile tests, the 20-entry migration manifest, OpenAPI contracts, and all three local production-bundle smokes passed.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 637 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks scanned approximately 17.71 MB and found no leaks.
+
+git diff --check
+PASS — patch whitespace passed. The authoritative architecture SVG passed XML validation, rendered to a 9333 x 7000 PNG, and was visually inspected.
+
+The exact control-plane plan remains unapplied and outside the repository. The first future disposable workload run is the `$2` two-hour smoke tier; `$5`/eight hours is a separately justified fallback. The `$100` budget is an alert threshold, not a spend target or hard cap. Control-plane apply, workload planning/apply, registry/image activity, Container Apps activation, cloud tests, recovery, and destroy remain separately gated.
+
+M05-control-plane-applied-verified-022 — 2026-09-01
+
+exact saved-plan pre-apply guard
+PASS — revalidated the approved SHA-256, mode `0600`, expiry, source/provider-lock digests, dedicated target, one-RG/one-resource/two-assignment starting inventory, and empty control-plane state.
+
+terraform apply exact saved plan
+PASS — 20 added, zero changed, zero destroyed. No implicit re-plan or later Terraform root was used.
+
+independent Terraform/live-Azure reconciliation
+PASS — 20 managed resources plus one data reference; three exact retained resource groups; empty workload landing zone; three managed identities/FICs; two custom roles; five workflow assignments; three workflow state-container assignments plus one temporary operator assignment; one Action Group; and one `$100` budget with three actual plus three forecast notifications at 50%, 80%, and 100%.
+
+normal provider-backed Terraform plan
+SAFE REFUSAL — Azure normalized the protected budget period to the current September billing year; `prevent_destroy` refused the stale August source dates before any action.
+LOCAL CORRECTION — aligned the source-only defaults to September 1, 2026 through September 1, 2027 without mutating Azure.
+PASS — the repeated normal plan reported `No changes. Your infrastructure matches the configuration.`
+
+Output-sanitization incident
+The apply/verification sanitizer missed several generated role-assignment identifiers and one encoded provider data-source identifier; one malformed refresh variable printed a public GitHub numeric identifier. No credential, token, secret, monitored email, public IP, state payload, or customer data was exposed or retained. Later live output used whole-ID redaction.
+
+No disposable workload plan/apply, registry or image activity, Container App activation, Stripe action, cloud test, recovery, destroy, customer data, or iOS deployment occurred. The next gate is a separately approved no-apply GitHub OIDC remote-state/access-policy proof.
+
+live GitHub guard verification
+PASS — three main-only environments, one required reviewer each, no administrator bypass, and immutable default OIDC subjects enabled. No workflow was run.
+
+pnpm verify
+PASS — every repository gate passed, including 3 Terraform roots, 20-resource control-plane contract, 27-resource core/30-resource activated mock shapes, 11 deferred external gates, all nine workspace lint/type/test/contract/build gates, 111 mobile tests, and zero workload/registry execution claims.
+
+pnpm test:security
+PASS — local high-confidence secret scan passed for 637 text files.
+
+pnpm test:gitleaks
+PASS — Gitleaks scanned approximately 17.72 MB and found no leaks.

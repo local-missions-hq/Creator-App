@@ -1,18 +1,19 @@
 {
-  "activationStatus": "local_preflight_only",
-  "checkpoint": "M05-local-preflight-audit-010",
+  "activationStatus": "github_oidc_arm_proof_ready_pending_environment_review",
+  "checkpoint": "M05-github-oidc-arm-proof-ready-023",
   "currentExecution": {
-    "azureAuthenticated": false,
-    "azureResourcesCreated": false,
-    "cloudCostIncurred": false,
+    "azureAuthenticated": true,
+    "azureReadOnlyInventoryExecuted": true,
+    "azureResourcesCreated": true,
+    "cloudCostIncurred": true,
     "containerBuildExecuted": false,
     "customerDataAllowed": false,
     "externalRegistryContacted": false,
     "livePriceRequested": false,
     "liveRecoveryExecuted": false,
-    "providerBackedPlanExecuted": false,
-    "remoteBackendInitialized": false,
-    "terraformMutationExecuted": false
+    "providerBackedPlanExecuted": true,
+    "remoteBackendInitialized": true,
+    "terraformMutationExecuted": true
   },
   "localCoverage": [
     {
@@ -53,7 +54,7 @@
     {
       "evidence": "docs/evidence/M05/summary.md",
       "id": "sanitized-evidence-and-boundary",
-      "proofClass": "local_evidence"
+      "proofClass": "sanitized_bootstrap_evidence"
     },
     {
       "evidence": "docs/operations/ephemeral-azure-development.md",
@@ -64,13 +65,25 @@
   "machineContracts": [
     {
       "activationStatus": "local_contract_only",
-      "checkpoint": "M05-dashboard-workload-module-local-008",
+      "checkpoint": "M05-control-plane-applied-verified-022",
       "command": "pnpm terraform:check",
       "path": "config/terraform-foundation.v1.json"
     },
     {
-      "activationStatus": "static_contract_only",
-      "checkpoint": "M05-secretless-oidc-plan-contract-local-004",
+      "activationStatus": "local_contract_only",
+      "checkpoint": "M05-control-plane-applied-verified-022",
+      "command": "pnpm azure-placement:check",
+      "path": "config/azure-subscription-placement.v1.json"
+    },
+    {
+      "activationStatus": "control_plane_applied_verified",
+      "checkpoint": "M05-control-plane-applied-verified-022",
+      "command": "pnpm azure-plan-readiness:check",
+      "path": "config/azure-plan-readiness.v1.json"
+    },
+    {
+      "activationStatus": "github_oidc_arm_proof_ready_pending_environment_review",
+      "checkpoint": "M05-github-oidc-arm-proof-ready-023",
       "command": "pnpm azure-oidc:check",
       "path": "config/azure-oidc-plan-gate.v1.json"
     },
@@ -100,8 +113,9 @@
     }
   ],
   "milestoneComplete": false,
-  "nextBoundary": "external_review_and_explicit_approval_required",
+  "nextBoundary": "github_environment_human_approval_required",
   "requiredArtifacts": [
+    ".github/workflows/azure-oidc-proof.yml",
     ".github/workflows/verify.yml",
     "infra/terraform/control-plane/main.tf",
     "infra/terraform/environments/dev/main.tf",
@@ -115,6 +129,7 @@
     "docs/operations/ephemeral-run-ledger-gate.md",
     "docs/operations/recovery-drill-gate.md",
     "docs/operations/container-image-gate.md",
+    "docs/evidence/M05/github-oidc-proof.md",
     "docs/evidence/M05/summary.md",
     "docs/evidence/M05/commands.txt"
   ],
@@ -124,7 +139,7 @@
       "evidenceRequired": "approved subscription and least-privilege scope record",
       "id": "azure-subscription-and-scope-review",
       "ownerRole": "platform_owner",
-      "status": "deferred"
+      "status": "completed_for_retained_bootstrap"
     },
     {
       "approvalRequired": true,
@@ -166,28 +181,28 @@
       "evidenceRequired": "reviewed immutable GitHub subject identities and protected environments",
       "id": "oidc-identities-and-environment-protection",
       "ownerRole": "identity_owner",
-      "status": "deferred"
+      "status": "approved_proof_pending_environment_review"
     },
     {
       "approvalRequired": true,
       "evidenceRequired": "retained backend state locking scope and access review",
       "id": "remote-state-backend-and-locking",
       "ownerRole": "platform_owner",
-      "status": "deferred"
+      "status": "completed_for_retained_bootstrap"
     },
     {
       "approvalRequired": true,
       "evidenceRequired": "subscription-backed sanitized saved plan and current cost review",
       "id": "provider-backed-saved-plan-review",
       "ownerRole": "plan_reviewer",
-      "status": "deferred"
+      "status": "completed_for_control_plane_plan"
     },
     {
       "approvalRequired": true,
       "evidenceRequired": "independent approval bound to the exact plan digest and expiry",
       "id": "explicit-apply-approval",
       "ownerRole": "independent_approver",
-      "status": "deferred"
+      "status": "completed_for_control_plane_apply"
     },
     {
       "approvalRequired": true,
@@ -237,17 +252,18 @@
     "checkpoint-drift",
     "milestone-complete-claimed",
     "next-boundary-drift",
-    "azure-authentication-claimed",
-    "azure-resource-creation-claimed",
-    "cloud-cost-claimed",
+    "azure-authentication-erased",
+    "azure-read-only-inventory-erased",
+    "azure-resource-creation-erased",
+    "cloud-cost-erased",
     "container-build-claimed",
     "customer-data-allowed",
     "registry-contact-claimed",
     "live-price-request-claimed",
     "live-recovery-claimed",
-    "provider-plan-claimed",
-    "remote-backend-claimed",
-    "terraform-mutation-claimed",
+    "provider-plan-erased",
+    "remote-backend-erased",
+    "terraform-mutation-erased",
     "missing-machine-contract",
     "duplicate-machine-contract",
     "machine-contract-command-drift",

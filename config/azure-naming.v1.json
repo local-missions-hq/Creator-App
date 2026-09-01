@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 1,
+  "workload": {
+    "name": "local-missions",
+    "code": "lm",
+    "environment": "development",
+    "environmentCode": "dev",
+    "region": "eastus2",
+    "regionCode": "e2"
+  },
+  "subscriptionPlacement": {
+    "mode": "dedicated-local-missions",
+    "observedCandidate": "shared-nonproduction-subscription",
+    "observedCandidateEligible": false,
+    "dedicatedSubscriptionPreferredBeforeStaging": true,
+    "exclusiveResourceGroupsRequired": true,
+    "exclusiveStateRequired": true,
+    "exclusiveIdentitiesRequired": true,
+    "exclusiveBudgetRequired": true,
+    "localMissionsResourceGroupPrefix": "rg-local-missions-",
+    "observedOtherWorkloadResourceGroupPrefix": "rg-pp-",
+    "crossWorkloadTargetsAllowed": false,
+    "coTenancyApplyApprovalRequired": true
+  },
+  "deploymentStamp": {
+    "format": "<region-code>r<YYMMDD><sequence>",
+    "pattern": "^e2r[0-9]{8}$",
+    "example": "e2r26083101",
+    "minimumLength": 11,
+    "maximumLength": 11,
+    "reuseAllowed": false,
+    "reason": "A unique stamp prevents collisions across same-day ephemeral runs and soft-deleted global resources."
+  },
+  "retainedNames": {
+    "controlResourceGroup": "rg-local-missions-control-eus2-001",
+    "stateResourceGroup": "rg-local-missions-state-eus2-001",
+    "workloadLandingZoneResourceGroup": "rg-local-missions-dev-eus2-001",
+    "stateStorageAccount": "stlmtfse2001",
+    "stateContainer": "tfstate",
+    "controlStateKey": "local-missions/control-plane.tfstate",
+    "workloadStateKey": "local-missions/dev-workload.tfstate"
+  },
+  "disposableNameTemplates": [
+    {
+      "id": "storage-account",
+      "scope": "global",
+      "template": "stlmdev<stamp>",
+      "example": "stlmdeve2r26083101",
+      "maximumLength": 24,
+      "pattern": "^stlmdeve2r[0-9]{8}$"
+    },
+    {
+      "id": "postgresql-server",
+      "scope": "global",
+      "template": "psql-local-missions-dev-<stamp>",
+      "example": "psql-local-missions-dev-e2r26083101",
+      "maximumLength": 63,
+      "pattern": "^psql-local-missions-dev-e2r[0-9]{8}$"
+    },
+    {
+      "id": "service-bus-namespace",
+      "scope": "global",
+      "template": "sb-local-missions-dev-<stamp>",
+      "example": "sb-local-missions-dev-e2r26083101",
+      "maximumLength": 50,
+      "pattern": "^sb-local-missions-dev-e2r[0-9]{8}$"
+    },
+    {
+      "id": "container-registry",
+      "scope": "global",
+      "template": "acrlmdev<stamp>",
+      "example": "acrlmdeve2r26083101",
+      "maximumLength": 50,
+      "pattern": "^acrlmdeve2r[0-9]{8}$"
+    },
+    {
+      "id": "key-vault",
+      "scope": "global",
+      "template": "kvlmdev-<stamp>",
+      "example": "kvlmdev-e2r26083101",
+      "maximumLength": 24,
+      "pattern": "^kvlmdev-e2r[0-9]{8}$"
+    },
+    {
+      "id": "log-analytics-workspace",
+      "scope": "resource-group",
+      "template": "law-local-missions-dev-<stamp>",
+      "example": "law-local-missions-dev-e2r26083101",
+      "maximumLength": 63,
+      "pattern": "^law-local-missions-dev-e2r[0-9]{8}$"
+    },
+    {
+      "id": "application-insights",
+      "scope": "resource-group",
+      "template": "appi-local-missions-dev-<stamp>",
+      "example": "appi-local-missions-dev-e2r26083101",
+      "maximumLength": 63,
+      "pattern": "^appi-local-missions-dev-e2r[0-9]{8}$"
+    },
+    {
+      "id": "container-apps-environment",
+      "scope": "resource-group",
+      "template": "cae-local-missions-dev-<stamp>",
+      "example": "cae-local-missions-dev-e2r26083101",
+      "maximumLength": 60,
+      "pattern": "^cae-local-missions-dev-e2r[0-9]{8}$"
+    },
+    {
+      "id": "api-container-app",
+      "scope": "resource-group",
+      "template": "ca-lm-api-dev-<stamp>",
+      "example": "ca-lm-api-dev-e2r26083101",
+      "maximumLength": 32,
+      "pattern": "^ca-lm-api-dev-e2r[0-9]{8}$"
+    },
+    {
+      "id": "dashboard-container-app",
+      "scope": "resource-group",
+      "template": "ca-lm-dashboard-dev-<stamp>",
+      "example": "ca-lm-dashboard-dev-e2r26083101",
+      "maximumLength": 32,
+      "pattern": "^ca-lm-dashboard-dev-e2r[0-9]{8}$"
+    },
+    {
+      "id": "worker-container-app",
+      "scope": "resource-group",
+      "template": "ca-lm-worker-dev-<stamp>",
+      "example": "ca-lm-worker-dev-e2r26083101",
+      "maximumLength": 32,
+      "pattern": "^ca-lm-worker-dev-e2r[0-9]{8}$"
+    },
+    {
+      "id": "api-managed-identity",
+      "scope": "resource-group",
+      "template": "id-local-missions-api-dev-<stamp>",
+      "example": "id-local-missions-api-dev-e2r26083101",
+      "maximumLength": 128,
+      "pattern": "^id-local-missions-api-dev-e2r[0-9]{8}$"
+    },
+    {
+      "id": "dashboard-managed-identity",
+      "scope": "resource-group",
+      "template": "id-local-missions-dashboard-dev-<stamp>",
+      "example": "id-local-missions-dashboard-dev-e2r26083101",
+      "maximumLength": 128,
+      "pattern": "^id-local-missions-dashboard-dev-e2r[0-9]{8}$"
+    },
+    {
+      "id": "worker-managed-identity",
+      "scope": "resource-group",
+      "template": "id-local-missions-worker-dev-<stamp>",
+      "example": "id-local-missions-worker-dev-e2r26083101",
+      "maximumLength": 128,
+      "pattern": "^id-local-missions-worker-dev-e2r[0-9]{8}$"
+    }
+  ],
+  "childNames": {
+    "postgresDatabase": "local_missions",
+    "serviceBusQueue": "mission-events",
+    "blobContainers": ["mission-media", "locality-evidence", "account-exports"]
+  },
+  "requiredTags": {
+    "application": "local-missions",
+    "application_code": "lm",
+    "environment": "development",
+    "region": "eastus2",
+    "lifecycle": "disposable",
+    "managed_by": "terraform",
+    "terraform_root": "workload-dev"
+  },
+  "costTiers": [
+    {
+      "id": "plan-only",
+      "azureResources": false,
+      "maximumHours": 0,
+      "requests": 0,
+      "billableLogIngestionGb": 0,
+      "rawEstimateUsd": 0,
+      "runCeilingUsd": 0,
+      "monthlyBudgetProposalUsd": 25
+    },
+    {
+      "id": "smoke-2h",
+      "azureResources": true,
+      "maximumHours": 2,
+      "requests": 100000,
+      "billableLogIngestionGb": 0.1,
+      "rawEstimateUsd": 0.85,
+      "runCeilingUsd": 2,
+      "monthlyBudgetProposalUsd": 25
+    },
+    {
+      "id": "integration-4h",
+      "azureResources": true,
+      "maximumHours": 4,
+      "requests": 500000,
+      "billableLogIngestionGb": 0.25,
+      "rawEstimateUsd": 1.66,
+      "runCeilingUsd": 3,
+      "monthlyBudgetProposalUsd": 25
+    },
+    {
+      "id": "full-8h",
+      "azureResources": true,
+      "maximumHours": 8,
+      "requests": 1000000,
+      "billableLogIngestionGb": 0.5,
+      "rawEstimateUsd": 3.02,
+      "runCeilingUsd": 5,
+      "monthlyBudgetProposalUsd": 25
+    }
+  ],
+  "costRates": {
+    "postgresComputePerHourUsd": 0.017,
+    "postgresStorageGbMonthUsd": 0.115,
+    "postgresStorageGb": 32,
+    "monthHours": 730,
+    "containerAppActiveVcpuSecondUsd": 0.000024,
+    "containerAppActiveMemoryGibSecondUsd": 0.000003,
+    "containerAppCount": 3,
+    "containerAppVcpuEach": 0.25,
+    "containerAppMemoryGibEach": 0.5,
+    "containerAppMillionRequestsUsd": 0.4,
+    "serviceBusStandardPerHourUsd": 0.013441,
+    "containerRegistryBasicPerDayUsd": 0.1666,
+    "blobStorageGbMonthUsd": 0.0184,
+    "blobStorageGb": 1,
+    "blobOperationBlocksPerRunUsd": 0.108,
+    "keyVaultOperationBlockPerRunUsd": 0.03,
+    "logIngestionGbUsd": 2.76
+  },
+  "forbidden": {
+    "persistentDevelopmentWorkload": true,
+    "crossWorkloadPrefixReuse": true,
+    "personalDataInNamesOrTags": true,
+    "globalNameReuseAcrossRuns": true,
+    "productionEnvironmentInDevelopmentRoot": true
+  },
+  "sources": [
+    "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming",
+    "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-abbreviations",
+    "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules"
+  ]
+}

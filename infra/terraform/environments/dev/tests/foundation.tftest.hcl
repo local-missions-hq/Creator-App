@@ -1,4 +1,16 @@
 mock_provider "azurerm" {
+  mock_data "azurerm_resource_group" {
+    defaults = {
+      id       = "/subscriptions/00000000-0000-4000-8000-000000000003/resourceGroups/rg-local-missions-dev-eus2-001"
+      location = "eastus2"
+      name     = "rg-local-missions-dev-eus2-001"
+      tags = {
+        application = "local-missions"
+        lifecycle   = "retained-boundary"
+      }
+    }
+  }
+
   mock_resource "azurerm_container_registry" {
     defaults = {
       id           = "/subscriptions/00000000-0000-4000-8000-000000000003/resourceGroups/rg-local-missions-dev-example/providers/Microsoft.ContainerRegistry/registries/acrlmdevexample"
@@ -85,15 +97,68 @@ run "local_disposable_workload_contract" {
   }
 }
 
+run "mock_enabled_core_infrastructure_contract" {
+  command = plan
+
+  variables {
+    alert_destination_reference     = "monitored-cost-destination"
+    apply_approval_reference        = "mock-core-approval"
+    approved_monthly_budget_usd     = 100
+    azure_resource_creation_enabled = true
+    cleanup_controller_reference    = "mock-cleanup-controller"
+    cost_profile                    = "full-8h"
+    identity_references_revalidated = true
+    identity_reference_contract = {
+      tenant_id                        = "00000000-0000-4000-8000-000000000003"
+      postgres_administrator_object_id = "00000000-0000-4000-8000-000000000004"
+      postgres_administrator_name      = "local-missions-postgres-admins"
+      postgres_administrator_type      = "Group"
+    }
+    region_and_sku_revalidated        = true
+    subscription_placement            = "shared-nonproduction"
+    workload_landing_zone_revalidated = true
+    network_contract = {
+      mode                                   = "restricted_public"
+      allowed_ipv4_cidrs                     = ["203.0.113.10/32"]
+      minimum_tls_version                    = "TLS1_2"
+      postgres_public_network_access_enabled = true
+      postgres_firewall_allow_azure_services = false
+      postgres_firewall_allow_all            = false
+    }
+  }
+
+  assert {
+    condition     = output.activation_status == "mock-enabled-core-contract"
+    error_message = "The first applyable shape must remain core infrastructure only."
+  }
+
+  assert {
+    condition = (
+      output.workload_resource_inventory.total == 27 &&
+      output.workload_resource_inventory.by_module.container_apps == 13 &&
+      !output.workload_resource_safeguards.container_apps.applications_enabled &&
+      output.workload_resource_safeguards.container_apps.application_resource_count == 0
+    )
+    error_message = "The core phase must create 27 resources inside the retained landing zone and no Container App resource."
+  }
+
+  assert {
+    condition     = output.planning_contract.plan_phase == "core-infrastructure"
+    error_message = "The first applyable phase label drifted."
+  }
+}
+
 run "mock_enabled_resource_group_contract" {
   command = plan
 
   variables {
     alert_destination_reference     = "monitored-cost-destination"
+    application_activation_enabled  = true
     apply_approval_reference        = "mock-plan-approval"
-    approved_monthly_budget_usd     = 50
+    approved_monthly_budget_usd     = 100
     azure_resource_creation_enabled = true
     cleanup_controller_reference    = "mock-cleanup-controller"
+    cost_profile                    = "full-8h"
     artifact_references_revalidated = true
     identity_references_revalidated = true
     identity_reference_contract = {
@@ -102,7 +167,9 @@ run "mock_enabled_resource_group_contract" {
       postgres_administrator_name      = "local-missions-postgres-admins"
       postgres_administrator_type      = "Group"
     }
-    region_and_sku_revalidated = true
+    region_and_sku_revalidated        = true
+    subscription_placement            = "shared-nonproduction"
+    workload_landing_zone_revalidated = true
     network_contract = {
       mode                                   = "restricted_public"
       allowed_ipv4_cidrs                     = ["203.0.113.10/32"]
@@ -120,27 +187,46 @@ run "mock_enabled_resource_group_contract" {
 
   assert {
     condition = (
-      output.workload_resource_inventory.total == 31 &&
-      output.workload_resource_inventory.by_module.resource_group == 1 &&
-      output.workload_resource_inventory.by_module.storage == 4 &&
-      output.workload_resource_inventory.by_module.postgresql == 4 &&
-      output.workload_resource_inventory.by_module.container_apps == 16
+      output.planning_contract.plan_phase == "application-activation" &&
+      output.workload_resource_safeguards.container_apps.applications_enabled &&
+      output.workload_resource_safeguards.container_apps.application_resource_count == 3
     )
-    error_message = "The mock-enabled plan must contain the exact 31-resource disposable workload inventory."
+    error_message = "The final phase must activate exactly API, dashboard, and worker."
   }
 
+
   assert {
-    condition     = output.resource_group_contract.planned_count == 1 && output.resource_group_contract.names[0] == "rg-local-missions-dev-example"
-    error_message = "The mock-enabled plan must contain exactly the explicit disposable resource group."
+    condition     = output.cost_profile_contract.run_ceiling_usd == 5 && output.cost_profile_contract.maximum_hours == 8
+    error_message = "The enabled mock shape must retain the full-8h cost ceiling."
   }
 
   assert {
     condition = (
-      output.resource_group_contract.tags.lifecycle == "disposable" &&
-      output.resource_group_contract.tags.terraform_root == "workload-dev" &&
-      output.resource_group_contract.tags.owner == "technical-owner"
+      output.workload_resource_inventory.total == 30 &&
+      output.workload_resource_inventory.by_module.resource_group == 0 &&
+      output.workload_resource_inventory.by_module.storage == 4 &&
+      output.workload_resource_inventory.by_module.postgresql == 4 &&
+      output.workload_resource_inventory.by_module.container_apps == 16
     )
-    error_message = "The mock resource group must retain disposable ownership tags."
+    error_message = "The mock-enabled plan must contain the exact 30-resource disposable workload inventory inside the retained landing zone."
+  }
+
+  assert {
+    condition = (
+      output.resource_group_contract.ownership_source == "retained-control-plane" &&
+      output.resource_group_contract.planned_count == 0 &&
+      output.resource_group_contract.validated_count == 1 &&
+      output.resource_group_contract.names[0] == "rg-local-missions-dev-eus2-001"
+    )
+    error_message = "The disposable root must validate, but never create or delete, the retained Local Missions landing zone."
+  }
+
+  assert {
+    condition = (
+      output.resource_group_contract.retained_tags.application == "local-missions" &&
+      output.resource_group_contract.retained_tags.lifecycle == "retained-boundary"
+    )
+    error_message = "The mock landing zone must retain its Local Missions-only boundary tags."
   }
 
   assert {

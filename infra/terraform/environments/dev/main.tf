@@ -1,4 +1,37 @@
 locals {
+  cost_profiles = {
+    plan-only = {
+      azure_resources             = false
+      maximum_hours               = 0
+      raw_estimate_usd            = 0
+      run_ceiling_usd             = 0
+      monthly_budget_proposal_usd = 100
+    }
+    smoke-2h = {
+      azure_resources             = true
+      maximum_hours               = 2
+      raw_estimate_usd            = 0.85
+      run_ceiling_usd             = 2
+      monthly_budget_proposal_usd = 100
+    }
+    integration-4h = {
+      azure_resources             = true
+      maximum_hours               = 4
+      raw_estimate_usd            = 1.66
+      run_ceiling_usd             = 3
+      monthly_budget_proposal_usd = 100
+    }
+    full-8h = {
+      azure_resources             = true
+      maximum_hours               = 8
+      raw_estimate_usd            = 3.02
+      run_ceiling_usd             = 5
+      monthly_budget_proposal_usd = 100
+    }
+  }
+
+  selected_cost_profile = local.cost_profiles[var.cost_profile]
+
   disposable_inventory = [
     "container-apps-and-environment",
     "postgresql-and-application-database",
@@ -13,14 +46,19 @@ locals {
 
   required_tags = {
     application             = "local-missions"
+    application_code        = "lm"
     commit_sha              = var.commit_sha
+    cost_profile            = var.cost_profile
     created_at              = var.created_at
+    deployment_stamp        = var.resource_name_suffix
     environment             = "development"
     expires_at              = var.expires_at
     lifecycle               = "disposable"
     managed_by              = "terraform"
     owner                   = var.owner
     purpose                 = "same-day-synthetic-cloud-validation"
+    region                  = var.location
+    run_ceiling_usd         = tostring(local.selected_cost_profile.run_ceiling_usd)
     terraform_root          = "workload-dev"
     workload_resource_group = var.workload_resource_group_name
   }
@@ -57,13 +95,10 @@ module "workload_contract" {
   secret_reference_contract       = var.secret_reference_contract
 }
 
-module "workload_resource_group" {
-  count  = var.azure_resource_creation_enabled ? 1 : 0
-  source = "../../modules/resource-group"
+data "azurerm_resource_group" "workload_landing_zone" {
+  count = var.azure_resource_creation_enabled ? 1 : 0
 
-  name     = var.workload_resource_group_name
-  location = var.location
-  tags     = local.required_tags
+  name = var.workload_resource_group_name
 }
 
 module "workload_storage" {
@@ -78,7 +113,7 @@ module "workload_storage" {
   container_names            = ["mission-media", "locality-evidence", "account-exports"]
   soft_delete_retention_days = 7
 
-  depends_on = [module.workload_resource_group]
+  depends_on = [data.azurerm_resource_group.workload_landing_zone]
 }
 
 module "workload_postgresql" {
@@ -101,7 +136,7 @@ module "workload_postgresql" {
     principal_type = var.identity_reference_contract.postgres_administrator_type
   }
 
-  depends_on = [module.workload_resource_group]
+  depends_on = [data.azurerm_resource_group.workload_landing_zone]
 }
 
 module "workload_service_bus" {
@@ -116,7 +151,7 @@ module "workload_service_bus" {
   allowed_ipv4_cidrs  = var.network_contract.allowed_ipv4_cidrs
   sku                 = var.low_cost_defaults.service_bus_sku
 
-  depends_on = [module.workload_resource_group]
+  depends_on = [data.azurerm_resource_group.workload_landing_zone]
 }
 
 module "workload_registry" {
@@ -129,7 +164,7 @@ module "workload_registry" {
   tags                = local.required_tags
   sku                 = var.low_cost_defaults.container_registry_sku
 
-  depends_on = [module.workload_resource_group]
+  depends_on = [data.azurerm_resource_group.workload_landing_zone]
 }
 
 module "workload_key_vault" {
@@ -143,7 +178,7 @@ module "workload_key_vault" {
   tags                = local.required_tags
   allowed_ipv4_cidrs  = var.network_contract.allowed_ipv4_cidrs
 
-  depends_on = [module.workload_resource_group]
+  depends_on = [data.azurerm_resource_group.workload_landing_zone]
 }
 
 module "workload_telemetry" {
@@ -157,24 +192,25 @@ module "workload_telemetry" {
   tags                      = local.required_tags
   retention_days            = var.low_cost_defaults.log_retention_days
 
-  depends_on = [module.workload_resource_group]
+  depends_on = [data.azurerm_resource_group.workload_landing_zone]
 }
 
 module "workload_container_apps" {
   count  = var.azure_resource_creation_enabled ? 1 : 0
   source = "../../modules/workload-container-apps"
 
-  environment_name        = local.resource_names.container_app_environment
-  api_app_name            = local.resource_names.api_container_app
-  dashboard_app_name      = local.resource_names.dashboard_container_app
-  worker_app_name         = local.resource_names.worker_container_app
-  api_identity_name       = local.resource_names.api_identity
-  dashboard_identity_name = local.resource_names.dashboard_identity
-  worker_identity_name    = local.resource_names.worker_identity
-  resource_group_name     = var.workload_resource_group_name
-  location                = var.location
-  tags                    = local.required_tags
-  allowed_ipv4_cidrs      = var.network_contract.allowed_ipv4_cidrs
+  application_activation_enabled = var.application_activation_enabled
+  environment_name               = local.resource_names.container_app_environment
+  api_app_name                   = local.resource_names.api_container_app
+  dashboard_app_name             = local.resource_names.dashboard_container_app
+  worker_app_name                = local.resource_names.worker_container_app
+  api_identity_name              = local.resource_names.api_identity
+  dashboard_identity_name        = local.resource_names.dashboard_identity
+  worker_identity_name           = local.resource_names.worker_identity
+  resource_group_name            = var.workload_resource_group_name
+  location                       = var.location
+  tags                           = local.required_tags
+  allowed_ipv4_cidrs             = var.network_contract.allowed_ipv4_cidrs
 
   log_analytics_workspace_id = module.workload_telemetry[0].log_analytics_workspace_id
   registry = {
@@ -208,6 +244,7 @@ module "workload_container_apps" {
     module.workload_service_bus,
     module.workload_storage,
     module.workload_telemetry,
+    data.azurerm_resource_group.workload_landing_zone,
   ]
 }
 
@@ -219,5 +256,60 @@ check "retained_and_disposable_scopes_are_distinct" {
       var.control_plane_resource_group_name != var.state_resource_group_name
     )
     error_message = "Disposable workload, retained control plane, and retained state scopes must all differ."
+  }
+}
+
+check "workload_group_matches_deployment_stamp" {
+  assert {
+    condition     = !var.azure_resource_creation_enabled || var.workload_resource_group_name == "rg-local-missions-dev-eus2-001"
+    error_message = "The workload must target the exact retained Local Missions landing-zone resource group; run isolation comes from stamped resource names and state."
+  }
+}
+
+check "workload_landing_zone_is_revalidated" {
+  assert {
+    condition = (
+      !var.azure_resource_creation_enabled ||
+      (
+        var.workload_landing_zone_revalidated &&
+        try(data.azurerm_resource_group.workload_landing_zone[0].name, "") == var.workload_resource_group_name &&
+        try(data.azurerm_resource_group.workload_landing_zone[0].tags.application, "") == "local-missions" &&
+        try(data.azurerm_resource_group.workload_landing_zone[0].tags.lifecycle, "") == "retained-boundary"
+      )
+    )
+    error_message = "Azure activation requires the existing Local Missions-only landing-zone resource group and its retained-boundary ownership tags to be revalidated."
+  }
+}
+
+check "cost_profile_matches_activation" {
+  assert {
+    condition = (
+      (!var.azure_resource_creation_enabled && var.cost_profile == "plan-only") ||
+      (
+        var.azure_resource_creation_enabled &&
+        local.selected_cost_profile.azure_resources &&
+        local.selected_cost_profile.maximum_hours > 0 &&
+        local.selected_cost_profile.maximum_hours <= 8 &&
+        timecmp(
+          var.expires_at,
+          timeadd(var.created_at, "${local.selected_cost_profile.maximum_hours}h"),
+        ) <= 0 &&
+        var.approved_monthly_budget_usd >= local.selected_cost_profile.monthly_budget_proposal_usd
+      )
+    )
+    error_message = "Plan-only must create zero resources; Azure activation requires a bounded Azure cost tier, matching expiry, and at least the proposed monthly budget."
+  }
+}
+
+check "application_activation_is_second_phase" {
+  assert {
+    condition = (
+      !var.application_activation_enabled ||
+      (
+        var.azure_resource_creation_enabled &&
+        var.artifact_references_revalidated
+      )
+    )
+    error_message = "Container Apps are a second-phase activation after core infrastructure and immutable image publication."
   }
 }

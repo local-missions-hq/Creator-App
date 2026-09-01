@@ -2,7 +2,7 @@
 
 Local Missions is an iPhone-first local creator marketplace. Approved Orlando businesses fund objective missions; qualified local adults complete them for guaranteed cash rewards and optional in-kind experiences. The shared app supports Creator, Business, and restricted Venue Staff modes, while sensitive platform operations remain in a protected web console.
 
-This repository is in local foundation development. It contains no production deployment, live Stripe configuration, real payment flow, or App Store submission.
+This repository is in development. Azure contains only the hardened three-resource retained Terraform-state bootstrap; no application workload or production deployment exists. The project has no live Stripe configuration, real payment flow, or App Store submission.
 
 ## Repository map
 
@@ -14,7 +14,7 @@ This repository is in local foundation development. It contains no production de
 - `packages/config` — environment validation
 - `packages/db` — Drizzle schema foundation
 - `packages/test-fixtures` — synthetic-only fixtures
-- `infra/terraform` — intentionally non-deployed environment/module structure
+- `infra/terraform` — retained-state bootstrap plus separately gated control-plane and disposable-workload roots
 - `docs` — product, architecture, decisions, evidence, design, and business-plan artifacts
 
 ## Local prerequisites

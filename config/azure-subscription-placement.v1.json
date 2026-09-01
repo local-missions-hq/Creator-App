@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "M05-control-plane-applied-verified-022",
+  "activationStatus": "local_contract_only",
+  "ownerDecision": "dedicated-local-missions",
+  "preferredPlacement": "dedicated-local-missions",
+  "implementedBoundary": {
+    "pattern": "retained-workload-landing-zone",
+    "resourceGroupName": "rg-local-missions-dev-eus2-001",
+    "ownedByTerraformRoot": "control-plane",
+    "workloadRootCreatesResourceGroup": false,
+    "workloadRootDeletesResourceGroup": false,
+    "subscriptionScopeWorkloadRbac": false,
+    "expectedMeteredResourcesAfterDailyDestroy": 0
+  },
+  "placementOptions": [
+    {
+      "id": "dedicated-local-missions",
+      "recommendation": "preferred",
+      "ownerApprovalRequired": true,
+      "otherWorkloadsAllowed": false,
+      "workflowAssignmentScope": "local-missions-landing-zone-resource-group"
+    },
+    {
+      "id": "shared-nonproduction",
+      "recommendation": "acceptable-with-explicit-cotenancy-approval",
+      "ownerApprovalRequired": true,
+      "otherWorkloadsAllowed": true,
+      "workflowAssignmentScope": "local-missions-landing-zone-resource-group"
+    }
+  ],
+  "workflowRbac": {
+    "plan": ["Reader"],
+    "apply": ["Local Missions Dev Workload Deployer", "Role Based Access Control Administrator"],
+    "destroy": ["Local Missions Dev Workload Destroyer", "Role Based Access Control Administrator"],
+    "assignmentCount": 5,
+    "customRoleDefinitionCount": 2,
+    "applyCanDeleteResources": false,
+    "destroyCanDeleteLandingZone": false,
+    "rbacAdministratorConditionVersion": "2.0",
+    "delegatedPrincipalTypes": ["ServicePrincipal"],
+    "delegatedRoleDefinitions": [
+      {
+        "name": "Key Vault Secrets User",
+        "id": "4633458b-17de-408a-b874-0445c86b69e6"
+      },
+      {
+        "name": "Azure Service Bus Data Receiver",
+        "id": "4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0"
+      },
+      {
+        "name": "Azure Service Bus Data Sender",
+        "id": "69a216fc-b8fb-44d8-bc22-1f3c2cd27a39"
+      },
+      {
+        "name": "AcrPull",
+        "id": "7f951dda-4ed3-4680-a7ca-43fe172d538d"
+      },
+      {
+        "name": "Storage Blob Data Contributor",
+        "id": "ba92f5b4-2d11-453d-a403-e96b0029c9fe"
+      }
+    ],
+    "canAssignOwner": false,
+    "canAssignContributor": false,
+    "canAssignRbacAdministrator": false,
+    "canAssignUserAccessAdministrator": false
+  },
+  "dailyTeardown": {
+    "destroyExactDeploymentStampOnly": true,
+    "retainsLandingZone": true,
+    "retainsControlPlane": true,
+    "retainsRemoteState": true,
+    "otherProjectTargetsAllowed": false,
+    "terraformStateMustBeEmpty": true,
+    "independentLiveInventoryMustBeEmpty": true
+  },
+  "rejectedPatterns": [
+    "subscription-owner-workflow",
+    "subscription-contributor-workflow",
+    "unconstrained-role-assignment-administrator",
+    "built-in-contributor-workflow",
+    "shared-subscription-stamped-resource-group-create-delete",
+    "other-project-resource-target",
+    "daily-delete-retained-landing-zone"
+  ],
+  "azureMutationExecuted": false,
+  "sources": [
+    "https://learn.microsoft.com/en-us/azure/role-based-access-control/delegate-role-assignments-overview",
+    "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-definitions",
+    "https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments",
+    "https://learn.microsoft.com/en-us/azure/role-based-access-control/custom-roles",
+    "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-portal",
+    "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/delete-resource-group"
+  ]
+}

@@ -8,7 +8,7 @@ locals {
 check "retained_and_disposable_ownership" {
   assert {
     condition     = local.retained_and_disposable_are_distinct
-    error_message = "Retained control/state groups and the disposable workload group must have distinct ownership."
+    error_message = "Retained control/state groups and the Local Missions workload landing-zone boundary must have distinct ownership."
   }
 }
 

@@ -1,14 +1,17 @@
 .expo
 .next
 .turbo
+.tmp
 coverage
 dist
 node_modules
+outputs
 pnpm-lock.yaml
 docs/business-plan
 docs/concepts
 ux-walkthrough
 architecture.md
 plans.md
+historical-completion-log.md
 docs/decisions
 apps/dashboard/next-env.d.ts

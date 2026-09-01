@@ -1,0 +1,382 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2800" height="2100" viewBox="0 0 2800 2100" role="img" aria-labelledby="title desc">
+  <title id="title">Local Missions Azure development reference architecture</title>
+  <desc id="desc">Senior architecture view of the Local Missions Azure development target after the three-resource retained-state bootstrap was applied and migrated, before control-plane or workload deployment.</desc>
+  <defs>
+    <marker id="arrow-runtime" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#12395b"/>
+    </marker>
+    <marker id="arrow-identity" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6d47c7"/>
+    </marker>
+    <marker id="arrow-managed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#137d55"/>
+    </marker>
+    <marker id="arrow-control" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#bd6400"/>
+    </marker>
+    <marker id="arrow-observe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0078d4"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#0b2239" flood-opacity="0.13"/>
+    </filter>
+    <style>
+      .font { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+      .title { font-size: 47px; font-weight: 760; fill: #0b2239; letter-spacing: -0.8px; }
+      .subtitle { font-size: 23px; fill: #41576d; }
+      .zone-title { font-size: 27px; font-weight: 730; fill: #0b2239; }
+      .zone-subtitle { font-size: 18px; fill: #536a80; }
+      .node-title { font-size: 21px; font-weight: 720; fill: #102f4c; }
+      .node-text { font-size: 17px; fill: #425b70; }
+      .small { font-size: 15px; fill: #536a80; }
+      .tiny { font-size: 13px; fill: #536a80; }
+      .pill { font-size: 18px; font-weight: 720; }
+      .legend-title { font-size: 21px; font-weight: 720; fill: #102f4c; }
+      .legend-text { font-size: 16px; fill: #354d62; }
+      .boundary { fill: #ffffff; stroke: #365b78; stroke-width: 3; rx: 22; }
+      .node { fill: #ffffff; stroke: #91a8ba; stroke-width: 2; rx: 16; filter: url(#shadow); }
+      .runtime { fill: none; stroke: #12395b; stroke-width: 5; marker-end: url(#arrow-runtime); }
+      .identity { fill: none; stroke: #6d47c7; stroke-width: 5; marker-end: url(#arrow-identity); }
+      .identity-bi { fill: none; stroke: #6d47c7; stroke-width: 5; marker-start: url(#arrow-identity); marker-end: url(#arrow-identity); }
+      .managed { fill: none; stroke: #137d55; stroke-width: 4; marker-end: url(#arrow-managed); }
+      .control { fill: none; stroke: #bd6400; stroke-width: 4; stroke-dasharray: 11 8; marker-end: url(#arrow-control); }
+      .observe { fill: none; stroke: #0078d4; stroke-width: 4; stroke-dasharray: 6 7; marker-end: url(#arrow-observe); }
+      .assoc { fill: none; stroke: #6e8192; stroke-width: 3; stroke-dasharray: 6 7; }
+      .num-runtime { fill: #12395b; }
+      .num-identity { fill: #6d47c7; }
+      .num-managed { fill: #137d55; }
+      .num-control { fill: #bd6400; }
+      .num-observe { fill: #0078d4; }
+      .num-text { font-size: 17px; font-weight: 800; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
+    </style>
+  </defs>
+
+  <rect width="2800" height="2100" fill="#f6f9fc"/>
+
+  <g class="font">
+    <text class="title" x="60" y="70">Local Missions — Azure development reference architecture</text>
+    <text class="subtitle" x="60" y="108">Senior-principal review view • repository-aligned M5 Phase B target • 2026-09-01</text>
+
+    <rect x="1700" y="42" width="310" height="56" rx="28" fill="#fff2df" stroke="#d77a00" stroke-width="2"/>
+    <text class="pill" x="1855" y="77" text-anchor="middle" fill="#9c4a00">CONTROL PLANE — LIVE</text>
+    <rect x="2028" y="42" width="300" height="56" rx="28" fill="#e7f4ff" stroke="#0078d4" stroke-width="2"/>
+    <text class="pill" x="2178" y="77" text-anchor="middle" fill="#005a9e">REGION: EAST US 2*</text>
+    <rect x="2346" y="42" width="394" height="56" rx="28" fill="#e8f7ef" stroke="#137d55" stroke-width="2"/>
+    <text class="pill" x="2543" y="77" text-anchor="middle" fill="#0e6342">WORKLOAD ACTIVATION = FALSE</text>
+    <text class="small" x="2740" y="125" text-anchor="end">* Subscription verified; later workload SKU, quota, and policy availability remains unverified.</text>
+
+    <!-- External client trust boundary -->
+    <rect class="boundary" x="50" y="170" width="520" height="610" fill="#fdfefe"/>
+    <rect x="50" y="170" width="520" height="76" rx="22" fill="#e8eef4"/>
+    <rect x="50" y="224" width="520" height="22" fill="#e8eef4"/>
+    <text class="zone-title" x="82" y="210">External client trust zone</text>
+    <text class="zone-subtitle" x="82" y="236">Untrusted network • no credentials embedded in clients</text>
+
+    <rect class="node" x="94" y="282" width="432" height="190"/>
+    <rect x="119" y="311" width="72" height="126" rx="13" fill="none" stroke="#12395b" stroke-width="5"/>
+    <line x1="142" y1="325" x2="168" y2="325" stroke="#12395b" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="155" cy="422" r="5" fill="#12395b"/>
+    <text class="node-title" x="216" y="323">Local Missions iOS app</text>
+    <text class="node-text" x="216" y="354">Creator • Business • Venue Staff</text>
+    <text class="node-text" x="216" y="383">React Native / Expo Router</text>
+    <text class="small" x="216" y="414">Tokens: memory + SecureStore boundary</text>
+    <text class="small" x="216" y="439">Current: Expo Go / Simulator only</text>
+
+    <rect class="node" x="94" y="516" width="432" height="190"/>
+    <rect x="118" y="547" width="92" height="78" rx="8" fill="none" stroke="#12395b" stroke-width="5"/>
+    <line x1="118" y1="568" x2="210" y2="568" stroke="#12395b" stroke-width="4"/>
+    <circle cx="131" cy="557" r="4" fill="#12395b"/>
+    <circle cx="144" cy="557" r="4" fill="#12395b"/>
+    <circle cx="157" cy="557" r="4" fill="#12395b"/>
+    <text class="node-title" x="234" y="557">Web users</text>
+    <text class="node-text" x="234" y="588">Business companion</text>
+    <text class="node-text" x="234" y="615">Admin / Support / Finance</text>
+    <text class="small" x="234" y="646">Employee console remains web-only</text>
+    <text class="small" x="234" y="671">Browser is outside Azure trust</text>
+
+    <!-- Identity trust boundary -->
+    <rect x="610" y="170" width="560" height="610" rx="22" fill="#fbf8ff" stroke="#6d47c7" stroke-width="3" stroke-dasharray="12 8"/>
+    <rect x="610" y="170" width="560" height="76" rx="22" fill="#eee7ff"/>
+    <rect x="610" y="224" width="560" height="22" fill="#eee7ff"/>
+    <text class="zone-title" x="642" y="210">Microsoft Entra trust boundary</text>
+    <text class="zone-subtitle" x="642" y="236">External identities and workload federation are separately gated</text>
+
+    <rect class="node" x="662" y="282" width="456" height="208"/>
+    <image x="692" y="315" width="82" height="82" href="azure-icons/microsoft-entra-id.svg" xlink:href="azure-icons/microsoft-entra-id.svg"/>
+    <text class="node-title" x="800" y="321">Entra External ID tenant</text>
+    <text class="node-text" x="800" y="354">OIDC authorization code + PKCE</text>
+    <text class="node-text" x="800" y="382">Exact issuer • audience • scope • JWKS</text>
+    <text class="small" x="800" y="413">Roles/workspace resolved server-side</text>
+    <text class="small" x="800" y="440">Open gate: real registrations and provider flows</text>
+    <rect x="800" y="454" width="270" height="24" rx="12" fill="#fbe9e9"/>
+    <text class="tiny" x="935" y="471" text-anchor="middle" fill="#9b2c2c">NOT ACTIVATED / NO TENANT CONTACT</text>
+
+    <rect class="node" x="662" y="532" width="456" height="192"/>
+    <image x="692" y="564" width="74" height="74" href="azure-icons/azure-managed-identity.svg" xlink:href="azure-icons/azure-managed-identity.svg"/>
+    <text class="node-title" x="796" y="567">Entra workload identities</text>
+    <text class="node-text" x="796" y="599">Distinct plan / apply / destroy apps</text>
+    <text class="node-text" x="796" y="627">Immutable GitHub environment subjects</text>
+    <text class="small" x="796" y="658">No client secrets • short-lived OIDC tokens</text>
+    <text class="small" x="796" y="684">Planned only; identities do not exist yet</text>
+
+    <!-- GitHub / delivery control boundary -->
+    <rect class="boundary" x="50" y="830" width="1120" height="840" fill="#fffdf8" stroke="#bd6400" stroke-dasharray="12 8"/>
+    <rect x="50" y="830" width="1120" height="76" rx="22" fill="#fff0dc"/>
+    <rect x="50" y="884" width="1120" height="22" fill="#fff0dc"/>
+    <text class="zone-title" x="82" y="870">Delivery and operational control boundary</text>
+    <text class="zone-subtitle" x="82" y="896">GitHub environments • independent approvals • saved-plan binding • no active deployment workflow</text>
+
+    <rect class="node" x="94" y="948" width="420" height="220"/>
+    <circle cx="150" cy="1017" r="38" fill="#24292f"/>
+    <path d="M132 1017a18 18 0 0 1 36 0c0 14-8 18-12 20v16c0 3-3 5-6 5s-6-2-6-5v-12c-9 1-18-4-20-12" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+    <text class="node-title" x="212" y="983">GitHub Actions</text>
+    <text class="node-text" x="212" y="1015">Protected environments:</text>
+    <text class="small" x="212" y="1043">azure-development-plan</text>
+    <text class="small" x="212" y="1067">azure-development-apply</text>
+    <text class="small" x="212" y="1091">azure-development-destroy</text>
+    <text class="small" x="212" y="1122">main only • no self-review • no bypass</text>
+    <text class="tiny" x="212" y="1146" fill="#9b2c2c">Current workflow example is hard-disabled.</text>
+
+    <rect class="node" x="550" y="948" width="566" height="220"/>
+    <text class="node-title" x="583" y="986">Saved-plan and authority separation</text>
+    <rect x="582" y="1014" width="142" height="54" rx="12" fill="#e7f4ff" stroke="#0078d4"/>
+    <text class="small" x="653" y="1047" text-anchor="middle" font-weight="700">PLAN</text>
+    <path d="M730 1041 H770" class="assoc"/>
+    <rect x="777" y="1014" width="142" height="54" rx="12" fill="#fff4e5" stroke="#bd6400"/>
+    <text class="small" x="848" y="1047" text-anchor="middle" font-weight="700">REVIEW</text>
+    <path d="M925 1041 H965" class="assoc"/>
+    <rect x="972" y="1014" width="112" height="54" rx="12" fill="#fbe9e9" stroke="#b42318"/>
+    <text class="small" x="1028" y="1047" text-anchor="middle" font-weight="700">STOP</text>
+    <text class="node-text" x="583" y="1100">Plan cannot apply or delete; exact artifact SHA binds review.</text>
+    <text class="small" x="583" y="1129">Apply, cloud tests, rollback, destroy, and reconciliation each</text>
+    <text class="small" x="583" y="1152">require later explicit approvals. No auto-approve or broad target.</text>
+
+    <rect x="94" y="1210" width="1022" height="388" rx="18" fill="#fff9f0" stroke="#d7a35d" stroke-width="2"/>
+    <text class="node-title" x="124" y="1250">Operational guardrails already encoded locally</text>
+    <g class="node-text">
+      <circle cx="132" cy="1290" r="7" fill="#137d55"/><text x="151" y="1296">Same-day disposable workload: eight hours maximum and no later than 11:00 PM New York</text>
+      <circle cx="132" cy="1334" r="7" fill="#137d55"/><text x="151" y="1340">Synthetic data only; no participant media, live payments, or production identity</text>
+      <circle cx="132" cy="1378" r="7" fill="#137d55"/><text x="151" y="1384">$2 first smoke run; $5 fallback max; $100 monthly alert budget; 50% / 80% / 100% alerts</text>
+      <circle cx="132" cy="1422" r="7" fill="#137d55"/><text x="151" y="1428">State and live inventory independently reconcile to zero exact-stamp workload resources</text>
+      <circle cx="132" cy="1466" r="7" fill="#137d55"/><text x="151" y="1472">Empty landing zone and retained control stay separate; cleanup failure remains open</text>
+    </g>
+    <rect x="122" y="1510" width="966" height="58" rx="14" fill="#fbe9e9" stroke="#b42318" stroke-width="2"/>
+    <text class="small" x="605" y="1545" text-anchor="middle" fill="#8d2119" font-weight="740">STATE + 20-RESOURCE CONTROL PLANE LIVE AND VERIFIED. DISPOSABLE WORKLOAD NOT DEPLOYED.</text>
+
+    <!-- Azure subscription boundary -->
+    <rect x="1210" y="170" width="1540" height="1500" rx="26" fill="#f4faff" stroke="#0078d4" stroke-width="5"/>
+    <rect x="1210" y="170" width="1540" height="76" rx="24" fill="#dff1ff"/>
+    <rect x="1210" y="224" width="1540" height="22" fill="#dff1ff"/>
+    <text class="zone-title" x="1246" y="210">Azure subscription administrative boundary — candidate East US 2</text>
+    <text class="zone-subtitle" x="1246" y="236">Retained state is live; control/workload remain unprovisioned; later quotas, policies, and alert destination remain open</text>
+
+    <!-- Retained plane -->
+    <rect x="1252" y="274" width="1456" height="338" rx="20" fill="#eef7ff" stroke="#0078d4" stroke-width="3" stroke-dasharray="12 8"/>
+    <text class="zone-title" x="1282" y="313">Retained control + workload landing zone — 20 resources live</text>
+    <text class="zone-subtitle" x="1282" y="340">State live • control target: two custom roles • five workload assignments • three state assignments</text>
+
+    <rect class="node" x="1292" y="370" width="350" height="186"/>
+    <image x="1322" y="407" width="70" height="70" href="azure-icons/azure-storage-account.svg" xlink:href="azure-icons/azure-storage-account.svg"/>
+    <text class="node-title" x="1418" y="404">State resource group</text>
+    <text class="node-text" x="1418" y="435">Remote state + locking</text>
+    <text class="small" x="1418" y="464">bootstrap.tfstate (live)</text>
+    <text class="small" x="1418" y="488">control/workload keys reserved</text>
+    <text class="tiny" x="1418" y="522" fill="#137d55">Entra backend initialized + versioned</text>
+
+    <rect class="node" x="1670" y="370" width="998" height="186"/>
+    <image x="1700" y="405" width="68" height="68" href="azure-icons/azure-cost-management.svg" xlink:href="azure-icons/azure-cost-management.svg"/>
+    <text class="node-title" x="1792" y="400">Control group + retained Local Missions workload landing zone</text>
+    <text class="node-text" x="1792" y="432">3 identities/FICs • 2 custom roles • budget/action group • empty workload RG • 8 scoped RBAC</text>
+    <image x="1796" y="462" width="48" height="48" href="azure-icons/azure-dns-zone.svg" xlink:href="azure-icons/azure-dns-zone.svg"/>
+    <text class="small" x="1858" y="485">DNS / verification</text>
+    <image x="2048" y="462" width="48" height="48" href="azure-icons/azure-managed-identity.svg" xlink:href="azure-icons/azure-managed-identity.svg"/>
+    <text class="small" x="2110" y="485">OIDC app identities</text>
+    <image x="2325" y="462" width="48" height="48" href="azure-icons/azure-resource-group.svg" xlink:href="azure-icons/azure-resource-group.svg"/>
+    <text class="small" x="2387" y="485">Retained ownership</text>
+    <text class="tiny" x="1792" y="530" fill="#9b2c2c">Reader plan; group-scoped apply/destroy; five delegated app-data roles; Owner forbidden.</text>
+
+    <!-- Disposable workload -->
+    <rect x="1252" y="650" width="1456" height="970" rx="20" fill="#fffaf3" stroke="#d77a00" stroke-width="4" stroke-dasharray="14 9"/>
+    <text class="zone-title" x="1282" y="690">Disposable workload inside retained rg-local-missions-dev-eus2-001</text>
+    <text class="zone-subtitle" x="1282" y="718">27 core + 3 apps = 30 • exact stamp • group not created/deleted • activation disabled</text>
+
+    <!-- Compute boundary -->
+    <rect x="1288" y="752" width="620" height="512" rx="18" fill="#edf7ff" stroke="#2b88d8" stroke-width="3"/>
+    <text class="zone-title" x="1316" y="790">Container Apps compute boundary</text>
+    <text class="zone-subtitle" x="1316" y="817">Environment public endpoint • HTTPS only • reviewed dev CIDRs</text>
+
+    <rect class="node" x="1322" y="850" width="248" height="154"/>
+    <image x="1347" y="879" width="62" height="62" href="azure-icons/azure-container-registry.svg" xlink:href="azure-icons/azure-container-registry.svg"/>
+    <text class="node-title" x="1427" y="880">ACR Basic</text>
+    <text class="small" x="1427" y="909">Digest-pinned images</text>
+    <text class="small" x="1427" y="934">Admin/local users off</text>
+    <text class="tiny" x="1427" y="966">Images not published</text>
+
+    <rect class="node" x="1594" y="850" width="280" height="154"/>
+    <image x="1618" y="875" width="62" height="62" href="azure-icons/azure-container-apps-environment.svg" xlink:href="azure-icons/azure-container-apps-environment.svg"/>
+    <text class="node-title" x="1697" y="878">API Container App</text>
+    <text class="small" x="1697" y="907">NestJS / Fastify</text>
+    <text class="small" x="1697" y="932">External HTTPS ingress</text>
+    <image x="1811" y="949" width="34" height="34" href="azure-icons/azure-managed-identity.svg" xlink:href="azure-icons/azure-managed-identity.svg"/>
+    <text class="tiny" x="1697" y="971">API UAMI • 0–1 replica</text>
+
+    <rect class="node" x="1322" y="1040" width="248" height="154"/>
+    <image x="1347" y="1067" width="62" height="62" href="azure-icons/azure-container-apps-environment.svg" xlink:href="azure-icons/azure-container-apps-environment.svg"/>
+    <text class="node-title" x="1427" y="1069">Dashboard</text>
+    <text class="small" x="1427" y="1098">Next.js standalone</text>
+    <text class="small" x="1427" y="1123">External HTTPS ingress</text>
+    <text class="tiny" x="1427" y="1165">Dashboard UAMI • ACR only</text>
+
+    <rect class="node" x="1594" y="1040" width="280" height="154"/>
+    <image x="1618" y="1067" width="62" height="62" href="azure-icons/azure-container-app-worker.svg" xlink:href="azure-icons/azure-container-app-worker.svg"/>
+    <text class="node-title" x="1697" y="1069">Worker Container App</text>
+    <text class="small" x="1697" y="1098">No ingress • queue scale</text>
+    <text class="small" x="1697" y="1123">Background outbox work</text>
+    <image x="1811" y="1140" width="34" height="34" href="azure-icons/azure-managed-identity.svg" xlink:href="azure-icons/azure-managed-identity.svg"/>
+    <text class="tiny" x="1697" y="1165">Worker UAMI • 0–1 replica</text>
+
+    <rect x="1322" y="1210" width="552" height="34" rx="17" fill="#dff1ff"/>
+    <text class="tiny" x="1598" y="1232" text-anchor="middle" fill="#005a9e">Single revision • max 1 inactive revision • 0.25 vCPU / 0.5 GiB each</text>
+
+    <!-- Data security boundary -->
+    <rect x="1934" y="752" width="738" height="512" rx="18" fill="#fff7ed" stroke="#d77a00" stroke-width="3" stroke-dasharray="6 6"/>
+    <text class="zone-title" x="1962" y="790">PaaS data security boundary</text>
+    <text class="zone-subtitle" x="1962" y="817">TLS 1.2 • public endpoints temporarily enabled • default-deny + narrow IP rules</text>
+
+    <rect class="node" x="1970" y="850" width="320" height="154"/>
+    <image x="1996" y="878" width="62" height="62" href="azure-icons/azure-database-postgresql.svg" xlink:href="azure-icons/azure-database-postgresql.svg"/>
+    <text class="node-title" x="2074" y="878">PostgreSQL Flexible</text>
+    <text class="small" x="2074" y="907">B1ms • 32 GiB • PG 16</text>
+    <text class="small" x="2074" y="932">Entra-only administrator</text>
+    <text class="tiny" x="2074" y="966" fill="#9b2c2c">App DB grants: open gate</text>
+
+    <rect class="node" x="2312" y="850" width="320" height="154"/>
+    <image x="2338" y="878" width="62" height="62" href="azure-icons/azure-storage-account.svg" xlink:href="azure-icons/azure-storage-account.svg"/>
+    <text class="node-title" x="2416" y="878">Blob Storage</text>
+    <text class="small" x="2416" y="907">Hot LRS • private containers</text>
+    <text class="small" x="2416" y="932">Shared Key / anonymous off</text>
+    <text class="tiny" x="2416" y="966">media • locality • exports</text>
+
+    <rect class="node" x="1970" y="1040" width="320" height="154"/>
+    <image x="1996" y="1068" width="62" height="62" href="azure-icons/azure-service-bus.svg" xlink:href="azure-icons/azure-service-bus.svg"/>
+    <text class="node-title" x="2074" y="1068">Service Bus Standard</text>
+    <text class="small" x="2074" y="1097">mission-events queue</text>
+    <text class="small" x="2074" y="1122">Duplicate detect • DLQ</text>
+    <text class="tiny" x="2074" y="1166">Local auth disabled</text>
+
+    <rect class="node" x="2312" y="1040" width="320" height="154"/>
+    <image x="2338" y="1068" width="62" height="62" href="azure-icons/azure-key-vault.svg" xlink:href="azure-icons/azure-key-vault.svg"/>
+    <text class="node-title" x="2416" y="1068">Key Vault Standard</text>
+    <text class="small" x="2416" y="1097">RBAC-only • purge protection</text>
+    <text class="small" x="2416" y="1122">No Terraform secret values</text>
+    <text class="tiny" x="2416" y="1166" fill="#9b2c2c">Secrets not populated</text>
+
+    <rect x="1970" y="1210" width="662" height="34" rx="17" fill="#fff0dc"/>
+    <text class="tiny" x="2301" y="1232" text-anchor="middle" fill="#944800">Phase B dev exposure only — not an approved production edge or data-plane topology</text>
+
+    <!-- Observability -->
+    <rect x="1288" y="1300" width="650" height="242" rx="18" fill="#f1f8ff" stroke="#0078d4" stroke-width="3"/>
+    <text class="zone-title" x="1316" y="1338">Observability boundary</text>
+    <text class="zone-subtitle" x="1316" y="1365">Local auth off • 30-day capped retention • sanitized correlation</text>
+    <rect class="node" x="1322" y="1395" width="276" height="112"/>
+    <image x="1346" y="1418" width="55" height="55" href="azure-icons/azure-application-insights.svg" xlink:href="azure-icons/azure-application-insights.svg"/>
+    <text class="node-title" x="1421" y="1422">Application Insights</text>
+    <text class="small" x="1421" y="1451">Traces / failures</text>
+    <text class="tiny" x="1421" y="1480">No keys exported</text>
+    <rect class="node" x="1622" y="1395" width="280" height="112"/>
+    <image x="1646" y="1418" width="55" height="55" href="azure-icons/azure-log-analytics.svg" xlink:href="azure-icons/azure-log-analytics.svg"/>
+    <text class="node-title" x="1721" y="1422">Log Analytics</text>
+    <text class="small" x="1721" y="1451">Container logs</text>
+    <text class="tiny" x="1721" y="1480">Internet query off</text>
+
+    <!-- Deferred networking -->
+    <rect x="1968" y="1300" width="704" height="242" rx="18" fill="#f3f4f6" stroke="#7b8792" stroke-width="3" stroke-dasharray="12 8"/>
+    <text class="zone-title" x="1998" y="1338" fill="#52616e">Deferred Phase C network hardening</text>
+    <text class="node-text" x="1998" y="1380">VNet integration • private endpoints • private DNS</text>
+    <text class="node-text" x="1998" y="1413">Managed edge / WAF / production ingress decision</text>
+    <text class="node-text" x="1998" y="1446">Egress controls and trusted service paths</text>
+    <rect x="1998" y="1470" width="630" height="42" rx="12" fill="#e3e6e8"/>
+    <text class="small" x="2313" y="1497" text-anchor="middle" fill="#4f5b65" font-weight="700">NOT IMPLEMENTED — mandatory staging / production architecture gate</text>
+
+    <!-- Numbered flows -->
+    <path d="M526 352 H662" class="identity-bi"/>
+    <circle cx="594" cy="352" r="19" class="num-identity"/><text class="num-text" x="594" y="352">1</text>
+
+    <path d="M526 417 H590 V735 H1200 V927 H1594" class="runtime"/>
+    <circle cx="1182" cy="735" r="19" class="num-runtime"/><text class="num-text" x="1182" y="735">2</text>
+    <rect x="865" y="706" width="294" height="34" rx="17" fill="#eef3f7"/><text class="tiny" x="1012" y="728" text-anchor="middle">HTTPS + bearer/session bootstrap</text>
+
+    <path d="M526 610 H604 V748 H1190 V1117 H1322" class="runtime"/>
+    <circle cx="1182" cy="1117" r="19" class="num-runtime"/><text class="num-text" x="1182" y="1117">3</text>
+
+    <path d="M1570 1117 H1583 V988 H1594" class="runtime"/>
+    <circle cx="1582" cy="1031" r="19" class="num-runtime"/><text class="num-text" x="1582" y="1031">4</text>
+
+    <path d="M1874 905 H1970" class="managed"/>
+    <circle cx="1922" cy="905" r="19" class="num-managed"/><text class="num-text" x="1922" y="905">5</text>
+    <path d="M1874 934 H1922 V1117 H1970" class="managed"/>
+    <path d="M1874 952 H1930 V1020 H2274 V927 H2312" class="managed"/>
+    <path d="M1874 968 H1940 V1200 H2288 V1117 H2312" class="managed"/>
+
+    <path d="M1970 1145 H1874" class="managed"/>
+    <circle cx="1922" cy="1145" r="19" class="num-managed"/><text class="num-text" x="1922" y="1145">6</text>
+
+    <path d="M1570 927 H1594" class="managed"/>
+    <path d="M1450 1004 V1028" class="managed"/>
+    <path d="M1570 960 H1582 V1117 H1594" class="managed"/>
+    <circle cx="1581" cy="960" r="19" class="num-managed"/><text class="num-text" x="1581" y="960">7</text>
+
+    <path d="M1734 1194 V1280 H1457 V1395" class="observe"/>
+    <path d="M1734 1194 V1280 H1762 V1395" class="observe"/>
+    <circle cx="1734" cy="1280" r="19" class="num-observe"/><text class="num-text" x="1734" y="1280">8</text>
+
+    <path d="M304 948 V802 H625 V628 H662" class="control"/>
+    <circle cx="625" cy="802" r="19" class="num-control"/><text class="num-text" x="625" y="802">9</text>
+
+    <path d="M1118 628 H1190 V450 H1292" class="control"/>
+    <circle cx="1190" cy="628" r="19" class="num-control"/><text class="num-text" x="1190" y="628">10</text>
+    <path d="M1190 628 V682 H1252" class="control"/>
+
+    <path d="M1670 525 H1215 V1568 H1116" class="control"/>
+    <circle cx="1215" cy="1568" r="19" class="num-control"/><text class="num-text" x="1215" y="1568">11</text>
+
+    <!-- Flow legend -->
+    <rect x="50" y="1710" width="2700" height="340" rx="22" fill="#ffffff" stroke="#b5c5d2" stroke-width="2"/>
+    <text class="zone-title" x="82" y="1754">Numbered flows and control semantics</text>
+    <line x1="82" y1="1774" x2="2718" y2="1774" stroke="#d7e0e8" stroke-width="2"/>
+
+    <g transform="translate(92,1803)">
+      <circle cx="18" cy="18" r="18" class="num-identity"/><text class="num-text" x="18" y="18">1</text>
+      <text class="legend-title" x="48" y="16">Customer authentication</text><text class="legend-text" x="48" y="40">System browser OIDC Authorization Code + PKCE; exact redirect, issuer, audience, scopes, nonce, and JWKS.</text>
+      <circle cx="18" cy="86" r="18" class="num-runtime"/><text class="num-text" x="18" y="86">2</text>
+      <text class="legend-title" x="48" y="84">Native API access</text><text class="legend-text" x="48" y="108">iOS presents short-lived bearer/session context over HTTPS; authorization is server/database derived.</text>
+      <circle cx="18" cy="154" r="18" class="num-runtime"/><text class="num-text" x="18" y="154">3</text>
+      <text class="legend-title" x="48" y="152">Web delivery</text><text class="legend-text" x="48" y="176">Browser reaches the CIDR-restricted dashboard HTTPS ingress; no employee role exists in the iOS mode switch.</text>
+      <circle cx="18" cy="222" r="18" class="num-runtime"/><text class="num-text" x="18" y="222">4</text>
+      <text class="legend-title" x="48" y="220">Dashboard-to-API</text><text class="legend-text" x="48" y="244">Dashboard uses the API FQDN over HTTPS; API remains the authorization and domain boundary.</text>
+    </g>
+
+    <g transform="translate(995,1803)">
+      <circle cx="18" cy="18" r="18" class="num-managed"/><text class="num-text" x="18" y="18">5</text>
+      <text class="legend-title" x="48" y="16">API managed identity</text><text class="legend-text" x="48" y="40">Blob Contributor, Service Bus Sender, Key Vault Secrets User; PostgreSQL database grants remain an open gate.</text>
+      <circle cx="18" cy="86" r="18" class="num-managed"/><text class="num-text" x="18" y="86">6</text>
+      <text class="legend-title" x="48" y="84">Worker consumption</text><text class="legend-text" x="48" y="108">Worker UAMI receives mission-events, processes retries/DLQ paths, and accesses Blob/Key Vault without shared keys.</text>
+      <circle cx="18" cy="154" r="18" class="num-managed"/><text class="num-text" x="18" y="154">7</text>
+      <text class="legend-title" x="48" y="152">Image supply chain</text><text class="legend-text" x="48" y="176">Each app UAMI has AcrPull only; runtime images require immutable SHA-256 digests.</text>
+      <circle cx="18" cy="222" r="18" class="num-observe"/><text class="num-text" x="18" y="222">8</text>
+      <text class="legend-title" x="48" y="220">Telemetry</text><text class="legend-text" x="48" y="244">Container logs and application correlation flow to capped Log Analytics/Application Insights with local auth off.</text>
+    </g>
+
+    <g transform="translate(1900,1803)">
+      <circle cx="18" cy="18" r="18" class="num-control"/><text class="num-text" x="18" y="18">9</text>
+      <text class="legend-title" x="48" y="16">GitHub federation</text><text class="legend-text" x="48" y="40">Protected job requests a short-lived OIDC token; no Azure client secret is stored in GitHub.</text>
+      <circle cx="18" cy="86" r="18" class="num-control"/><text class="num-text" x="18" y="86">10</text>
+      <text class="legend-title" x="48" y="84">Scoped infrastructure control</text><text class="legend-text" x="48" y="108">Plan = Reader; apply/destroy are condition-limited at the Local Missions landing zone only.</text>
+      <circle cx="18" cy="154" r="18" class="num-control"/><text class="num-text" x="18" y="154">11</text>
+      <text class="legend-title" x="48" y="152">Cost and expiry control</text><text class="legend-text" x="48" y="176">Alerts route to a monitored owner; expiry controller warns, then drives reviewed teardown and reconciliation.</text>
+      <rect x="0" y="204" width="760" height="56" rx="13" fill="#f3f4f6"/>
+      <text class="legend-text" x="380" y="228" text-anchor="middle" font-weight="700">Solid = runtime • purple = identity • green = managed identity/RBAC</text>
+      <text class="legend-text" x="380" y="250" text-anchor="middle" font-weight="700">Orange dashed = privileged control • grey dashed boundary = deferred</text>
+    </g>
+  </g>
+</svg>

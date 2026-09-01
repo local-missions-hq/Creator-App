@@ -7,6 +7,7 @@ const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const contract = readJson('config/ephemeral-run-ledger.v1.json');
 const foundation = readJson('config/terraform-foundation.v1.json');
 const savedPlanContract = readJson('config/saved-plan-evidence.v1.json');
+const readiness = readJson('config/azure-plan-readiness.v1.json');
 const applyPlan = readJson('config/fixtures/saved-plan-evidence/apply.valid.json');
 const destroyPlan = readJson('config/fixtures/saved-plan-evidence/destroy.valid.json');
 const fixtureRoot = join(repositoryRoot, contract.fixtureRoot);
@@ -276,6 +277,11 @@ function assertContractCoherence() {
     contract.checkpoint === 'M05-ephemeral-run-ledger-contract-local-006',
     'Run-ledger checkpoint identifier drifted.',
   );
+  assert(
+    contract.activationUseAllowed === false &&
+      contract.supersededForActivationBy === readiness.checkpoint,
+    'The V1 run ledger must remain historical and superseded for two-phase activation.',
+  );
   assert(contract.digestAlgorithm === 'sha256', 'Run ledger must use SHA-256.');
   assert(contract.fixtures.length === 3, 'Exactly three terminal fixtures are required.');
   assert(
@@ -317,8 +323,12 @@ function assertContractCoherence() {
     'Required test-gate inventory drifted.',
   );
   assert(
-    contract.inventoryContract.expectedDisposableTotalBeforeDestroy ===
-      foundation.workloadResourceInventory.total &&
+    contract.inventoryContract.disposableTypeCountsSource ===
+      'historical-v1-workload-resource-inventory' &&
+      contract.inventoryContract.expectedDisposableTotalBeforeDestroy === 31 &&
+      foundation.workloadResourceInventory.total === 30 &&
+      contract.inventoryContract.expectedDisposableTotalBeforeDestroy !==
+        foundation.workloadResourceInventory.total &&
       contract.inventoryContract.expectedDisposableTotalAfterCleanDestroy === 0 &&
       contract.inventoryContract.unexpectedRetainedAllowed === false &&
       contract.inventoryContract.independentLiveAndStateQueriesRequired === true,
@@ -529,14 +539,12 @@ function assertInventories(ledger) {
   const after = ledger.inventories.disposableAfter;
   const retained = ledger.inventories.retained;
   assert(
-    before.total === foundation.workloadResourceInventory.total,
+    before.total === contract.inventoryContract.expectedDisposableTotalBeforeDestroy,
     'Disposable-before total drifted.',
   );
   assert(
     JSON.stringify(before.typeCounts) ===
-      JSON.stringify(foundation.workloadResourceInventory, (key, value) =>
-        key === 'total' ? undefined : value,
-      ),
+      JSON.stringify(contract.inventoryContract.historicalDisposableTypeCounts),
     'Disposable resource-type inventory drifted.',
   );
   assert(
@@ -1052,5 +1060,5 @@ for (const fixture of contract.fixtures) {
 const refusalCount = assertRefusals(validLedgers);
 
 console.log(
-  `Ephemeral run-ledger gate passed for ${validLedgers.size} terminal synthetic ledgers, ${contract.states.length} states, ${Object.values(contract.allowedTransitions).flat().length} allowed transitions, ${contract.requiredTestGates.length} required test gates, ${refusalCount} refusal scenarios, and separate disposable/retained inventories; cloud execution remains disabled.`,
+  `Historical V1 run-ledger gate passed for ${validLedgers.size} terminal synthetic ledgers, ${contract.states.length} states, ${Object.values(contract.allowedTransitions).flat().length} allowed transitions, ${contract.requiredTestGates.length} required test gates, ${refusalCount} refusal scenarios, and separate disposable/retained inventories; it is not valid for two-phase Azure activation.`,
 );

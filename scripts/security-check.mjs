@@ -1,12 +1,13 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { lstatSync, readFileSync } from 'node:fs';
 
 const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], {
   encoding: 'utf8',
 })
   .split('\n')
   .filter(Boolean)
-  .filter((file) => !/\.(docx|pdf|png|jpe?g|gif|webp)$/i.test(file));
+  .filter((file) => !/\.(docx|pdf|png|jpe?g|gif|webp|xlsx|xls|zip)$/i.test(file))
+  .filter((file) => lstatSync(file).isFile());
 
 const highConfidencePatterns = [
   /sk_(?:live|test)_[A-Za-z0-9]{16,}/,

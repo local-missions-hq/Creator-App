@@ -5,8 +5,64 @@ variable "location" {
   nullable    = false
 
   validation {
-    condition     = can(regex("^[a-z][a-z0-9]+$", var.location))
-    error_message = "location must be an explicit lowercase Azure region name."
+    condition     = var.location == "eastus2"
+    error_message = "The reviewed development root is restricted to eastus2."
+  }
+}
+
+variable "cost_profile" {
+  description = "Reviewed plan-only or bounded same-day Azure cost tier."
+  type        = string
+  default     = "plan-only"
+  nullable    = false
+
+  validation {
+    condition = contains([
+      "plan-only",
+      "smoke-2h",
+      "integration-4h",
+      "full-8h",
+    ], var.cost_profile)
+    error_message = "cost_profile must be plan-only, smoke-2h, integration-4h, or full-8h."
+  }
+}
+
+variable "provider_scope_validation_enabled" {
+  description = "Read-only validation of the active AzureRM subscription and tenant during an explicitly approved provider-backed plan."
+  type        = bool
+  default     = false
+  nullable    = false
+}
+
+variable "expected_subscription_id" {
+  description = "Expected subscription UUID, supplied only through the process environment for scope validation."
+  type        = string
+  default     = ""
+  nullable    = false
+  sensitive   = true
+
+  validation {
+    condition = (
+      var.expected_subscription_id == "" ||
+      can(regex("^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", lower(var.expected_subscription_id)))
+    )
+    error_message = "expected_subscription_id must be empty or a UUID supplied outside source control."
+  }
+}
+
+variable "expected_tenant_id" {
+  description = "Expected Microsoft Entra tenant UUID, supplied only through the process environment for scope validation."
+  type        = string
+  default     = ""
+  nullable    = false
+  sensitive   = true
+
+  validation {
+    condition = (
+      var.expected_tenant_id == "" ||
+      can(regex("^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", lower(var.expected_tenant_id)))
+    )
+    error_message = "expected_tenant_id must be empty or a UUID supplied outside source control."
   }
 }
 
@@ -23,20 +79,46 @@ variable "environment" {
 }
 
 variable "workload_resource_group_name" {
-  description = "Exact disposable development workload target. Broad or retained targets are forbidden."
+  description = "Exact retained Local Missions landing-zone boundary; all resources inside it remain stamped and disposable."
   type        = string
   nullable    = false
 
   validation {
     condition = (
-      can(regex("^rg-local-missions-dev-[a-z0-9-]+$", var.workload_resource_group_name)) &&
+      (
+        var.workload_resource_group_name == "rg-local-missions-dev-eus2-001" ||
+        (!var.azure_resource_creation_enabled && can(regex("^rg-local-missions-dev-e2r[0-9]{8}$", var.workload_resource_group_name)))
+      ) &&
       var.workload_resource_group_name != var.control_plane_resource_group_name &&
       var.workload_resource_group_name != var.state_resource_group_name &&
       !strcontains(lower(var.workload_resource_group_name), "control") &&
       !strcontains(lower(var.workload_resource_group_name), "state")
     )
-    error_message = "workload_resource_group_name must be one explicit dev workload group and cannot overlap retained scopes."
+    error_message = "workload_resource_group_name must be the exact retained Local Missions dev landing-zone for activation; an exact stamped target is accepted only by the historical zero-resource provider-scope test."
   }
+}
+
+variable "subscription_placement" {
+  description = "Approved Azure isolation model inherited from the retained control plane."
+  type        = string
+  default     = "undecided"
+  nullable    = false
+
+  validation {
+    condition = contains([
+      "undecided",
+      "dedicated-local-missions",
+      "shared-nonproduction",
+    ], var.subscription_placement)
+    error_message = "subscription_placement must be undecided, dedicated-local-missions, or shared-nonproduction."
+  }
+}
+
+variable "workload_landing_zone_revalidated" {
+  description = "True only after provider-backed evidence confirms the exact Local Missions landing-zone name and retained ownership tags."
+  type        = bool
+  default     = false
+  nullable    = false
 }
 
 variable "control_plane_resource_group_name" {
@@ -211,8 +293,9 @@ variable "azure_resource_creation_enabled" {
         length(trimspace(var.apply_approval_reference)) >= 8 &&
         var.approved_monthly_budget_usd > 0 &&
         var.region_and_sku_revalidated &&
+        var.subscription_placement != "undecided" &&
+        var.workload_landing_zone_revalidated &&
         var.identity_references_revalidated &&
-        var.artifact_references_revalidated &&
         length(var.identity_reference_contract.tenant_id) > 0 &&
         length(var.identity_reference_contract.postgres_administrator_object_id) > 0 &&
         length(var.network_contract.allowed_ipv4_cidrs) > 0 &&
@@ -221,6 +304,24 @@ variable "azure_resource_creation_enabled" {
       )
     )
     error_message = "Azure activation requires apply approval, budget, current region/SKU review, narrow CIDRs, retained cleanup controller, and a non-placeholder monitored destination."
+  }
+}
+
+variable "application_activation_enabled" {
+  description = "Adds API, dashboard, and worker only after immutable images are present in the newly created disposable ACR."
+  type        = bool
+  default     = false
+  nullable    = false
+
+  validation {
+    condition = (
+      !var.application_activation_enabled ||
+      (
+        var.azure_resource_creation_enabled &&
+        var.artifact_references_revalidated
+      )
+    )
+    error_message = "Application activation requires the Azure core plan and reviewed immutable image artifacts."
   }
 }
 
@@ -402,14 +503,17 @@ variable "storage_access_contract" {
 }
 
 variable "resource_name_suffix" {
-  description = "Synthetic or approved unique suffix for global resource names."
+  description = "Synthetic fixture suffix or approved unique eastus2 ephemeral deployment stamp."
   type        = string
   default     = "example"
   nullable    = false
 
   validation {
-    condition     = can(regex("^[a-z0-9]{6,12}$", var.resource_name_suffix))
-    error_message = "resource_name_suffix must be six-to-twelve lowercase letters or numbers."
+    condition = (
+      var.resource_name_suffix == "example" ||
+      can(regex("^e2r[0-9]{8}$", var.resource_name_suffix))
+    )
+    error_message = "resource_name_suffix must be the synthetic example or a unique e2rYYMMDDNN deployment stamp."
   }
 }
 

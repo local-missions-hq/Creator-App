@@ -1,0 +1,121 @@
+name: Azure OIDC no-apply proof
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: azure-oidc-proof-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  identity-proof:
+    name: ${{ matrix.operation }} identity proof
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: azure-development-${{ matrix.operation }}
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        operation: [plan, apply, destroy]
+    steps:
+      - name: Mask process-only Azure identifiers
+        shell: bash
+        run: |
+          echo "::add-mask::${{ vars.AZURE_CLIENT_ID }}"
+          echo "::add-mask::${{ vars.AZURE_SUBSCRIPTION_ID }}"
+          echo "::add-mask::${{ vars.AZURE_TENANT_ID }}"
+
+      - name: Exchange GitHub OIDC token for Azure access
+        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+
+      - name: Verify identity, exact scope, and effective permissions
+        shell: bash
+        env:
+          OPERATION: ${{ matrix.operation }}
+          EXPECTED_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          set -euo pipefail
+
+          actual_subscription="$(az account show --query id -o tsv)"
+          test "$actual_subscription" = "$EXPECTED_SUBSCRIPTION_ID"
+          test "$(az account show --query state -o tsv)" = "Enabled"
+
+          az account get-access-token \
+            --resource https://management.azure.com/ \
+            --query expiresOn \
+            -o none
+          az account get-access-token \
+            --resource https://storage.azure.com/ \
+            --query expiresOn \
+            -o none
+
+          landing_scope="/subscriptions/${EXPECTED_SUBSCRIPTION_ID}/resourceGroups/rg-local-missions-dev-eus2-001"
+          state_scope="/subscriptions/${EXPECTED_SUBSCRIPTION_ID}/resourceGroups/rg-local-missions-state-eus2-001/providers/Microsoft.Storage/storageAccounts/stlmtfse2001/blobServices/default/containers/tfstate"
+
+          landing="$(az group show --name rg-local-missions-dev-eus2-001 -o json)"
+          test "$(jq -r '.name' <<<"$landing")" = "rg-local-missions-dev-eus2-001"
+          test "$(jq -r '.tags.application' <<<"$landing")" = "local-missions"
+          test "$(jq -r '.tags.lifecycle' <<<"$landing")" = "retained-boundary"
+
+          if az group show --name rg-local-missions-control-eus2-001 -o none 2>/dev/null; then
+            echo "Identity unexpectedly crossed into the retained control group." >&2
+            exit 1
+          fi
+
+          workload_permissions="$(az rest --method get --url "https://management.azure.com${landing_scope}/providers/Microsoft.Authorization/permissions?api-version=2022-04-01")"
+          state_permissions="$(az rest --method get --url "https://management.azure.com${state_scope}/providers/Microsoft.Authorization/permissions?api-version=2022-04-01")"
+
+          jq -e '[.value[].dataActions[]?] | any(contains("blobServices/containers/blobs"))' \
+            <<<"$state_permissions" >/dev/null
+
+          case "$OPERATION" in
+            plan)
+              jq -e '[.value[].actions[]?] | index("*/read") != null' \
+                <<<"$workload_permissions" >/dev/null
+              jq -e '[.value[].actions[]? | select(test("write|delete|action"; "i"))] | length == 0' \
+                <<<"$workload_permissions" >/dev/null
+              ;;
+            apply)
+              jq -e '[.value[].actions[]?] | index("Microsoft.App/*") != null' \
+                <<<"$workload_permissions" >/dev/null
+              jq -e '[.value[].notActions[]?] | index("*/delete") != null' \
+                <<<"$workload_permissions" >/dev/null
+              ;;
+            destroy)
+              jq -e '[.value[].actions[]?] | index("*/delete") != null' \
+                <<<"$workload_permissions" >/dev/null
+              jq -e '[.value[].notActions[]?] | index("Microsoft.Resources/subscriptions/resourceGroups/delete") != null' \
+                <<<"$workload_permissions" >/dev/null
+              ;;
+            *)
+              exit 1
+              ;;
+          esac
+
+          set +e
+          az storage blob show \
+            --auth-mode login \
+            --account-name stlmtfse2001 \
+            --container-name tfstate \
+            --name local-missions/control-plane.tfstate \
+            -o none >/dev/null 2>&1
+          blob_status=$?
+          set -e
+          test "$blob_status" -ne 0
+
+          echo "OIDC and ARM permission proof passed for ${OPERATION}; the state data plane remains blocked by the default-deny firewall." >>"$GITHUB_STEP_SUMMARY"
+
+      - name: Clear Azure CLI session
+        if: ${{ always() }}
+        shell: bash
+        run: az logout || true

@@ -1,7 +1,7 @@
 {
   "activationStatus": "local_contract_only",
   "azureCompletionClaimed": false,
-  "checkpoint": "M05-dashboard-workload-module-local-008",
+  "checkpoint": "M05-control-plane-applied-verified-022",
   "expirationPolicy": {
     "cutoffHourAmericaNewYork": 23,
     "fixtures": [
@@ -52,13 +52,17 @@
       "azurerm_container_app",
       "azurerm_container_app_environment",
       "azurerm_container_registry",
+      "azurerm_consumption_budget_subscription",
+      "azurerm_federated_identity_credential",
       "azurerm_key_vault",
       "azurerm_log_analytics_workspace",
+      "azurerm_monitor_action_group",
       "azurerm_postgresql_flexible_server",
       "azurerm_postgresql_flexible_server_active_directory_administrator",
       "azurerm_postgresql_flexible_server_database",
       "azurerm_postgresql_flexible_server_firewall_rule",
       "azurerm_resource_group",
+      "azurerm_role_definition",
       "azurerm_role_assignment",
       "azurerm_servicebus_namespace",
       "azurerm_servicebus_queue",
@@ -66,7 +70,8 @@
       "azurerm_storage_container",
       "azurerm_user_assigned_identity"
     ],
-    "enabledPlanResourceChanges": 31,
+    "enabledPlanResourceChanges": 30,
+    "corePlanResourceChanges": 27,
     "providerSource": "hashicorp/azurerm",
     "providerVersion": "5.0.1",
     "plannedResourceTypeCounts": {
@@ -80,7 +85,26 @@
       "azurerm_postgresql_flexible_server_active_directory_administrator": 1,
       "azurerm_postgresql_flexible_server_database": 1,
       "azurerm_postgresql_flexible_server_firewall_rule": 1,
-      "azurerm_resource_group": 1,
+      "azurerm_resource_group": 0,
+      "azurerm_role_assignment": 9,
+      "azurerm_servicebus_namespace": 1,
+      "azurerm_servicebus_queue": 1,
+      "azurerm_storage_account": 1,
+      "azurerm_storage_container": 3,
+      "azurerm_user_assigned_identity": 3
+    },
+    "corePlannedResourceTypeCounts": {
+      "azurerm_application_insights": 1,
+      "azurerm_container_app": 0,
+      "azurerm_container_app_environment": 1,
+      "azurerm_container_registry": 1,
+      "azurerm_key_vault": 1,
+      "azurerm_log_analytics_workspace": 1,
+      "azurerm_postgresql_flexible_server": 1,
+      "azurerm_postgresql_flexible_server_active_directory_administrator": 1,
+      "azurerm_postgresql_flexible_server_database": 1,
+      "azurerm_postgresql_flexible_server_firewall_rule": 1,
+      "azurerm_resource_group": 0,
       "azurerm_role_assignment": 9,
       "azurerm_servicebus_namespace": 1,
       "azurerm_servicebus_queue": 1,
@@ -108,6 +132,138 @@
       "azurerm_storage_account",
       "azurerm_user_assigned_identity"
     ]
+  },
+  "bootstrapContract": {
+    "enabledPlanResourceChanges": 3,
+    "monthlyRetainedStateCostCeilingUsd": 1,
+    "plannedResourceTypeCounts": {
+      "azurerm_resource_group": 1,
+      "azurerm_storage_account": 1,
+      "azurerm_storage_container": 1
+    },
+    "refusalFixtures": [
+      {
+        "fixture": "fixtures/invalid-activation.tfvars.json",
+        "marker": "Bootstrap activation requires"
+      },
+      {
+        "fixture": "fixtures/invalid-network.tfvars.json",
+        "marker": "State access requires"
+      },
+      {
+        "fixture": "fixtures/invalid-target.tfvars.json",
+        "marker": "retained state resource group"
+      },
+      {
+        "fixture": "fixtures/invalid-retained-cost.tfvars.json",
+        "marker": "retained-cost acceptance"
+      },
+      {
+        "fixture": "fixtures/invalid-dedicated-isolation.tfvars.json",
+        "marker": "Bootstrap activation requires"
+      },
+      {
+        "fixture": "fixtures/invalid-provider-scope.tfvars.json",
+        "marker": "active AzureRM provider scope"
+      }
+    ],
+    "requiredTags": [
+      "application",
+      "application_code",
+      "environment",
+      "lifecycle",
+      "managed_by",
+      "owner",
+      "purpose",
+      "region",
+      "terraform_root"
+    ],
+    "rootId": "bootstrap",
+    "safeguards": {
+      "anonymousAccess": false,
+      "containerAccessType": "private",
+      "defaultNetworkAction": "Deny",
+      "deleteRetentionDays": 30,
+      "infrastructureEncryption": true,
+      "preventDestroy": true,
+      "sharedKeyEnabled": false,
+      "storageUsesMicrosoftEntra": true,
+      "versioningEnabled": true
+    }
+  },
+  "controlPlaneContract": {
+    "budgetAlertCount": 6,
+    "budgetFilter": "tag:application=local-missions",
+    "delegatedWorkloadRoleDefinitionCount": 5,
+    "delegatedWorkloadRoleDefinitionIds": [
+      "4633458b-17de-408a-b874-0445c86b69e6",
+      "4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0",
+      "69a216fc-b8fb-44d8-bc22-1f3c2cd27a39",
+      "7f951dda-4ed3-4680-a7ca-43fe172d538d",
+      "ba92f5b4-2d11-453d-a403-e96b0029c9fe"
+    ],
+    "customWorkloadRoleDefinitionCount": 2,
+    "customWorkloadRoleDefinitionIds": [
+      "1e57cd73-5573-406d-9642-17cfcbbba237",
+      "7724a7af-466e-4f89-897c-2c5946cf5920"
+    ],
+    "applyIdentityCanDelete": false,
+    "destroyIdentityCanDeleteLandingZone": false,
+    "enabledPlanResourceChanges": 20,
+    "immutableGithubSubjectsRequired": true,
+    "plannedResourceTypeCounts": {
+      "azurerm_consumption_budget_subscription": 1,
+      "azurerm_federated_identity_credential": 3,
+      "azurerm_monitor_action_group": 1,
+      "azurerm_resource_group": 2,
+      "azurerm_role_definition": 2,
+      "azurerm_role_assignment": 8,
+      "azurerm_user_assigned_identity": 3
+    },
+    "refusalFixtures": [
+      {
+        "fixture": "fixtures/invalid-activation.tfvars.json",
+        "marker": "Control-plane activation requires"
+      },
+      {
+        "fixture": "fixtures/invalid-target.tfvars.json",
+        "marker": "control_plane_resource_group_name"
+      },
+      {
+        "fixture": "fixtures/invalid-github-subject.tfvars.json",
+        "marker": "exact immutable owner/repository-ID"
+      },
+      {
+        "fixture": "fixtures/invalid-alert-email.tfvars.json",
+        "marker": "valid monitored email"
+      },
+      {
+        "fixture": "fixtures/invalid-placement.tfvars.json",
+        "marker": "approved dedicated or shared placement"
+      },
+      {
+        "fixture": "fixtures/invalid-landing-zone-target.tfvars.json",
+        "marker": "workload_landing_zone_resource_group_name must use"
+      }
+    ],
+    "preventDestroyRequired": true,
+    "subscriptionScopeWorkloadRbacAllowed": false,
+    "stateBackendRoleAssignmentCount": 3,
+    "workloadLandingZoneResourceGroupName": "rg-local-missions-dev-eus2-001",
+    "workflowRoleAssignmentCount": 5,
+    "rootId": "control-plane",
+    "separateIdentityCount": 3
+  },
+  "providerRuntimeContract": {
+    "automaticResourceProviderRegistration": false,
+    "configuredMockProviderBlocks": 3,
+    "configuredProviderBlocks": 3,
+    "inlineAccountIdentifiersAllowed": false,
+    "landingZoneDataSources": 1,
+    "providerScopeDataSources": 3,
+    "providerScopePlanTests": 1,
+    "resourceProviderRegistrations": "none",
+    "storageUseAzureAd": true
   },
   "refusalFixtures": [
     {
@@ -161,6 +317,7 @@
   ],
   "requiredTags": [
     "application",
+    "application_code",
     "environment",
     "lifecycle",
     "managed_by",
@@ -169,26 +326,42 @@
     "terraform_root",
     "commit_sha",
     "created_at",
+    "cost_profile",
+    "deployment_stamp",
+    "region",
+    "run_ceiling_usd",
     "workload_resource_group",
     "expires_at"
   ],
   "roots": [
     {
+      "backendKey": "local-missions/bootstrap.tfstate",
+      "backendType": "azurerm",
+      "fixture": "fixtures/local-plan.tfvars.json",
+      "kind": "retained_state_bootstrap",
+      "path": "infra/terraform/bootstrap",
+      "planTests": 2,
+      "resourceGroupClass": "retained",
+      "rootId": "bootstrap"
+    },
+    {
       "backendKey": "local-missions/control-plane.tfstate",
+      "backendType": "azurerm",
       "fixture": "fixtures/local-plan.tfvars.json",
       "kind": "retained_control_plane",
       "path": "infra/terraform/control-plane",
-      "planTests": 1,
+      "planTests": 2,
       "resourceGroupClass": "retained",
       "rootId": "control-plane"
     },
     {
       "backendKey": "local-missions/dev-workload.tfstate",
+      "backendType": "azurerm",
       "fixture": "fixtures/local-plan.tfvars.json",
       "kind": "disposable_workload",
       "path": "infra/terraform/environments/dev",
-      "planTests": 2,
-      "resourceGroupClass": "disposable",
+      "planTests": 3,
+      "resourceGroupClass": "retained_boundary_disposable_contents",
       "rootId": "workload-dev"
     }
   ],
@@ -227,11 +400,22 @@
     "keyVault": 1,
     "postgresql": 4,
     "registry": 1,
-    "resourceGroup": 1,
+    "resourceGroup": 0,
     "serviceBus": 2,
     "storage": 4,
     "telemetry": 2,
-    "total": 31
+    "total": 30
+  },
+  "workloadCoreResourceInventory": {
+    "containerApps": 13,
+    "keyVault": 1,
+    "postgresql": 4,
+    "registry": 1,
+    "resourceGroup": 0,
+    "serviceBus": 2,
+    "storage": 4,
+    "telemetry": 2,
+    "total": 27
   },
   "terraformVersion": "1.15.7"
 }

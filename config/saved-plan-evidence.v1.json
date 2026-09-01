@@ -1,9 +1,12 @@
 {
   "activationStatus": "synthetic_contract_only",
+  "activationUseAllowed": false,
   "allFixturesSynthetic": true,
   "checkpoint": "M05-saved-plan-evidence-contract-local-005",
   "cloudEvidenceClaimed": false,
   "currentCiConsumerPresent": false,
+  "historicalFixtureModel": "single_apply_synthetic_only",
+  "supersededForActivationBy": "M05-control-plane-applied-verified-022",
   "digestAlgorithm": "sha256",
   "fixtureRoot": "config/fixtures/saved-plan-evidence",
   "operations": [
@@ -71,6 +74,7 @@
   "targetContract": {
     "backendKey": "local-missions/dev-workload.tfstate",
     "exactTerraformRoot": "infra/terraform/environments/dev",
+    "historicalTargetInventorySha256": "455671e530e0af5a956e8040743af27b168bd828e9dd5412287b7c76933c385a",
     "resourceGroupPattern": "^rg-local-missions-dev-[a-z0-9]{6,12}$",
     "retainedTargetCount": 0,
     "workloadResourceCount": 31

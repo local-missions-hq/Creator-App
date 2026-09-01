@@ -1,17 +1,17 @@
 # Ephemeral Azure development boundary
 
-Status: public service/cost review complete; Azure plan access and activation are blocked
+Status: retained-state bootstrap applied and migrated; control/workload plans and later applies remain separately gated
 
-This runbook separates the retained rebuild/cleanup control plane from the same-day disposable development workload. It does not authorize Azure login, planning against a subscription, apply, or destroy.
+This runbook separates the retained rebuild/cleanup control plane from the same-day disposable development workload. The three-resource retained-state bootstrap has been applied and migrated to its Entra-backed Blob backend under explicit authorization. This runbook does not by itself authorize the 20-resource control-plane apply, any disposable workload apply, deployment, or destroy.
 
 ## Root ownership
 
-| Root                               | State key                              | Resource-group class | May own                                                                                                                    | Must never own                                                                                                                |
-| ---------------------------------- | -------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `infra/terraform/control-plane`    | `local-missions/control-plane.tfstate` | Retained             | State/locking, scoped OIDC identities, identity registrations, stable verification DNS, subscription budgets/alerts/policy | Container Apps, PostgreSQL, workload storage/queues/secrets/telemetry/registry/dashboard/temp network                         |
-| `infra/terraform/environments/dev` | `local-missions/dev-workload.tfstate`  | Disposable           | The explicit `rg-local-missions-dev-*` application/data workload only                                                      | State backend, control-plane group, subscription root, tenant/identity registrations, stable DNS, subscription budgets/policy |
+| Root                               | State key                              | Resource-group class | May own                                                                                                                           | Must never own                                                                                                                |
+| ---------------------------------- | -------------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `infra/terraform/control-plane`    | `local-missions/control-plane.tfstate` | Retained boundary    | Scoped OIDC identities, cost controls, and the empty `rg-local-missions-dev-eus2-001` landing zone with constrained workflow RBAC | Container Apps, PostgreSQL, workload storage/queues/secrets/telemetry/registry/dashboard/temp network                         |
+| `infra/terraform/environments/dev` | `local-missions/dev-workload.tfstate`  | Disposable contents  | Exact-stamped application/data resources inside the retained Local Missions landing zone                                          | The landing-zone group itself, state backend, subscription root, tenant registrations, stable DNS, budgets/policy, other apps |
 
-The roots use separate backend keys and explicit non-overlapping resource-group names. A workload cleanup must refuse an empty, broad, changed, retained, or subscription-level target.
+The roots use separate backend keys. The workload root reads and validates the retained landing zone but cannot create or delete it. A workload cleanup must refuse an empty, broad, changed, retained, subscription-level, or other-project target.
 
 ## Local Phase A gate
 
@@ -21,23 +21,23 @@ Run only:
 pnpm terraform:check
 ```
 
-The gate runs Terraform 1.15.7 formatting, backend-disabled initialization/validation, and plan-only tests with synthetic fixture values. The default fixtures plan zero resource changes. The only enabled-shape test replaces AzureRM with Terraform's mock provider and expects exactly 28 create-only changes across 17 reviewed resource types for the disposable resource group, Storage, PostgreSQL, Container Apps, Service Bus, registry, Key Vault, and telemetry. Eleven refusal fixtures cover retained/broad targets, over-eight-hour expiration, activation without approvals, wrong environment, unsafe scale, broad/weak networking, unbounded backup, anonymous Blob access, incomplete identity references, mutable images, and unsafe secret/reference settings.
+The gate runs Terraform 1.15.7 formatting, backend-disabled initialization/validation, and plan-only tests with synthetic fixture values. All default fixtures plan zero resource changes. AzureRM mock-provider tests prove a three-resource retained-state bootstrap, a 20-resource retained identity/cost/landing-zone control plane, a 27-resource workload core with no Container App resources, and the subsequent three-app activation that reaches 30 disposable resources across twenty-one reviewed Azure resource types. Refusal fixtures cover cross-workload targets, undecided placement, unapproved retained cost/control activation, name-only GitHub subjects, unsafe alert/network values, over-eight-hour expiration, wrong environment, unsafe scale/network/backup/storage, incomplete identity references, mutable images, and unsafe secret/reference settings.
 
-The gate strips Azure, ARM, and `TF_VAR_*` values from Terraform subprocesses. It does not execute `az`, contact Azure, configure a provider or backend, create remote state, perform a provider-backed refresh/plan, or call `terraform apply`.
+The local foundation gate strips Azure, ARM, and `TF_VAR_*` values from Terraform subprocesses. It does not execute `az`, contact Azure, initialize remote state, or call `terraform apply`. The separately approved provider-scope checkpoint used the real AzureRM provider only to validate the signed-in subscription/tenant and planned zero resources through ephemeral Terraform test state.
 
 `pnpm azure-oidc:check` validates the separate static [GitHub-to-Azure OIDC plan gate](./github-azure-oidc-plan-gate.md). It proves three distinct future identities, protected immutable environment subjects, job-scoped permissions, reviewed plan/destroy-plan consumption, and fail-closed command rules while `.github/workflows/verify.yml` remains read-only and non-deploying.
 
-`pnpm saved-plan:check` validates the static [saved-plan evidence gate](./saved-plan-evidence-gate.md). Two harmless text fixtures model apply and destroy producer-consumer binding across artifact/review digests, source and target, synthetic cost ceilings, independent review/approval, same-day expiry, exact commands, and transient deletion. It never creates or reads a Terraform plan binary.
+`pnpm saved-plan:check` validates the historical V1 [saved-plan evidence gate](./saved-plan-evidence-gate.md). Two harmless text fixtures model digest, sanitization, review, approval, expiry, and producer/consumer binding, but they are explicitly blocked from activation because they model a single apply. A V2 contract must bind the separate retained bootstrap, retained control/landing-zone, 27-resource core, three-app activation, and destroy plans. The validator never creates or reads a Terraform plan binary.
 
 `pnpm run-ledger:check` validates the static [ephemeral run-ledger gate](./ephemeral-run-ledger-gate.md). Three synthetic ledgers cover clean continuation, successful application rollback after a failed test, and destroy-timeout/orphan escalation. The gate separates Terraform-state, live disposable, and retained-control-plane inventories and never contacts Azure.
 
-`pnpm azure-cost:check` validates the dated [public Azure service and cost review](./azure-public-service-cost-review.md). Microsoft public catalog meters support the selected East US 2 candidate shape, the raw conservative eight-hour estimate is `$3.02`, and the proposed buffered ceiling is `$5.00` per run under a `$25.00` monthly budget. This check validates a captured public snapshot; it does not authenticate, inspect a subscription, approve the budget, verify alert delivery, or prove provider availability.
+`pnpm azure-cost:check` validates the dated [public Azure service and cost review](./azure-public-service-cost-review.md). Microsoft public catalog meters support the selected East US 2 candidate shape and the raw conservative eight-hour estimate is `$3.02`. The owner selected the `$2.00` two-hour smoke tier for the first workload run, retained `$5.00`/eight hours only as a fallback ceiling, and revised the monthly alert budget from the historical `$25.00` proposal to `$100.00`. The historical check validates its captured public snapshot; it does not verify alert delivery or prove provider availability.
 
 The pinned AzureRM package and checksums support deterministic schema validation. They do not approve Azure access or any candidate service/SKU. Mock-provider behavior follows [HashiCorp's Terraform test guidance](https://developer.hashicorp.com/terraform/language/tests/mocking). Storage contracts keep anonymous Blob access, Shared Key, and unused static website hosting disabled. PostgreSQL uses Entra-only authentication and seven-day point-in-time recovery. Container Apps use separate managed identities, scoped RBAC, and digest-pinned image references without registry passwords. Key Vault is RBAC-only and Terraform creates no secret values.
 
 ## Required future apply metadata
 
-- Exact disposable workload resource group.
+- Exact retained Local Missions landing-zone resource group and unique disposable deployment stamp.
 - Named/approved owner reference.
 - Full source commit SHA.
 - Immutable creation and expiration timestamps.
@@ -52,15 +52,19 @@ The pinned AzureRM package and checksums support deterministic schema validation
 
 The checked-in defaults are ceilings for review, not an approved subscription quote: API, dashboard, and worker scale from zero to one replica; PostgreSQL uses B1ms with 32 GiB storage and seven-day backup retention; Container Registry uses Basic; Service Bus uses Standard because the queue contract requires duplicate detection; and telemetry uses a 0.5 GB daily cap with 30-day retention. The 2026-08-30 public review estimates `$3.02` for a deliberately conservative eight-hour run and proposes a `$5.00` buffered ceiling. Revalidate every meter after 2026-09-06 or immediately before a subscription-backed plan, whichever occurs first.
 
-## External sequence, stopped before Azure access
+## External sequence
 
 1. Publicly review and select the candidate region/services/SKUs/prices and assign accountable owners. **Complete on 2026-08-30.**
-2. Obtain explicit user approval to authenticate and inspect only the intended subscription for a provider-backed saved plan. **Current stop gate.**
-3. Record the exact subscription/scope, real monitored alert destination, approved `$25` budget, current offer/quota/policy results, OIDC identities, backend, and artifact references.
-4. Produce a saved subscription-backed plan and cost summary without applying it automatically.
-5. Obtain separate explicit same-day apply approval.
-6. Apply only the disposable workload, test with synthetic data, capture evidence, and stop new writes.
-7. Review the exact destroy target, destroy while attached, then reconcile Terraform state and live Azure independently.
-8. Report **Disposable workload: empty** separately from **Retained control plane: expected list**. Any orphan or mismatch is a teardown failure.
+2. Authenticate and inspect only the intended subscription through a zero-resource provider-scope plan. **Complete on 2026-08-31; no mutation.**
+3. Owner-selected dedicated Local Missions placement is recorded; the dedicated subscription is enabled and verified empty. **Complete on 2026-08-31.**
+4. Generate and independently review only the three-resource retained-state bootstrap saved plan. **Complete on 2026-08-31; no apply.**
+5. Apply and migrate the approved state bootstrap. **Completed.**
+6. Supply the monitored alert destination and remaining M5.4 inputs, then plan and independently review the 20-resource retained control/landing-zone boundary, including three container-scoped state-backend role assignments. **Complete.**
+7. Obtain separate approval bound to the exact saved-plan SHA-256 and expiry, then apply and verify only that retained control plane. **Complete on 2026-09-01; 20 added, zero changed/destroyed, zero-change verification passed.**
+8. Approve and run a no-apply GitHub OIDC remote-state/access-policy proof before removing temporary operator state access. **Current gate.**
+9. Generate/review and separately approve/apply the 27-resource core, then build/scan/sign/push immutable images.
+10. Generate/review and separately approve/apply the three-Container-App activation delta.
+11. Test with synthetic data, capture evidence, and stop new writes.
+12. Review the exact stamped destroy target, destroy while attached without deleting the landing zone, then reconcile Terraform state and live Azure independently. Report **Disposable workload: empty** separately from **Retained control plane and landing zone: expected list**. Any orphan or mismatch is a teardown failure.
 
 Private networking remains deferred until the infrastructure and UI are functionally complete. The first ephemeral deployment still requires TLS, authentication, managed identity/RBAC, disabled anonymous Blob access, and narrow firewall allowlists.

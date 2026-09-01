@@ -1,6 +1,10 @@
 output "activation_status" {
   description = "Distinguishes the default zero-resource plan from the mock-only enabled test."
-  value       = var.azure_resource_creation_enabled ? "mock-enabled-contract" : "local-contract-only"
+  value = (
+    !var.azure_resource_creation_enabled ? "local-contract-only" :
+    var.application_activation_enabled ? "mock-enabled-contract" :
+    "mock-enabled-core-contract"
+  )
 }
 
 output "backend_contract" {
@@ -44,17 +48,32 @@ output "required_tags" {
 output "planning_contract" {
   description = "Non-secret candidate deployment values that remain externally gated."
   value = {
-    candidate_location = var.location
-    network_mode       = var.network_contract.mode
+    candidate_location     = var.location
+    cost_profile           = var.cost_profile
+    network_mode           = var.network_contract.mode
+    plan_phase             = !var.azure_resource_creation_enabled ? "plan-only" : var.application_activation_enabled ? "application-activation" : "core-infrastructure"
+    subscription_placement = var.subscription_placement
   }
 }
 
+output "cost_profile_contract" {
+  description = "Selected bounded runtime and cost ceiling; public retail estimate, not a quote."
+  value       = local.selected_cost_profile
+}
+
+output "provider_scope_status" {
+  description = "Sanitized provider-scope validation state; account identifiers are never output."
+  value       = var.provider_scope_validation_enabled ? "validated" : "not_requested"
+}
+
 output "resource_group_contract" {
-  description = "Resource-group module plan shape; count remains zero outside the mock-enabled test."
+  description = "Retained landing-zone lookup; the disposable root never creates or deletes a resource group."
   value = {
-    planned_count = length(module.workload_resource_group)
-    names         = [for resource_group in module.workload_resource_group : resource_group.name]
-    tags          = local.required_tags
+    ownership_source = "retained-control-plane"
+    planned_count    = 0
+    validated_count  = length(data.azurerm_resource_group.workload_landing_zone)
+    names            = [for resource_group in data.azurerm_resource_group.workload_landing_zone : resource_group.name]
+    retained_tags    = try(data.azurerm_resource_group.workload_landing_zone[0].tags, null)
   }
 }
 
@@ -72,7 +91,7 @@ output "workload_resource_inventory" {
       key_vault      = try(module.workload_key_vault[0].resource_count, 0)
       postgresql     = try(module.workload_postgresql[0].resource_count, 0)
       registry       = try(module.workload_registry[0].resource_count, 0)
-      resource_group = length(module.workload_resource_group)
+      resource_group = 0
       service_bus    = try(module.workload_service_bus[0].resource_count, 0)
       storage        = try(module.workload_storage[0].resource_count, 0)
       telemetry      = try(module.workload_telemetry[0].resource_count, 0)
@@ -82,7 +101,6 @@ output "workload_resource_inventory" {
       try(module.workload_key_vault[0].resource_count, 0) +
       try(module.workload_postgresql[0].resource_count, 0) +
       try(module.workload_registry[0].resource_count, 0) +
-      length(module.workload_resource_group) +
       try(module.workload_service_bus[0].resource_count, 0) +
       try(module.workload_storage[0].resource_count, 0) +
       try(module.workload_telemetry[0].resource_count, 0)
@@ -104,7 +122,7 @@ output "workload_resource_safeguards" {
 }
 
 output "workload_resource_names" {
-  description = "Synthetic name contract; every globally unique name must be replaced/reviewed before live planning."
+  description = "Reviewed Local Missions-only names derived from the synthetic suffix or unique deployment stamp."
   value       = local.resource_names
 }
 

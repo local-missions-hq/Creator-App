@@ -1,7 +1,9 @@
 {
   "activationStatus": "synthetic_contract_only",
+  "activationUseAllowed": false,
   "activeWorkflowPresent": false,
   "checkpoint": "M05-ephemeral-run-ledger-contract-local-006",
+  "supersededForActivationBy": "M05-control-plane-applied-verified-022",
   "cloudEvidenceClaimed": false,
   "digestAlgorithm": "sha256",
   "fixtureRoot": "config/fixtures/ephemeral-run-ledger",
@@ -83,7 +85,17 @@
     "reconciliation": 15
   },
   "inventoryContract": {
-    "disposableTypeCountsSource": "terraform-foundation-workload-resource-inventory",
+    "disposableTypeCountsSource": "historical-v1-workload-resource-inventory",
+    "historicalDisposableTypeCounts": {
+      "containerApps": 16,
+      "keyVault": 1,
+      "postgresql": 4,
+      "registry": 1,
+      "resourceGroup": 1,
+      "serviceBus": 2,
+      "storage": 4,
+      "telemetry": 2
+    },
     "expectedDisposableTotalBeforeDestroy": 31,
     "expectedDisposableTotalAfterCleanDestroy": 0,
     "retainedClasses": [

@@ -1,14 +1,25 @@
 # M05 Azure foundation evidence
 
-Status: public Azure service/cost review passed; Azure subscription access and execution remain blocked
+Status: M5.4 exact 20-resource retained control plane applied and independently verified; no workload deployed
 
-Date: 2026-08-30
+Date: 2026-09-01
 
-Checkpoint: `M05-public-azure-service-cost-review-011`
+Checkpoint: `M05-control-plane-saved-plan-reviewed-021`
 
 Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11.24.0.
 
 ## Implemented
+
+- Applied only the independently reviewed replacement three-resource bootstrap after rejecting the expired prior artifact; registered only `Microsoft.Storage` and preserved automatic provider registration as disabled.
+- Verified the retained resource group, hardened Standard LRS Storage account, and private state container against the default-deny network, Entra-default authentication, disabled Shared Key/local-user/anonymous access, TLS, encryption, versioning, recovery, tags, and destroy-protection contracts.
+- Migrated bootstrap state to `local-missions/bootstrap.tfstate`, proved independent clean initialization and Blob locking, removed the consumed temporary plan/local state, and retained sanitized evidence only.
+- Added one temporary operator Blob data-role assignment at the private container. Corrected the next control-plane target from 17 to 20 resources so the three plan/apply/destroy identities each receive the required container-scoped backend access.
+- Reverified all 17 reviewed East US 2 public workload meters without price drift, registered only the two additional control-plane namespaces, confirmed zero policy assignments and no dedicated control-plane SKU quota, and created the least-privilege PostgreSQL Entra administrator group.
+- Generated and independently reviewed the exact 20-resource retained control-plane plan after resolving its process-only monitored destination and GitHub reviewer inputs. The plan contained 20 creates, zero changes/deletes/replacements, and zero paid workload resources; its separately approved apply is now complete.
+- Applied the exact approved saved plan by SHA-256 before expiry. Terraform reported 20 added, zero changed, and zero destroyed. Independent live inventory and Terraform state proved the exact retained resources, an empty workload landing zone, `$100` budget, six alerts, and zero disposable workload resources.
+- Azure normalized the protected budget period to the current September billing year. The stale August defaults triggered a safe `prevent_destroy` refusal during verification; the source-only dates were corrected to match live Azure and a normal provider-backed plan then reported **No changes**.
+- Prepared the separately approved no-mutation GitHub OIDC/ARM proof with three protected environment jobs and full-commit-pinned Azure login. The state firewall remains unchanged; the jobs are pending human environment approval and an actual Blob read is intentionally expected to remain network-blocked.
+- The owner subsequently supplied the monitored destination and named the sole `stratiosai` collaborator as reviewer. Created all three main-only GitHub environments with required review and no administrator bypass, recorded the single-human self-review exception, and enabled immutable OIDC subjects without adding secrets or activating an Azure workflow.
 
 - Preserved the retained/disposable Terraform roots, exact AzureRM 5.0.1 package lock, static OIDC and saved-plan contracts, recovery contract, and non-deploying active CI while every external activation gate remains blocked.
 - Added a separately named dashboard Container App and user-assigned identity behind the disabled development root. The dashboard receives only one resource-scoped ACR pull role, uses an immutable image digest, exposes HTTPS-only ingress through the existing reviewed CIDR allowlist, and scales from zero to one candidate replica.
@@ -31,7 +42,7 @@ Environment baseline: Terraform 1.15.7, TFLint 0.63.1, Node 24.19.0, and pnpm 11
 - Required canonical before/after reconciliation for migration manifest, row counts, public IDs, status histories, audit records, privacy exclusions, and application readiness. Expired or deleted privacy-limited data cannot return to active use through recovery.
 - Queried Microsoft's public unauthenticated Retail Prices API for East US 2 and retained the seven service groups already bounded by the Terraform contract: PostgreSQL Flexible Server, Container Apps, Service Bus, Container Registry, Blob Storage, Key Vault, and Azure Monitor/Application Insights.
 - Assigned Blake Tindol as accountable platform, cost, alert-response, technical-on-call, and independent plan-review owner, with Codex as the automated plan producer. No personal contact, credential, tenant, subscription, or account identifier was recorded.
-- Captured a conservative `$3.02` eight-hour public-retail estimate, added a `$1.98` uncertainty reserve, and proposed a `$5.00` per-run ceiling plus a `$25.00` monthly budget with 50%/80%/100% actual and forecast alerts. Approval and a real monitored destination remain pending.
+- Retained the conservative historical `$3.02` eight-hour arithmetic, but selected a `$2.00` two-hour smoke run as the first workload tier. `$5.00`/eight hours is only a separately justified fallback ceiling. The approved monthly alert budget is `$100.00` with 50%/80%/100% actual and forecast notifications; it is not a spend target or hard cap.
 - Added a static dated cost-review manifest and validator with twenty-six exercised refusal scenarios. It requires a fresh review after seven days and refuses subscription availability, alert delivery, approval, Azure authentication, provider planning, mutation, resource, registry, customer-data, or cost claims.
 
 ## Verification

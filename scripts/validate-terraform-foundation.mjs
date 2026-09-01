@@ -101,6 +101,10 @@ function assertSourceBoundary() {
     .map((path) => readFileSync(path, 'utf8'))
     .join('\n');
   const azureProviders = source.match(/\bprovider\s+"azurerm"/g) ?? [];
+  const providerScopeDataSources =
+    source.match(/\bdata\s+"azurerm_client_config"\s+"current"/g) ?? [];
+  const landingZoneDataSources =
+    source.match(/\bdata\s+"azurerm_resource_group"\s+"workload_landing_zone"/g) ?? [];
   const azureMockProviders = source.match(/\bmock_provider\s+"azurerm"/g) ?? [];
   const backendBlocks = source.match(/\bbackend\s+"azurerm"/g) ?? [];
   const allowedResources = manifest.mockProviderContract.allowedResourceTypes;
@@ -119,18 +123,26 @@ function assertSourceBoundary() {
       'Terraform source contains an Azure resource outside the reviewed mock-only module boundary.',
     );
   }
-  if (azureProviders.length !== 0) {
-    fail(
-      'Provider configuration is deferred; local tests must supply only Terraform mock_provider.',
-    );
+  if (azureProviders.length !== manifest.providerRuntimeContract.configuredProviderBlocks) {
+    fail('The AzureRM provider block count drifted from the reviewed runtime contract.');
   }
-  if (azureMockProviders.length !== 1) {
-    fail('The local enabled-shape test must declare exactly one AzureRM mock provider.');
+  if (azureMockProviders.length !== manifest.providerRuntimeContract.configuredMockProviderBlocks) {
+    fail('The AzureRM mock-provider block count drifted from the reviewed local test contract.');
   }
-  if (backendBlocks.length !== manifest.roots.length) {
-    fail('Each Terraform root must declare exactly one independent azurerm backend boundary.');
+  const remoteBackendRoots = manifest.roots.filter((root) => root.backendType === 'azurerm');
+  const localBackendBlocks = source.match(/\bbackend\s+"local"/g) ?? [];
+  if (backendBlocks.length !== remoteBackendRoots.length || localBackendBlocks.length !== 0) {
+    fail('Terraform backend blocks drifted from the three independent remote roots.');
   }
-  if (/\b(subscription_id|client_secret)\s*=/.test(source)) {
+  if (
+    providerScopeDataSources.length !== manifest.providerRuntimeContract.providerScopeDataSources
+  ) {
+    fail('The guarded AzureRM provider-scope data source count drifted.');
+  }
+  if (landingZoneDataSources.length !== manifest.providerRuntimeContract.landingZoneDataSources) {
+    fail('The guarded Local Missions landing-zone data source count drifted.');
+  }
+  if (/\bclient_secret\s*=/.test(source)) {
     fail('Terraform source must not contain Azure account identifiers or credentials.');
   }
   const uuidLiterals = [
@@ -138,12 +150,14 @@ function assertSourceBoundary() {
       /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi,
     ),
   ].map((match) => match[0].toLowerCase());
-  const syntheticIdentityReferences = new Set(
-    manifest.mockProviderContract.syntheticIdentityReferences.map((reference) =>
-      reference.toLowerCase(),
-    ),
+  const reviewedUuidReferences = new Set(
+    [
+      ...manifest.mockProviderContract.syntheticIdentityReferences,
+      ...manifest.controlPlaneContract.delegatedWorkloadRoleDefinitionIds,
+      ...manifest.controlPlaneContract.customWorkloadRoleDefinitionIds,
+    ].map((reference) => reference.toLowerCase()),
   );
-  if (uuidLiterals.some((reference) => !syntheticIdentityReferences.has(reference))) {
+  if (uuidLiterals.some((reference) => !reviewedUuidReferences.has(reference))) {
     fail(
       'Terraform source contains an identity reference outside the synthetic fixture allowlist.',
     );
@@ -172,31 +186,117 @@ function assertSourceBoundary() {
     fail('API, dashboard, and worker image references must all use immutable SHA-256 digests.');
   }
 
-  const providerRoot = manifest.roots.find(
-    (root) => root.rootId === manifest.mockProviderContract.rootId,
-  );
-  const versionsSource = readFileSync(
-    join(repositoryRoot, providerRoot.path, 'versions.tf'),
-    'utf8',
-  );
-  if (
-    !versionsSource.includes(`source  = "${manifest.mockProviderContract.providerSource}"`) ||
-    !versionsSource.includes(`version = "${manifest.mockProviderContract.providerVersion}"`)
-  ) {
-    fail('The reviewed AzureRM provider source/version is not pinned exactly.');
+  const bootstrapSource = readFileSync(join(terraformDirectory, 'bootstrap/main.tf'), 'utf8');
+  const requiredBootstrapFragments = [
+    'account_replication_type          = "LRS"',
+    'allow_nested_items_to_be_public   = false',
+    'cross_tenant_replication_enabled  = false',
+    'default_to_oauth_authentication   = true',
+    'https_traffic_only_enabled        = true',
+    'infrastructure_encryption_enabled = true',
+    'local_user_enabled                = false',
+    'min_tls_version                   = "TLS1_2"',
+    'shared_access_key_enabled         = false',
+    'change_feed_enabled = true',
+    'versioning_enabled  = true',
+    'default_action = "Deny"',
+    'bypass         = ["None"]',
+    'container_access_type = "private"',
+  ];
+  if (requiredBootstrapFragments.some((fragment) => !bootstrapSource.includes(fragment))) {
+    fail('The retained state storage source drifted from the reviewed security controls.');
   }
-  const lockSource = readFileSync(
-    join(repositoryRoot, providerRoot.path, '.terraform.lock.hcl'),
+  if (
+    (bootstrapSource.match(/prevent_destroy\s*=\s*true/g) ?? []).length !== 3 ||
+    (bootstrapSource.match(/days\s*=\s*30/g) ?? []).length !== 2 ||
+    bootstrapSource.includes('0.0.0.0/0')
+  ) {
+    fail('Retained state destroy protection, recovery, or network denial drifted.');
+  }
+
+  const controlPlaneSource = readFileSync(
+    join(terraformDirectory, 'control-plane/main.tf'),
     'utf8',
   );
+  const requiredControlFragments = [
+    'issuer                    = "https://token.actions.githubusercontent.com"',
+    'audience                  = ["api://AzureADTokenExchange"]',
+    'id-local-missions-tf-plan-dev-eus2-001',
+    'id-local-missions-tf-apply-dev-eus2-001',
+    'id-local-missions-tf-destroy-dev-eus2-001',
+    'ag-local-missions-dev-cost-001',
+    'budget-local-missions-dev-100',
+    'Local Missions Dev Workload Deployer',
+    'Local Missions Dev Workload Destroyer',
+    '"*/delete"',
+    '"Microsoft.Resources/subscriptions/resourceGroups/delete"',
+    'Role Based Access Control Administrator',
+    "PrincipalType] ForAnyOfAnyValues:StringEqualsIgnoreCase {'ServicePrincipal'}",
+    'values   = ["local-missions"]',
+  ];
+  if (requiredControlFragments.some((fragment) => !controlPlaneSource.includes(fragment))) {
+    fail('The retained identity or cost-control source drifted.');
+  }
   if (
-    !lockSource.includes(
-      `provider "registry.terraform.io/${manifest.mockProviderContract.providerSource}"`,
-    ) ||
-    !lockSource.includes(`version     = "${manifest.mockProviderContract.providerVersion}"`) ||
-    !/hashes\s*=\s*\[\s*"h1:/.test(lockSource)
+    (controlPlaneSource.match(/prevent_destroy\s*=\s*true/g) ?? []).length !== 9 ||
+    (controlPlaneSource.match(/threshold_type\s*=\s*"Actual"/g) ?? []).length !== 3 ||
+    (controlPlaneSource.match(/threshold_type\s*=\s*"Forecasted"/g) ?? []).length !== 3 ||
+    /client_secret\s*=/.test(controlPlaneSource)
   ) {
-    fail('The workload root lock file does not freeze the reviewed AzureRM package and checksum.');
+    fail(
+      'The retained identity destroy protection, budget alerts, or secretless contract drifted.',
+    );
+  }
+
+  const providerRoots = manifest.roots;
+  for (const providerRoot of providerRoots) {
+    const versionsSource = readFileSync(
+      join(repositoryRoot, providerRoot.path, 'versions.tf'),
+      'utf8',
+    );
+    const providerSource = readFileSync(
+      join(repositoryRoot, providerRoot.path, 'provider.tf'),
+      'utf8',
+    );
+    if (
+      manifest.providerRuntimeContract.automaticResourceProviderRegistration ||
+      manifest.providerRuntimeContract.resourceProviderRegistrations !== 'none' ||
+      !providerSource.includes('resource_provider_registrations = "none"')
+    ) {
+      fail(`${providerRoot.rootId} must not auto-register Azure resource providers.`);
+    }
+    if (
+      !manifest.providerRuntimeContract.storageUseAzureAd ||
+      !providerSource.includes('storage_use_azuread') ||
+      !/storage_use_azuread\s+=\s+true/.test(providerSource)
+    ) {
+      fail(`${providerRoot.rootId} must retain Microsoft Entra storage authentication.`);
+    }
+    if (
+      manifest.providerRuntimeContract.inlineAccountIdentifiersAllowed ||
+      /\b(subscription_id|tenant_id|client_id|client_secret)\s*=/.test(providerSource)
+    ) {
+      fail(`${providerRoot.rootId} must not contain account identifiers or credentials.`);
+    }
+    if (
+      !versionsSource.includes(`source  = "${manifest.mockProviderContract.providerSource}"`) ||
+      !versionsSource.includes(`version = "${manifest.mockProviderContract.providerVersion}"`)
+    ) {
+      fail(`${providerRoot.rootId} does not pin the reviewed AzureRM provider exactly.`);
+    }
+    const lockSource = readFileSync(
+      join(repositoryRoot, providerRoot.path, '.terraform.lock.hcl'),
+      'utf8',
+    );
+    if (
+      !lockSource.includes(
+        `provider "registry.terraform.io/${manifest.mockProviderContract.providerSource}"`,
+      ) ||
+      !lockSource.includes(`version     = "${manifest.mockProviderContract.providerVersion}"`) ||
+      !/hashes\s*=\s*\[\s*"h1:/.test(lockSource)
+    ) {
+      fail(`${providerRoot.rootId} lock file does not freeze AzureRM and its checksum.`);
+    }
   }
 
   const backendKeys = manifest.roots.map((root) => root.backendKey);
@@ -261,12 +361,139 @@ function assertPlan(rootDefinition) {
     }
   }
   return {
+    controlPlane: plans.find(
+      (plan) => plan.output_changes?.activation_status?.after === 'mock-enabled-control-plane',
+    ),
+    corePlan: plans.find(
+      (plan) => plan.output_changes?.activation_status?.after === 'mock-enabled-core-contract',
+    ),
     localOutputs: outputs,
+    mockBootstrapPlan: plans.find(
+      (plan) => plan.output_changes?.activation_status?.after === 'mock-enabled-bootstrap',
+    ),
     mockPlan: plans.find(
       (plan) => plan.output_changes?.activation_status?.after === 'mock-enabled-contract',
     ),
     tests: summary.passed,
   };
+}
+
+function assertBootstrapPlan(plan) {
+  if (!plan.mockBootstrapPlan) fail('The bootstrap root did not produce its mock-enabled plan.');
+  const changes = plan.mockBootstrapPlan.resource_changes ?? [];
+  const expected = manifest.bootstrapContract;
+  if (
+    changes.length !== expected.enabledPlanResourceChanges ||
+    changes.some((change) => change.change?.actions?.join(',') !== 'create')
+  ) {
+    fail('The mock bootstrap plan must create only the exact retained state foundation.');
+  }
+
+  const actualTypeCounts = {};
+  for (const change of changes) {
+    actualTypeCounts[change.type] = (actualTypeCounts[change.type] ?? 0) + 1;
+  }
+  for (const [resourceType, expectedCount] of Object.entries(expected.plannedResourceTypeCounts)) {
+    if (actualTypeCounts[resourceType] !== expectedCount) {
+      fail(`Bootstrap ${resourceType} count drifted.`);
+    }
+  }
+
+  const outputs = plan.mockBootstrapPlan.output_changes ?? {};
+  const inventory = outputs.resource_inventory?.after ?? {};
+  if (inventory.total !== 3 || inventory.enabled !== true) {
+    fail('The enabled bootstrap inventory must contain exactly three retained resources.');
+  }
+  const safeguards = outputs.safeguards?.after ?? {};
+  const expectedSafeguards = expected.safeguards;
+  const checks = [
+    safeguards.anonymous_access === expectedSafeguards.anonymousAccess,
+    safeguards.container_access_type === expectedSafeguards.containerAccessType,
+    safeguards.default_network_action === expectedSafeguards.defaultNetworkAction,
+    safeguards.delete_retention_days === expectedSafeguards.deleteRetentionDays,
+    safeguards.infrastructure_encryption === expectedSafeguards.infrastructureEncryption,
+    safeguards.prevent_destroy === expectedSafeguards.preventDestroy,
+    safeguards.shared_key_enabled === expectedSafeguards.sharedKeyEnabled,
+    safeguards.storage_uses_microsoft_entra === expectedSafeguards.storageUsesMicrosoftEntra,
+    safeguards.versioning_enabled === expectedSafeguards.versioningEnabled,
+  ];
+  if (!checks.every(Boolean)) fail('Retained state safeguards drifted.');
+
+  const tags = outputs.required_tags?.after ?? {};
+  if (
+    expected.requiredTags.some((tag) => !(tag in tags)) ||
+    tags.application !== 'local-missions' ||
+    tags.lifecycle !== 'retained' ||
+    tags.terraform_root !== 'bootstrap'
+  ) {
+    fail('The bootstrap plan does not retain exact Local Missions ownership tags.');
+  }
+  const cost = outputs.retained_state_cost_contract?.after ?? {};
+  if (
+    cost.approved_ceiling_usd !== expected.monthlyRetainedStateCostCeilingUsd ||
+    cost.monthly_ceiling_usd !== expected.monthlyRetainedStateCostCeilingUsd ||
+    !cost.approval_required ||
+    !cost.approved ||
+    !cost.survives_daily_teardown
+  ) {
+    fail('The retained state cost/teardown contract drifted.');
+  }
+}
+
+function assertControlPlanePlan(plan) {
+  if (!plan.controlPlane) fail('The control-plane root did not produce its mock-enabled plan.');
+  const changes = plan.controlPlane.resource_changes ?? [];
+  const expected = manifest.controlPlaneContract;
+  if (
+    changes.length !== expected.enabledPlanResourceChanges ||
+    changes.some((change) => change.change?.actions?.join(',') !== 'create')
+  ) {
+    fail('The mock control-plane plan must create only the exact retained identity/cost shape.');
+  }
+
+  const actualTypeCounts = {};
+  for (const change of changes) {
+    actualTypeCounts[change.type] = (actualTypeCounts[change.type] ?? 0) + 1;
+  }
+  for (const [resourceType, expectedCount] of Object.entries(expected.plannedResourceTypeCounts)) {
+    if (actualTypeCounts[resourceType] !== expectedCount) {
+      fail(`Control-plane ${resourceType} count drifted.`);
+    }
+  }
+
+  const outputs = plan.controlPlane.output_changes ?? {};
+  const inventory = outputs.resource_inventory?.after ?? {};
+  if (
+    inventory.total !== expected.enabledPlanResourceChanges ||
+    inventory.managed_identities !== expected.separateIdentityCount ||
+    inventory.federated_identity_credentials !== expected.separateIdentityCount ||
+    inventory.resource_groups !== 2 ||
+    inventory.workload_role_definitions !== expected.customWorkloadRoleDefinitionCount ||
+    inventory.workflow_role_assignments !== expected.workflowRoleAssignmentCount ||
+    inventory.enabled !== true
+  ) {
+    fail('The retained control-plane inventory drifted.');
+  }
+  const security = outputs.security_contract?.after ?? {};
+  if (
+    security.budget_alert_count !== expected.budgetAlertCount ||
+    security.budget_filter !== expected.budgetFilter ||
+    security.federated_identity_count !== expected.separateIdentityCount ||
+    security.delegated_role_definition_count !== expected.delegatedWorkloadRoleDefinitionCount ||
+    security.custom_workload_role_count !== expected.customWorkloadRoleDefinitionCount ||
+    security.apply_identity_can_delete !== expected.applyIdentityCanDelete ||
+    security.destroy_identity_can_delete_group !== expected.destroyIdentityCanDeleteLandingZone ||
+    !security.landing_zone_scope_only ||
+    !security.immutable_github_subjects ||
+    security.long_lived_credentials ||
+    !security.prevent_destroy ||
+    !security.provider_scope_validated ||
+    security.subscription_scope_workload_rbac !== expected.subscriptionScopeWorkloadRbacAllowed ||
+    security.workflow_role_assignment_count !== expected.workflowRoleAssignmentCount ||
+    security.shared_identity
+  ) {
+    fail('The retained control-plane identity, budget, or protection safeguards drifted.');
+  }
 }
 
 function assertWorkloadPlan(plan) {
@@ -277,9 +504,26 @@ function assertWorkloadPlan(plan) {
   if (
     tags.lifecycle !== 'disposable' ||
     tags.terraform_root !== 'workload-dev' ||
-    tags.workload_resource_group !== 'rg-local-missions-dev-example'
+    tags.workload_resource_group !== 'rg-local-missions-dev-eus2-001' ||
+    tags.application_code !== 'lm' ||
+    tags.cost_profile !== 'plan-only' ||
+    tags.deployment_stamp !== 'example' ||
+    tags.region !== 'eastus2' ||
+    tags.run_ceiling_usd !== '0'
   ) {
     fail('Workload plan target/lifecycle tags do not identify the explicit disposable scope.');
+  }
+
+  const costProfile = plan.localOutputs.cost_profile_contract?.after ?? {};
+  if (
+    costProfile.azure_resources !== false ||
+    costProfile.maximum_hours !== 0 ||
+    costProfile.run_ceiling_usd !== 0
+  ) {
+    fail('The default local plan must retain the zero-resource plan-only cost profile.');
+  }
+  if (plan.localOutputs.provider_scope_status?.after !== 'not_requested') {
+    fail('Local tests must not enable a live Azure provider-scope query.');
   }
 
   const actual = plan.localOutputs.low_cost_defaults?.after ?? {};
@@ -333,7 +577,8 @@ function assertMockWorkloadPlan(plan) {
     }
   }
 
-  const expectedTags = plan.localOutputs.required_tags?.after ?? {};
+  const outputs = plan.mockPlan.output_changes ?? {};
+  const expectedTags = outputs.required_tags?.after ?? {};
   for (const change of changes.filter((candidate) =>
     manifest.mockProviderContract.taggableResourceTypes.includes(candidate.type),
   )) {
@@ -342,13 +587,20 @@ function assertMockWorkloadPlan(plan) {
       manifest.requiredTags.some((tag) => tags[tag] !== expectedTags[tag]) ||
       tags.lifecycle !== 'disposable' ||
       tags.terraform_root !== 'workload-dev' ||
-      tags.workload_resource_group !== 'rg-local-missions-dev-example'
+      tags.workload_resource_group !== 'rg-local-missions-dev-eus2-001'
     ) {
       fail(`${change.address} does not retain the exact disposable workload tags.`);
     }
   }
 
-  const outputs = plan.mockPlan.output_changes ?? {};
+  const costProfile = outputs.cost_profile_contract?.after ?? {};
+  if (
+    costProfile.azure_resources !== true ||
+    costProfile.maximum_hours !== 8 ||
+    costProfile.run_ceiling_usd !== 5
+  ) {
+    fail('The mock-enabled workload plan must retain the full-8h cost ceiling.');
+  }
   const inventory = outputs.workload_resource_inventory?.after ?? {};
   const expectedInventory = manifest.workloadResourceInventory;
   const inventoryPairs = {
@@ -440,6 +692,56 @@ function assertMockWorkloadPlan(plan) {
   }
 }
 
+function assertCoreWorkloadPlan(plan) {
+  if (!plan.corePlan) fail('The workload root did not produce its mock-enabled core plan.');
+  const changes = plan.corePlan.resource_changes ?? [];
+  if (
+    changes.length !== manifest.mockProviderContract.corePlanResourceChanges ||
+    changes.some(
+      (change) =>
+        !manifest.mockProviderContract.allowedResourceTypes.includes(change.type) ||
+        change.change?.actions?.join(',') !== 'create',
+    )
+  ) {
+    fail('The mock core plan must create only the reviewed pre-image workload shape.');
+  }
+
+  const actualTypeCounts = Object.fromEntries(
+    manifest.mockProviderContract.allowedResourceTypes.map((resourceType) => [resourceType, 0]),
+  );
+  for (const change of changes) actualTypeCounts[change.type] += 1;
+  for (const [resourceType, expectedCount] of Object.entries(
+    manifest.mockProviderContract.corePlannedResourceTypeCounts,
+  )) {
+    if (actualTypeCounts[resourceType] !== expectedCount) {
+      fail(
+        `Core plan ${resourceType} count drifted: expected ${expectedCount}, found ${actualTypeCounts[resourceType]}.`,
+      );
+    }
+  }
+
+  const outputs = plan.corePlan.output_changes ?? {};
+  const inventory = outputs.workload_resource_inventory?.after ?? {};
+  const expectedInventory = manifest.workloadCoreResourceInventory;
+  if (
+    inventory.total !== expectedInventory.total ||
+    inventory.by_module?.container_apps !== expectedInventory.containerApps ||
+    inventory.enabled !== true
+  ) {
+    fail(
+      `The core workload inventory must contain ${expectedInventory.total} disposable resources and no application resource.`,
+    );
+  }
+  const safeguards = outputs.workload_resource_safeguards?.after?.container_apps ?? {};
+  if (
+    safeguards.applications_enabled !== false ||
+    safeguards.application_resource_count !== 0 ||
+    outputs.planning_contract?.after?.plan_phase !== 'core-infrastructure'
+  ) {
+    fail('The core plan must defer all three Container Apps until image publication.');
+  }
+}
+
 function assertRefusals() {
   const root = join(repositoryRoot, 'infra/terraform/environments/dev');
   const environment = safeEnvironment(join(temporaryDirectory, 'refusals'));
@@ -452,6 +754,40 @@ function assertRefusals() {
     });
     if (!`${result.stdout}${result.stderr}`.includes(marker)) {
       fail(`${fixture} failed without the expected bounded refusal marker.`);
+    }
+  }
+  return fixtures.length;
+}
+
+function assertBootstrapRefusals() {
+  const root = join(repositoryRoot, 'infra/terraform/bootstrap');
+  const environment = safeEnvironment(join(temporaryDirectory, 'bootstrap-refusals'));
+  runTerraform(root, ['init', '-backend=false', '-input=false', '-no-color'], { env: environment });
+  const fixtures = manifest.bootstrapContract.refusalFixtures;
+  for (const { fixture, marker } of fixtures) {
+    const result = runTerraform(root, ['test', '-no-color', `-var-file=${fixture}`], {
+      env: environment,
+      expectFailure: true,
+    });
+    if (!`${result.stdout}${result.stderr}`.includes(marker)) {
+      fail(`${fixture} failed without the expected bootstrap refusal marker.`);
+    }
+  }
+  return fixtures.length;
+}
+
+function assertControlPlaneRefusals() {
+  const root = join(repositoryRoot, 'infra/terraform/control-plane');
+  const environment = safeEnvironment(join(temporaryDirectory, 'control-plane-refusals'));
+  runTerraform(root, ['init', '-backend=false', '-input=false', '-no-color'], { env: environment });
+  const fixtures = manifest.controlPlaneContract.refusalFixtures;
+  for (const { fixture, marker } of fixtures) {
+    const result = runTerraform(root, ['test', '-no-color', `-var-file=${fixture}`], {
+      env: environment,
+      expectFailure: true,
+    });
+    if (!`${result.stdout}${result.stderr}`.includes(marker)) {
+      fail(`${fixture} failed without the expected control-plane refusal marker.`);
     }
   }
   return fixtures.length;
@@ -472,13 +808,18 @@ try {
   assertSourceBoundary();
   assertExpirationFixtures();
   const plans = new Map(manifest.roots.map((root) => [root.rootId, assertPlan(root)]));
+  assertBootstrapPlan(plans.get('bootstrap'));
+  assertControlPlanePlan(plans.get('control-plane'));
   assertWorkloadPlan(plans.get('workload-dev'));
+  assertCoreWorkloadPlan(plans.get('workload-dev'));
   assertMockWorkloadPlan(plans.get('workload-dev'));
   const refusalCount = assertRefusals();
+  const bootstrapRefusalCount = assertBootstrapRefusals();
+  const controlPlaneRefusalCount = assertControlPlaneRefusals();
   const planTestCount = [...plans.values()].reduce((sum, plan) => sum + plan.tests, 0);
 
   console.log(
-    `Terraform foundation passed for ${manifest.roots.length} roots, ${planTestCount} plan tests, ${refusalCount} refusal tests, zero default resource changes, ${manifest.mockProviderContract.enabledPlanResourceChanges} mock-only resource changes across ${manifest.mockProviderContract.allowedResourceTypes.length} reviewed Azure resource types, ${manifest.requiredTags.length} workload tags, ${Object.keys(manifest.workloadSafeguards).length} workload safeguards, ${Object.keys(manifest.safeLowCostDefaults).length} low-cost defaults, and ${manifest.expirationPolicy.fixtures.length} expiration fixtures; Azure execution remains blocked behind ${manifest.externalGates.length} gates.`,
+    `Terraform foundation passed for ${manifest.roots.length} roots, ${planTestCount} plan tests, ${refusalCount + bootstrapRefusalCount + controlPlaneRefusalCount} refusal tests, zero default resource changes, ${manifest.bootstrapContract.enabledPlanResourceChanges} mock bootstrap changes, ${manifest.controlPlaneContract.enabledPlanResourceChanges} mock control-plane changes, ${manifest.mockProviderContract.corePlanResourceChanges}-resource mock core then ${manifest.mockProviderContract.enabledPlanResourceChanges}-resource mock activated workload across ${manifest.mockProviderContract.allowedResourceTypes.length} reviewed Azure resource types, ${manifest.requiredTags.length} workload tags, ${Object.keys(manifest.workloadSafeguards).length} workload safeguards, ${Object.keys(manifest.safeLowCostDefaults).length} low-cost defaults, and ${manifest.expirationPolicy.fixtures.length} expiration fixtures; Azure execution remains blocked behind ${manifest.externalGates.length} gates.`,
   );
 } finally {
   rmSync(temporaryDirectory, { force: true, recursive: true });

@@ -1,8 +1,8 @@
 # Saved-plan evidence gate
 
-Status: static synthetic contract only; no provider-backed plan or cloud approval
+Status: historical V1 static synthetic contract; superseded for first deployment by the retained-foundation/two-phase plan contract
 
-This gate defines how a future Terraform plan is reviewed once and consumed without silently replanning. It does not create a plan, query Azure prices, approve cost, authenticate, initialize remote state, or authorize apply/destroy. The machine contract is [`../../config/saved-plan-evidence.v1.json`](../../config/saved-plan-evidence.v1.json), and `pnpm saved-plan:check` executes only harmless fixtures under [`../../config/fixtures/saved-plan-evidence/`](../../config/fixtures/saved-plan-evidence/).
+This historical gate proves digest, sanitization, producer/consumer, review, approval, and expiry mechanics for one synthetic apply and destroy plan. It does not create a plan, query Azure prices, approve cost, authenticate, initialize remote state, or authorize apply/destroy. It is not valid for the current first-deployment sequence because the disposable ACR must exist before immutable images can be published and the three Container Apps can be planned. The active local design is [`azure-retained-foundation-and-two-phase-plan.md`](./azure-retained-foundation-and-two-phase-plan.md); a V2 saved-plan evidence schema is required before Azure activation.
 
 ## Current local boundary
 
@@ -44,13 +44,13 @@ A SHA-256 digest proves that producer and consumer saw the same bytes; it does n
 - forty-three refusal scenarios for schema, artifact, digest, source, target, identity, command, sanitization, cost, review, approval, expiry, and producer-consumer drift; and
 - zero checked-in Terraform plan/state artifacts.
 
-## Future activation gate
+## Future V2 activation gate
 
 Do not turn a fixture status into a live claim. A separately approved checkpoint must version the schema and then:
 
 1. lift the no-Azure boundary for a read-only plan probe only;
 2. approve the subscription, exact scopes, owners, immutable GitHub subjects, OIDC identities, backend, budget, monitored alerts, region/SKUs, and current pricing source;
-3. produce one subscription-backed saved plan without apply;
+3. produce separate subscription-backed saved plans for retained bootstrap, the 20-resource retained control/landing-zone plane, the 27-resource workload core, three-app activation, and destroy as each operation becomes eligible;
 4. sanitize summaries and record real source/target/cost metadata without exposing the binary or credentials;
 5. independently review the commit, artifact digest, change inventory, exact target, cost ceiling, and expiry;
 6. record explicit operation-specific approval bound to the review-payload digest; and

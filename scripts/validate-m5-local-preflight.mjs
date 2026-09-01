@@ -20,6 +20,8 @@ function clone(value) {
 
 const expectedContractPaths = [
   'config/terraform-foundation.v1.json',
+  'config/azure-subscription-placement.v1.json',
+  'config/azure-plan-readiness.v1.json',
   'config/azure-oidc-plan-gate.v1.json',
   'config/saved-plan-evidence.v1.json',
   'config/ephemeral-run-ledger.v1.json',
@@ -60,6 +62,7 @@ const expectedExternalGateIds = [
 
 const expectedCurrentExecutionKeys = [
   'azureAuthenticated',
+  'azureReadOnlyInventoryExecuted',
   'azureResourcesCreated',
   'cloudCostIncurred',
   'containerBuildExecuted',
@@ -83,12 +86,15 @@ function assertUniqueExact(actual, expected, label) {
 
 function validateManifest(candidate) {
   assert(candidate.schemaVersion === 1, 'Preflight schema version drifted.');
-  assert(candidate.activationStatus === 'local_preflight_only', 'Activation status drifted.');
-  assert(candidate.checkpoint === 'M05-local-preflight-audit-010', 'Checkpoint drifted.');
+  assert(
+    candidate.activationStatus === 'github_oidc_arm_proof_ready_pending_environment_review',
+    'Activation status drifted.',
+  );
+  assert(candidate.checkpoint === 'M05-github-oidc-arm-proof-ready-023', 'Checkpoint drifted.');
   assert(candidate.milestoneComplete === false, 'M5 cannot be claimed complete locally.');
   assert(candidate.syntheticDataOnly === true, 'Only synthetic data is allowed.');
   assert(
-    candidate.nextBoundary === 'external_review_and_explicit_approval_required',
+    candidate.nextBoundary === 'github_environment_human_approval_required',
     'Next boundary drifted.',
   );
   assert(candidate.verificationCommand === 'pnpm m5:preflight', 'Verification command drifted.');
@@ -96,7 +102,16 @@ function validateManifest(candidate) {
   const executionKeys = Object.keys(candidate.currentExecution ?? {});
   assertUniqueExact(executionKeys, expectedCurrentExecutionKeys, 'Current execution fields');
   for (const key of expectedCurrentExecutionKeys) {
-    assert(candidate.currentExecution[key] === false, `${key} must remain false.`);
+    const expected = [
+      'azureAuthenticated',
+      'azureReadOnlyInventoryExecuted',
+      'azureResourcesCreated',
+      'cloudCostIncurred',
+      'providerBackedPlanExecuted',
+      'remoteBackendInitialized',
+      'terraformMutationExecuted',
+    ].includes(key);
+    assert(candidate.currentExecution[key] === expected, `${key} execution state drifted.`);
   }
 
   const contractPaths = candidate.machineContracts.map((contract) => contract.path);
@@ -108,9 +123,16 @@ function validateManifest(candidate) {
       `${contract.path} checkpoint drifted.`,
     );
     assert(
-      ['local_contract_only', 'static_contract_only', 'synthetic_contract_only'].includes(
-        contract.activationStatus,
-      ),
+      [
+        'local_contract_only',
+        'static_contract_only',
+        'synthetic_contract_only',
+        'bootstrap_applied_remote_state_migrated',
+        'control_plane_saved_plan_reviewed_no_apply',
+        'control_plane_applied_verified',
+        'github_environments_configured_azure_execution_disabled',
+        'github_oidc_arm_proof_ready_pending_environment_review',
+      ].includes(contract.activationStatus),
       `${contract.path} activation status is not local-only.`,
     );
   }
@@ -132,15 +154,31 @@ function validateManifest(candidate) {
     candidate.requiredArtifacts.length === new Set(candidate.requiredArtifacts).size,
     'Required artifacts contain a duplicate.',
   );
-  assert(candidate.requiredArtifacts.length === 15, 'Required artifact count drifted.');
+  assert(candidate.requiredArtifacts.length === 17, 'Required artifact count drifted.');
 
   assertUniqueExact(
     candidate.externalGates.map((gate) => gate.id),
     expectedExternalGateIds,
     'External gates',
   );
+  const completedBootstrapGates = new Set([
+    'azure-subscription-and-scope-review',
+    'remote-state-backend-and-locking',
+  ]);
+  const completedControlPlanGates = new Set(['provider-backed-saved-plan-review']);
+  const completedControlApplyGates = new Set(['explicit-apply-approval']);
   for (const gate of candidate.externalGates) {
-    assert(gate.status === 'deferred', `${gate.id} must remain deferred.`);
+    const expectedStatus =
+      gate.id === 'oidc-identities-and-environment-protection'
+        ? 'approved_proof_pending_environment_review'
+        : completedControlApplyGates.has(gate.id)
+          ? 'completed_for_control_plane_apply'
+          : completedControlPlanGates.has(gate.id)
+            ? 'completed_for_control_plane_plan'
+            : completedBootstrapGates.has(gate.id)
+              ? 'completed_for_retained_bootstrap'
+              : 'deferred';
+    assert(gate.status === expectedStatus, `${gate.id} status drifted.`);
     assert(gate.approvalRequired === true, `${gate.id} must require approval.`);
     assert(/^[a-z][a-z0-9_]+$/.test(gate.ownerRole), `${gate.id} owner role is missing.`);
     assert(gate.evidenceRequired.length >= 16, `${gate.id} evidence requirement is missing.`);
@@ -185,6 +223,8 @@ function loadContracts() {
     images: readJson('config/container-image-contract.v1.json'),
     ledger: readJson('config/ephemeral-run-ledger.v1.json'),
     oidc: readJson('config/azure-oidc-plan-gate.v1.json'),
+    placement: readJson('config/azure-subscription-placement.v1.json'),
+    readiness: readJson('config/azure-plan-readiness.v1.json'),
     recovery: readJson('config/recovery-drill.v1.json'),
     savedPlan: readJson('config/saved-plan-evidence.v1.json'),
     terraform: readJson('config/terraform-foundation.v1.json'),
@@ -192,20 +232,34 @@ function loadContracts() {
 }
 
 function validateCrossContractCoherence(contracts) {
-  const { images, ledger, oidc, recovery, savedPlan, terraform } = contracts;
+  const { images, ledger, oidc, placement, readiness, recovery, savedPlan, terraform } = contracts;
 
   const resourceCount = terraform.workloadResourceInventory.total;
   assert(
-    resourceCount === 31,
+    resourceCount === 30,
     'Terraform resource count drifted from the reviewed local contract.',
   );
   assert(
-    savedPlan.targetContract.workloadResourceCount === resourceCount,
-    'Saved-plan count drifted.',
+    savedPlan.targetContract.workloadResourceCount === 31 &&
+      savedPlan.supersededForActivationBy === terraform.checkpoint,
+    'Historical saved-plan evidence must remain visibly superseded by the current contract.',
   );
   assert(
-    ledger.inventoryContract.expectedDisposableTotalBeforeDestroy === resourceCount,
-    'Run-ledger count drifted.',
+    ledger.inventoryContract.expectedDisposableTotalBeforeDestroy === 31 &&
+      ledger.supersededForActivationBy === terraform.checkpoint,
+    'Historical run-ledger evidence must remain visibly superseded by the current contract.',
+  );
+  assert(
+    placement.checkpoint === terraform.checkpoint && readiness.checkpoint === terraform.checkpoint,
+    'Placement, readiness, and Terraform checkpoints drifted.',
+  );
+  assert(
+    placement.implementedBoundary.resourceGroupName ===
+      terraform.controlPlaneContract.workloadLandingZoneResourceGroupName &&
+      placement.implementedBoundary.workloadRootCreatesResourceGroup === false &&
+      placement.implementedBoundary.workloadRootDeletesResourceGroup === false &&
+      placement.implementedBoundary.subscriptionScopeWorkloadRbac === false,
+    'Shared-subscription landing-zone boundary drifted.',
   );
 
   assert(
@@ -243,7 +297,13 @@ function validateCrossContractCoherence(contracts) {
     'Registry contact cannot be claimed.',
   );
   assert(images.buildExecution.imagePublished === false, 'Published image cannot be claimed.');
-  assert(oidc.azureExecutionEnabled === false, 'OIDC Azure execution must remain disabled.');
+  assert(
+    oidc.azureExecutionEnabled === true &&
+      oidc.activeWorkflowPresent === true &&
+      oidc.proofContract.allowedAzureMutations === 0 &&
+      oidc.proofContract.actualBlobReadExpected === false,
+    'Only the approved no-mutation OIDC/ARM proof may be active.',
+  );
   assert(
     savedPlan.currentCiConsumerPresent === false,
     'A live saved-plan CI consumer was claimed.',
@@ -306,19 +366,21 @@ const manifestMutations = {
   'checkpoint-drift': (value) => (value.checkpoint = 'M05-live'),
   'milestone-complete-claimed': (value) => (value.milestoneComplete = true),
   'next-boundary-drift': (value) => (value.nextBoundary = 'approved'),
-  'azure-authentication-claimed': (value) => (value.currentExecution.azureAuthenticated = true),
-  'azure-resource-creation-claimed': (value) =>
-    (value.currentExecution.azureResourcesCreated = true),
-  'cloud-cost-claimed': (value) => (value.currentExecution.cloudCostIncurred = true),
+  'azure-authentication-erased': (value) => (value.currentExecution.azureAuthenticated = false),
+  'azure-read-only-inventory-erased': (value) =>
+    (value.currentExecution.azureReadOnlyInventoryExecuted = false),
+  'azure-resource-creation-erased': (value) =>
+    (value.currentExecution.azureResourcesCreated = false),
+  'cloud-cost-erased': (value) => (value.currentExecution.cloudCostIncurred = false),
   'container-build-claimed': (value) => (value.currentExecution.containerBuildExecuted = true),
   'customer-data-allowed': (value) => (value.currentExecution.customerDataAllowed = true),
   'registry-contact-claimed': (value) => (value.currentExecution.externalRegistryContacted = true),
   'live-price-request-claimed': (value) => (value.currentExecution.livePriceRequested = true),
   'live-recovery-claimed': (value) => (value.currentExecution.liveRecoveryExecuted = true),
-  'provider-plan-claimed': (value) => (value.currentExecution.providerBackedPlanExecuted = true),
-  'remote-backend-claimed': (value) => (value.currentExecution.remoteBackendInitialized = true),
-  'terraform-mutation-claimed': (value) =>
-    (value.currentExecution.terraformMutationExecuted = true),
+  'provider-plan-erased': (value) => (value.currentExecution.providerBackedPlanExecuted = false),
+  'remote-backend-erased': (value) => (value.currentExecution.remoteBackendInitialized = false),
+  'terraform-mutation-erased': (value) =>
+    (value.currentExecution.terraformMutationExecuted = false),
   'missing-machine-contract': (value) => value.machineContracts.pop(),
   'duplicate-machine-contract': (value) => value.machineContracts.push(value.machineContracts[0]),
   'machine-contract-command-drift': (value) =>
@@ -335,7 +397,7 @@ const manifestMutations = {
   'local-coverage-live-proof-claim': (value) => (value.localCoverage[0].proofClass = 'live_proof'),
   'missing-external-gate': (value) => value.externalGates.pop(),
   'duplicate-external-gate': (value) => value.externalGates.push(value.externalGates[0]),
-  'external-gate-complete-claim': (value) => (value.externalGates[0].status = 'complete'),
+  'external-gate-complete-claim': (value) => (value.externalGates[2].status = 'complete'),
   'external-gate-without-approval': (value) => (value.externalGates[0].approvalRequired = false),
   'external-gate-without-owner': (value) => (value.externalGates[0].ownerRole = ''),
   'external-gate-without-evidence': (value) => (value.externalGates[0].evidenceRequired = ''),
@@ -426,14 +488,17 @@ const activeWorkflow = readFileSync(join(repositoryRoot, '.github/workflows/veri
 validateActiveWorkflow(activeWorkflow);
 assertNoForbiddenTerraformArtifacts();
 const refusalCount = runRefusalTests(activeWorkflow, contracts);
+const deferredGateCount = manifest.externalGates.filter(
+  (gate) => gate.status === 'deferred',
+).length;
 
 console.log(
   [
     'M5 local preflight passed:',
     `${manifest.machineContracts.length} machine contracts,`,
     `${manifest.localCoverage.length} local coverage areas,`,
-    `${manifest.externalGates.length} deferred external gates,`,
+    `${deferredGateCount} deferred external gates,`,
     `${refusalCount} refusal scenarios,`,
-    'zero Azure/registry/Terraform mutation claims.',
+    'the retained control-plane apply recorded, and zero workload/registry execution claims.',
   ].join(' '),
 );

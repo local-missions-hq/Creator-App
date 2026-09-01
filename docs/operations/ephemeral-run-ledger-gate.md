@@ -1,8 +1,8 @@
 # Ephemeral run-ledger gate
 
-Status: static synthetic contract only; no cloud run or teardown claim
+Status: historical V1 static synthetic contract; no cloud run or teardown claim and not valid for two-phase activation
 
-This gate defines the evidence state machine for a future same-day Azure development run. It does not authenticate, initialize remote state, produce or consume a Terraform plan, apply, test a cloud endpoint, roll back a live revision, destroy, or query Azure. The machine contract is [`../../config/ephemeral-run-ledger.v1.json`](../../config/ephemeral-run-ledger.v1.json), and `pnpm run-ledger:check` reads only the three synthetic ledgers under [`../../config/fixtures/ephemeral-run-ledger/`](../../config/fixtures/ephemeral-run-ledger/).
+This historical gate proves terminal-state, test, rollback, destroy, reconciliation, and escalation mechanics for one synthetic apply path. It does not authenticate, initialize remote state, produce or consume a Terraform plan, apply, test a cloud endpoint, roll back a live revision, destroy, or query Azure. It is superseded for activation by the retained bootstrap/control and two-phase core/image/app sequence; a V2 ledger must represent each separately approved operation before any cloud run. The machine contract is [`../../config/ephemeral-run-ledger.v1.json`](../../config/ephemeral-run-ledger.v1.json), and `pnpm run-ledger:check` reads only the three historical synthetic ledgers under [`../../config/fixtures/ephemeral-run-ledger/`](../../config/fixtures/ephemeral-run-ledger/).
 
 ## Three terminal examples
 
