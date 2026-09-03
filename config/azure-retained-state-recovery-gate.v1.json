@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "activationStatus": "cost_pause_active_local_recovery_contract_only",
-  "checkpoint": "M05-retained-state-recovery-gate-local-037",
-  "status": "local_recovery_gate_ready_cost_pause_active",
+  "activationStatus": "cost_pause_active_read_only_recovery_preflight_complete",
+  "checkpoint": "M05-read-only-recovery-preflight-039",
+  "status": "read_only_recovery_preflight_complete_cost_pause_active",
   "costPause": {
     "active": true,
     "remoteBackendAvailable": false,
@@ -54,6 +54,34 @@
         ]
       }
     ]
+  },
+  "readOnlyPreflightEvidence": {
+    "completedAtUtc": "2026-09-03T12:55:17Z",
+    "approvalKind": "read_only_recovery_preflight",
+    "uniqueSubscriptionCandidate": true,
+    "subscriptionIdentifierRetained": false,
+    "subscriptionNameRetained": false,
+    "localMissionsResourceGroupCount": 3,
+    "retainedManagedResourceCount": 4,
+    "retainedManagedIdentityCount": 3,
+    "retainedEmailOnlyActionGroupCount": 1,
+    "storageAccountCount": 0,
+    "disposableWorkloadResourceCount": 0,
+    "budgetCount": 1,
+    "localMissionsCustomRoleCount": 2,
+    "landingZoneAssignmentCount": 5,
+    "subscriptionPolicyAssignmentCount": 0,
+    "requiredProviderCount": 7,
+    "allRequiredProvidersRegistered": true,
+    "publicIpv4Sources": 2,
+    "publicIpv4SourcesAgree": true,
+    "publicIpv4ValueRetained": false,
+    "privateBackupBytesVerified": true,
+    "terraformCommandExecuted": false,
+    "terraformPlanGenerated": false,
+    "azureMutationExecuted": false,
+    "stateUploadExecuted": false,
+    "workloadPlanExecuted": false
   },
   "recoverySequence": [
     {

@@ -1,6 +1,6 @@
 {
-  "activationStatus": "retained_state_cost_pause_bootstrap_plan_reviewer_ready",
-  "checkpoint": "M05-bootstrap-recovery-plan-reviewer-local-038",
+  "activationStatus": "retained_state_cost_pause_read_only_recovery_preflight_complete",
+  "checkpoint": "M05-read-only-recovery-preflight-039",
   "currentExecution": {
     "azureAuthenticated": true,
     "azureReadOnlyInventoryExecuted": true,
@@ -16,6 +16,7 @@
     "providerRegistrationExecuted": true,
     "remoteBackendInitialized": true,
     "remoteBackendAvailable": false,
+    "readOnlyRecoveryPreflightExecuted": true,
     "recoveryPlanReviewerReady": true,
     "standingMeteredResourceCount": 0,
     "terraformMutationExecuted": true
@@ -161,8 +162,8 @@
       "path": "config/azure-workload-provider-registration-gate.v1.json"
     },
     {
-      "activationStatus": "cost_pause_active_local_recovery_contract_only",
-      "checkpoint": "M05-retained-state-recovery-gate-local-037",
+      "activationStatus": "cost_pause_active_read_only_recovery_preflight_complete",
+      "checkpoint": "M05-read-only-recovery-preflight-039",
       "command": "node scripts/validate-azure-retained-state-recovery-gate.mjs",
       "path": "config/azure-retained-state-recovery-gate.v1.json"
     },
@@ -174,7 +175,7 @@
     }
   ],
   "milestoneComplete": false,
-  "nextBoundary": "retained_state_backend_restore_approval_required",
+  "nextBoundary": "bootstrap_recovery_plan_generation_approval_required",
   "requiredArtifacts": [
     ".github/workflows/azure-oidc-proof.yml",
     ".github/workflows/verify.yml",
@@ -367,6 +368,7 @@
     "provider-registration-erased",
     "remote-backend-history-erased",
     "remote-backend-availability-overclaimed",
+    "read-only-recovery-preflight-erased",
     "recovery-plan-reviewer-erased",
     "standing-metered-resource-overclaimed",
     "terraform-mutation-erased",

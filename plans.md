@@ -12,11 +12,11 @@ Cloud: Microsoft Azure
 
 Current milestone: **M5 — Azure development foundation and continuous delivery**
 
-Current checkpoint: **M05-bootstrap-recovery-plan-reviewer-local-038**
+Current checkpoint: **M05-read-only-recovery-preflight-039**
 
-Next exact task: **When Azure work resumes, restore the retained Terraform-state Storage account from the private local state backups and independently reconcile both retained roots before any workload plan or apply**
+Next exact task: **After separate approval, generate and independently review the private, saved bootstrap-recovery plan; it may create only the hardened state Storage account and private container, then stop before apply**
 
-Last updated: 2026-09-01
+Last updated: 2026-09-03
 
 The former detailed build contract, verification protocols, and dated work entries are preserved in [`historical-completion-log.md`](historical-completion-log.md). Product behavior remains governed by [`architecture.md`](architecture.md), [`docs/product/mvp.md`](docs/product/mvp.md), and [ADR-001 through ADR-059](docs/decisions/README.md).
 
@@ -175,6 +175,7 @@ Goal: prove a reproducible, least-privilege Azure development deployment using s
 - [x] On the owner's same-day cost-stop instruction, verify the disposable workload is empty, privately back up and structurally validate the current bootstrap and control-plane Terraform states, delete only the retained `Standard_LRS` state Storage account, and independently reconcile zero remaining metered workload/data-plane resources. Preserve the free retained control/RBAC boundary and do not touch the other Azure project.
 - [x] Bind the two private mode-`0600` state backups by exact SHA-256, byte size, Terraform format, backend key, and managed-resource inventory; define and validate an eight-stage recovery sequence with 30 refusal scenarios and zero currently authorized Azure/Terraform actions.
 - [x] Build an independent local reviewer for the future bootstrap-recovery saved plan. It binds private artifact/context digests, source/provider/state/current-IP evidence, exact two-create/one-no-op actions, and two expected teardown-drift records; it refuses 18 expanded, unsafe, or over-authorized plans without invoking Terraform or Azure.
+- [x] Complete the separately approved read-only recovery preflight: uniquely resolve the dedicated subscription without trusting the CLI default; verify three retained groups, four retained management resources, zero Storage and workload resources, budget/RBAC/provider/policy boundaries, two matching public-IPv4 sources, and both private state backups. No Terraform, plan, Azure mutation, or state upload ran.
 - [ ] Before any further Terraform command, recreate the hardened retained-state bootstrap, restore both private state backups to their exact backend keys, re-establish the narrow current-IP/Entra-only boundary, and independently reconcile the bootstrap and control plane without creating disposable workload.
 - [ ] Generate and independently review a saved plan containing exactly the 27-resource workload core and no Container Apps; stop before apply.
 - [ ] Obtain separate approval for the exact core plan and cost ceiling.

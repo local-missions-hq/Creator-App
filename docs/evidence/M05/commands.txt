@@ -603,3 +603,23 @@ M05-bootstrap-recovery-plan-reviewer-local-038 — 2026-09-03
 
 node scripts/review-azure-retained-state-recovery-plan.mjs
 PASS — accepted only the synthetic private bootstrap recovery plan with exactly two creates, one no-op, and two expected teardown-drift records; verified Storage/Container safeguards and refused 18 altered or over-authorized plans. The reviewer invoked neither Terraform nor Azure.
+M05-read-only-recovery-preflight-039 — 2026-09-03
+
+Owner approval was limited to the read-only retained-state recovery preflight.
+
+az account list --all --only-show-errors --output json
+az group list --subscription <process-only-target> --only-show-errors --output json
+az resource list --subscription <process-only-target> --only-show-errors --output json
+az storage account list --subscription <process-only-target> --only-show-errors --output json
+az consumption budget list --subscription <process-only-target> --only-show-errors --output json
+az role definition list --subscription <process-only-target> --custom-role-only true --only-show-errors --output json
+az role assignment list --subscription <process-only-target> --scope <process-only-landing-zone-scope> --only-show-errors --output json
+az policy assignment list --subscription <process-only-target> --scope <process-only-subscription-scope> --only-show-errors --output json
+az provider show --subscription <process-only-target> --namespace <required-namespace> --only-show-errors --query registrationState --output tsv
+curl --fail --silent --show-error --max-time 10 https://api.ipify.org
+curl --fail --silent --show-error --max-time 10 https://ifconfig.me/ip
+LOCAL_MISSIONS_PRIVATE_STATE_BACKUP_DIRECTORY=<private-absolute-directory-outside-repository> node scripts/validate-azure-retained-state-recovery-gate.mjs --verify-private-backups
+
+PASS — one uniquely resolved subscription; three retained groups; four free retained management resources (three identities and one Action Group); zero Storage accounts; zero workload resources; one budget; two custom roles; five landing-zone assignments; zero policy assignments; seven required providers registered; two matching public IPv4 sources; and two valid private backups.
+
+No Terraform command, Terraform plan, Azure resource mutation, state upload, workload plan, image action, Stripe action, customer data, identifier, IP, credential, or state content was retained or emitted.

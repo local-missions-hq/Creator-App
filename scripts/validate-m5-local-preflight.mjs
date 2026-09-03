@@ -88,6 +88,7 @@ const expectedCurrentExecutionKeys = [
   'providerRegistrationExecuted',
   'remoteBackendInitialized',
   'remoteBackendAvailable',
+  'readOnlyRecoveryPreflightExecuted',
   'recoveryPlanReviewerReady',
   'standingMeteredResourceCount',
   'terraformMutationExecuted',
@@ -105,17 +106,15 @@ function assertUniqueExact(actual, expected, label) {
 function validateManifest(candidate) {
   assert(candidate.schemaVersion === 1, 'Preflight schema version drifted.');
   assert(
-    candidate.activationStatus === 'retained_state_cost_pause_bootstrap_plan_reviewer_ready',
+    candidate.activationStatus ===
+      'retained_state_cost_pause_read_only_recovery_preflight_complete',
     'Activation status drifted.',
   );
-  assert(
-    candidate.checkpoint === 'M05-bootstrap-recovery-plan-reviewer-local-038',
-    'Checkpoint drifted.',
-  );
+  assert(candidate.checkpoint === 'M05-read-only-recovery-preflight-039', 'Checkpoint drifted.');
   assert(candidate.milestoneComplete === false, 'M5 cannot be claimed complete locally.');
   assert(candidate.syntheticDataOnly === true, 'Only synthetic data is allowed.');
   assert(
-    candidate.nextBoundary === 'retained_state_backend_restore_approval_required',
+    candidate.nextBoundary === 'bootstrap_recovery_plan_generation_approval_required',
     'Next boundary drifted.',
   );
   assert(candidate.verificationCommand === 'pnpm m5:preflight', 'Verification command drifted.');
@@ -129,6 +128,7 @@ function validateManifest(candidate) {
       'azureResourcesCreated',
       'cloudCostIncurred',
       'costPauseActive',
+      'readOnlyRecoveryPreflightExecuted',
       'recoveryPlanReviewerReady',
       'providerBackedPlanExecuted',
       'providerRegistrationExecuted',
@@ -170,6 +170,7 @@ function validateManifest(candidate) {
         'activation_valid_contract_local_only',
         'workload_provider_registration_proof_passed',
         'cost_pause_active_local_recovery_contract_only',
+        'cost_pause_active_read_only_recovery_preflight_complete',
         'bootstrap_recovery_plan_reviewer_local_only',
       ].includes(contract.activationStatus),
       `${contract.path} activation status is not allowed.`,
@@ -345,10 +346,15 @@ function validateCrossContractCoherence(contracts) {
     'Workload provider-registration proof drifted or enabled planning.',
   );
   assert(
-    stateRecovery.checkpoint === 'M05-retained-state-recovery-gate-local-037' &&
-      stateRecovery.activationStatus === 'cost_pause_active_local_recovery_contract_only' &&
+    stateRecovery.checkpoint === 'M05-read-only-recovery-preflight-039' &&
+      stateRecovery.activationStatus ===
+        'cost_pause_active_read_only_recovery_preflight_complete' &&
       stateRecovery.costPause.active === true &&
       stateRecovery.costPause.remoteBackendAvailable === false &&
+      stateRecovery.readOnlyPreflightEvidence.uniqueSubscriptionCandidate === true &&
+      stateRecovery.readOnlyPreflightEvidence.storageAccountCount === 0 &&
+      stateRecovery.readOnlyPreflightEvidence.disposableWorkloadResourceCount === 0 &&
+      stateRecovery.readOnlyPreflightEvidence.azureMutationExecuted === false &&
       stateRecovery.costPause.standingMeteredResourceCount === 0 &&
       stateRecovery.currentAuthorization.terraformPlanApproved === false &&
       stateRecovery.currentAuthorization.terraformApplyApproved === false &&
@@ -356,7 +362,7 @@ function validateCrossContractCoherence(contracts) {
     'Retained-state cost-pause recovery contract drifted or enabled Azure/Terraform work.',
   );
   assert(
-    recoveryPlanReviewer.checkpoint === manifest.checkpoint &&
+    recoveryPlanReviewer.checkpoint === 'M05-bootstrap-recovery-plan-reviewer-local-038' &&
       recoveryPlanReviewer.activationStatus === 'bootstrap_recovery_plan_reviewer_local_only' &&
       recoveryPlanReviewer.status === 'reviewer_ready_no_plan_generated' &&
       recoveryPlanReviewer.expectedPlan.plannedCreates === 2 &&
@@ -527,6 +533,8 @@ const manifestMutations = {
     (value.currentExecution.remoteBackendInitialized = false),
   'remote-backend-availability-overclaimed': (value) =>
     (value.currentExecution.remoteBackendAvailable = true),
+  'read-only-recovery-preflight-erased': (value) =>
+    (value.currentExecution.readOnlyRecoveryPreflightExecuted = false),
   'recovery-plan-reviewer-erased': (value) =>
     (value.currentExecution.recoveryPlanReviewerReady = false),
   'standing-metered-resource-overclaimed': (value) =>

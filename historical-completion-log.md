@@ -4661,3 +4661,12 @@ Next exact task: Complete the M0 product contract and state-transition tables.
 - Safety: The workload landing zone remains empty and the retained Storage account remains default deny, no bypass, Shared Key disabled, and restricted to the current process-only operator IPv4. No Terraform command/plan/apply, Azure resource creation/update/deletion, network/RBAC/budget change, image action, Stripe action, customer data, or iOS deployment occurred.
 - Correction: The safety tool refused before mutation when Azure returned the registered Insights namespace as lowercase in one API and title case in another. Namespace comparisons were made case-insensitive and regression-tested. After registration, the same issue in the location reader was corrected before rerunning read-only proof only; providers were not registered twice.
 - Next exact task: Obtain separate approval to generate and independently review only the exact 27-resource workload-core saved plan with zero Container Apps. Stop before apply.
+
+### 2026-09-03 — Read-only retained-state recovery preflight passed
+
+- Checkpoint: `M05-read-only-recovery-preflight-039`.
+- Approval: The owner approved only the recovery sequence's first, read-only preflight. It did not authorize Terraform, saved-plan generation, apply, role changes, state upload, workload planning, or any Azure resource mutation.
+- Verification: Explicit-subscription reads uniquely rediscovered the tagged Local Missions boundary and confirmed three retained groups, four retained management resources (three identities and one email-only Action Group), zero Storage accounts, zero workload resources, one budget, two Local Missions custom roles, five landing-zone assignments, zero subscription policy assignments, and seven required registered providers. Two public IPv4 sources agreed; neither address nor any account identifier was retained.
+- Private-state proof: Both outside-repository mode-`0600` state backups again passed exact digest, byte-size, format, backend-key, and managed-inventory validation.
+- Safety: No Terraform command or plan, Azure mutation, state upload, role change, provider registration, workload/registry operation, Stripe action, customer data, or iOS deployment occurred.
+- Next exact task: Obtain separate approval to generate and independently review the private bootstrap-recovery saved plan. It may create only the hardened state Storage account and private container, then stops before apply.

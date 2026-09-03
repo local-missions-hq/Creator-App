@@ -19,9 +19,9 @@ function clone(value) {
 function validate(candidate) {
   assert(candidate.schemaVersion === 1, 'Recovery-gate schema drifted.');
   assert(
-    candidate.activationStatus === 'cost_pause_active_local_recovery_contract_only' &&
-      candidate.checkpoint === 'M05-retained-state-recovery-gate-local-037' &&
-      candidate.status === 'local_recovery_gate_ready_cost_pause_active',
+    candidate.activationStatus === 'cost_pause_active_read_only_recovery_preflight_complete' &&
+      candidate.checkpoint === 'M05-read-only-recovery-preflight-039' &&
+      candidate.status === 'read_only_recovery_preflight_complete_cost_pause_active',
     'Recovery-gate checkpoint or status drifted.',
   );
 
@@ -91,6 +91,37 @@ function validate(candidate) {
         'azurerm_user_assigned_identity.terraform:3',
       ]),
     'Control-plane state inventory drifted.',
+  );
+
+  const preflight = candidate.readOnlyPreflightEvidence;
+  assert(
+    preflight.completedAtUtc === '2026-09-03T12:55:17Z' &&
+      preflight.approvalKind === 'read_only_recovery_preflight' &&
+      preflight.uniqueSubscriptionCandidate === true &&
+      preflight.subscriptionIdentifierRetained === false &&
+      preflight.subscriptionNameRetained === false &&
+      preflight.localMissionsResourceGroupCount === 3 &&
+      preflight.retainedManagedResourceCount === 4 &&
+      preflight.retainedManagedIdentityCount === 3 &&
+      preflight.retainedEmailOnlyActionGroupCount === 1 &&
+      preflight.storageAccountCount === 0 &&
+      preflight.disposableWorkloadResourceCount === 0 &&
+      preflight.budgetCount === 1 &&
+      preflight.localMissionsCustomRoleCount === 2 &&
+      preflight.landingZoneAssignmentCount === 5 &&
+      preflight.subscriptionPolicyAssignmentCount === 0 &&
+      preflight.requiredProviderCount === 7 &&
+      preflight.allRequiredProvidersRegistered === true &&
+      preflight.publicIpv4Sources === 2 &&
+      preflight.publicIpv4SourcesAgree === true &&
+      preflight.publicIpv4ValueRetained === false &&
+      preflight.privateBackupBytesVerified === true &&
+      preflight.terraformCommandExecuted === false &&
+      preflight.terraformPlanGenerated === false &&
+      preflight.azureMutationExecuted === false &&
+      preflight.stateUploadExecuted === false &&
+      preflight.workloadPlanExecuted === false,
+    'Read-only recovery-preflight evidence drifted.',
   );
 
   assert(candidate.recoverySequence.length === 8, 'Recovery sequence must contain eight gates.');
@@ -260,6 +291,12 @@ const mutations = {
   'shared-key-enabled': (value) => (value.mandatorySafety.storageSharedKeyDisabled = false),
   'workload-plan-unblocked': (value) =>
     (value.mandatorySafety.workloadPlanBeforeRecoveryForbidden = false),
+  'preflight-subscription-ambiguous': (value) =>
+    (value.readOnlyPreflightEvidence.uniqueSubscriptionCandidate = false),
+  'preflight-storage-overclaimed': (value) =>
+    (value.readOnlyPreflightEvidence.storageAccountCount = 1),
+  'preflight-mutation-overclaimed': (value) =>
+    (value.readOnlyPreflightEvidence.azureMutationExecuted = true),
   'plan-preapproved': (value) => (value.currentAuthorization.terraformPlanApproved = true),
   'apply-preapproved': (value) => (value.currentAuthorization.terraformApplyApproved = true),
   'role-mutation-preapproved': (value) =>
@@ -282,5 +319,5 @@ for (const [name, mutate] of Object.entries(mutations)) {
 }
 
 console.log(
-  `Azure retained-state recovery gate passed for ${contract.privateBackupContract.files.length} private state bindings, ${contract.recoverySequence.length} ordered approval stages, ${refusalCount} refusal scenarios, zero authorized Azure/Terraform actions, and ${argumentsList.length === 1 ? 'verified private backup bytes' : 'static contract mode'}.`,
+  `Azure retained-state recovery gate passed for ${contract.privateBackupContract.files.length} private state bindings, ${contract.recoverySequence.length} ordered approval stages, ${refusalCount} refusal scenarios, zero authorized Terraform or Azure mutation actions, and ${argumentsList.length === 1 ? 'verified private backup bytes' : 'static contract mode'}.`,
 );
