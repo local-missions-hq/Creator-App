@@ -598,3 +598,8 @@ PASS — reconciled 13 machine contracts, 12 local coverage areas, nine deferred
 
 pnpm verify && pnpm test:security && pnpm test:gitleaks
 PASS — formatting, architecture/policy contracts, three local Terraform roots, all nine workspace lint/type/test/contract/build gates, 111 mobile tests, the 660-file high-confidence scan, and Gitleaks over approximately 17.99 MB passed under Node 24.19.0 and pnpm 11.24.0.
+
+M05-bootstrap-recovery-plan-reviewer-local-038 — 2026-09-03
+
+node scripts/review-azure-retained-state-recovery-plan.mjs
+PASS — accepted only the synthetic private bootstrap recovery plan with exactly two creates, one no-op, and two expected teardown-drift records; verified Storage/Container safeguards and refused 18 altered or over-authorized plans. The reviewer invoked neither Terraform nor Azure.

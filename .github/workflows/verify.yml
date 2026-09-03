@@ -31,4 +31,5 @@ jobs:
       - run: node scripts/validate-azure-workload-provider-registration-gate.mjs
       - run: node scripts/validate-azure-workload-provider-registration-tool.mjs
       - run: node scripts/validate-azure-retained-state-recovery-gate.mjs
+      - run: node scripts/review-azure-retained-state-recovery-plan.mjs
       - run: pnpm test:security

@@ -5,6 +5,14 @@
 > log. It is historical context, not the active execution checklist. The authoritative
 > current roadmap and first unchecked task are in [`plans.md`](plans.md).
 
+### 2026-09-03 — Bootstrap recovery saved-plan reviewer passed locally
+
+- Checkpoint: `M05-bootstrap-recovery-plan-reviewer-local-038`.
+- Added a private-artifact reviewer for the future bootstrap recovery plan. It requires a private mode-`0600` plan binary, its JSON rendering, and sanitized review context outside the repository; no artifact is generated, retained, or read from Azure during local validation.
+- The only accepted plan shape is one retained resource-group no-op plus exactly two creates: the hardened `Standard_LRS` state Storage account and its private container. It permits exactly two expected external drift-delete records for those resources, which document the owner-directed cost pause and are not planned deletion actions.
+- Bound source, provider lock, bootstrap-state, plan binary, plan JSON, variable, current-IP, and subscription-resolution digests; source-level `prevent_destroy`, Storage security, cost ceiling, same-day/eight-hour expiry, and apply/RBAC/state-upload/workload non-authorization are enforced.
+- Passed a synthetic fixture and 18 refusal scenarios. No Terraform command, Azure CLI/API call, plan generation, resource mutation, state upload, image action, Stripe action, customer data, or iOS deployment ran.
+
 ### 2026-09-01 — Retained-state recovery gate passed locally
 
 - Checkpoint: `M05-retained-state-recovery-gate-local-037`.

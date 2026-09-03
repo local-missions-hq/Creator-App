@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "syntheticFixture": true,
+  "operation": "bootstrap-retained-state-recovery",
+  "terraformRoot": "infra/terraform/bootstrap",
+  "terraformVersion": "1.15.7",
+  "sourceCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "sourceDigestSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "providerLockSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "bootstrapStateSha256": "47b089ac5fbe51dd156a06e2447b7caa51c7d9145a6fc221369bc2af35654125",
+  "artifactSha256": "9efd91ca681a0c20ee4458660a802e4bef5881a3aa090d116823b6091c1a1f24",
+  "planJsonSha256": "bc6104af7419fd979d1ba91f25c92f2be7e90a031a107fcfd19ca34791cd2fff",
+  "planJsonDerivedFromArtifact": true,
+  "contextSha256": "ec05bf4e6f489b0f618df3aceb5dd7b2a14d5f87f7e21b216735283bdb869455",
+  "variableValuesSha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "currentIpv4Sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "subscriptionResolutionProofSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+  "createdAt": "2026-09-01T17:00:00Z",
+  "expiresAt": "2026-09-01T21:00:00Z",
+  "fileMode": "0600",
+  "planMode": "normal",
+  "planCounts": {
+    "create": 2,
+    "update": 0,
+    "delete": 0,
+    "replace": 0,
+    "noOp": 1,
+    "externalDriftDelete": 2
+  },
+  "targetProof": {
+    "uniqueLocalMissionsSubscription": true,
+    "retainedResourceGroupCount": 3,
+    "otherResourceGroupCount": 0,
+    "workloadResourceCount": 0,
+    "storageAccountCount": 0,
+    "otherProjectUntouched": true
+  },
+  "review": {
+    "producer": "synthetic:operator:plan-producer",
+    "reviewer": "synthetic:operator:independent-reviewer",
+    "reviewCompleted": true
+  },
+  "authorization": {
+    "planGenerationApprovalRecorded": true,
+    "applyApproved": false,
+    "roleMutationApproved": false,
+    "stateUploadApproved": false,
+    "workloadPlanApproved": false
+  }
+}

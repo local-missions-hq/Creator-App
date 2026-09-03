@@ -32,6 +32,7 @@ const expectedContractPaths = [
   'config/container-image-contract.v1.json',
   'config/azure-workload-provider-registration-gate.v1.json',
   'config/azure-retained-state-recovery-gate.v1.json',
+  'config/azure-retained-state-recovery-plan-review.v1.json',
 ];
 
 const expectedCoverageIds = [
@@ -47,6 +48,7 @@ const expectedCoverageIds = [
   'operator-boundary-and-same-day-teardown',
   'workload-provider-registration-and-usage-proof',
   'retained-state-cost-pause-and-recovery-gate',
+  'bootstrap-recovery-saved-plan-independent-reviewer',
 ];
 
 const expectedExternalGateIds = [
@@ -86,6 +88,7 @@ const expectedCurrentExecutionKeys = [
   'providerRegistrationExecuted',
   'remoteBackendInitialized',
   'remoteBackendAvailable',
+  'recoveryPlanReviewerReady',
   'standingMeteredResourceCount',
   'terraformMutationExecuted',
 ];
@@ -102,11 +105,11 @@ function assertUniqueExact(actual, expected, label) {
 function validateManifest(candidate) {
   assert(candidate.schemaVersion === 1, 'Preflight schema version drifted.');
   assert(
-    candidate.activationStatus === 'retained_state_cost_pause_local_recovery_gate_ready',
+    candidate.activationStatus === 'retained_state_cost_pause_bootstrap_plan_reviewer_ready',
     'Activation status drifted.',
   );
   assert(
-    candidate.checkpoint === 'M05-retained-state-recovery-gate-local-037',
+    candidate.checkpoint === 'M05-bootstrap-recovery-plan-reviewer-local-038',
     'Checkpoint drifted.',
   );
   assert(candidate.milestoneComplete === false, 'M5 cannot be claimed complete locally.');
@@ -126,6 +129,7 @@ function validateManifest(candidate) {
       'azureResourcesCreated',
       'cloudCostIncurred',
       'costPauseActive',
+      'recoveryPlanReviewerReady',
       'providerBackedPlanExecuted',
       'providerRegistrationExecuted',
       'remoteBackendInitialized',
@@ -143,6 +147,7 @@ function validateManifest(candidate) {
         [
           'node scripts/validate-azure-workload-provider-registration-gate.mjs',
           'node scripts/validate-azure-retained-state-recovery-gate.mjs',
+          'node scripts/review-azure-retained-state-recovery-plan.mjs',
         ].includes(contract.command),
       `${contract.path} command drifted.`,
     );
@@ -165,6 +170,7 @@ function validateManifest(candidate) {
         'activation_valid_contract_local_only',
         'workload_provider_registration_proof_passed',
         'cost_pause_active_local_recovery_contract_only',
+        'bootstrap_recovery_plan_reviewer_local_only',
       ].includes(contract.activationStatus),
       `${contract.path} activation status is not allowed.`,
     );
@@ -187,7 +193,7 @@ function validateManifest(candidate) {
     candidate.requiredArtifacts.length === new Set(candidate.requiredArtifacts).size,
     'Required artifacts contain a duplicate.',
   );
-  assert(candidate.requiredArtifacts.length === 33, 'Required artifact count drifted.');
+  assert(candidate.requiredArtifacts.length === 36, 'Required artifact count drifted.');
 
   assertUniqueExact(
     candidate.externalGates.map((gate) => gate.id),
@@ -273,6 +279,7 @@ function loadContracts() {
     placement: readJson('config/azure-subscription-placement.v1.json'),
     provider: readJson('config/azure-workload-provider-registration-gate.v1.json'),
     stateRecovery: readJson('config/azure-retained-state-recovery-gate.v1.json'),
+    recoveryPlanReviewer: readJson('config/azure-retained-state-recovery-plan-review.v1.json'),
     readiness: readJson('config/azure-plan-readiness.v1.json'),
     recovery: readJson('config/recovery-drill.v1.json'),
     savedPlan: readJson('config/saved-plan-evidence.v1.json'),
@@ -290,6 +297,7 @@ function validateCrossContractCoherence(contracts) {
     placement,
     provider,
     stateRecovery,
+    recoveryPlanReviewer,
     readiness,
     recovery,
     savedPlan,
@@ -337,7 +345,7 @@ function validateCrossContractCoherence(contracts) {
     'Workload provider-registration proof drifted or enabled planning.',
   );
   assert(
-    stateRecovery.checkpoint === manifest.checkpoint &&
+    stateRecovery.checkpoint === 'M05-retained-state-recovery-gate-local-037' &&
       stateRecovery.activationStatus === 'cost_pause_active_local_recovery_contract_only' &&
       stateRecovery.costPause.active === true &&
       stateRecovery.costPause.remoteBackendAvailable === false &&
@@ -346,6 +354,19 @@ function validateCrossContractCoherence(contracts) {
       stateRecovery.currentAuthorization.terraformApplyApproved === false &&
       stateRecovery.currentAuthorization.workloadPlanApproved === false,
     'Retained-state cost-pause recovery contract drifted or enabled Azure/Terraform work.',
+  );
+  assert(
+    recoveryPlanReviewer.checkpoint === manifest.checkpoint &&
+      recoveryPlanReviewer.activationStatus === 'bootstrap_recovery_plan_reviewer_local_only' &&
+      recoveryPlanReviewer.status === 'reviewer_ready_no_plan_generated' &&
+      recoveryPlanReviewer.expectedPlan.plannedCreates === 2 &&
+      recoveryPlanReviewer.expectedPlan.plannedUpdates === 0 &&
+      recoveryPlanReviewer.expectedPlan.plannedDeletes === 0 &&
+      recoveryPlanReviewer.expectedPlan.plannedReplacements === 0 &&
+      recoveryPlanReviewer.currentAuthorization.terraformPlanGenerationApproved === false &&
+      recoveryPlanReviewer.currentAuthorization.terraformApplyApproved === false &&
+      recoveryPlanReviewer.currentAuthorization.workloadPlanApproved === false,
+    'Bootstrap recovery-plan reviewer drifted or enabled an action.',
   );
   assert(
     savedPlanV2.operations.find(({ id }) => id === 'workload-core')?.expectedPlan.create ===
@@ -506,6 +527,8 @@ const manifestMutations = {
     (value.currentExecution.remoteBackendInitialized = false),
   'remote-backend-availability-overclaimed': (value) =>
     (value.currentExecution.remoteBackendAvailable = true),
+  'recovery-plan-reviewer-erased': (value) =>
+    (value.currentExecution.recoveryPlanReviewerReady = false),
   'standing-metered-resource-overclaimed': (value) =>
     (value.currentExecution.standingMeteredResourceCount = 1),
   'terraform-mutation-erased': (value) =>

@@ -1,6 +1,6 @@
 {
-  "activationStatus": "retained_state_cost_pause_local_recovery_gate_ready",
-  "checkpoint": "M05-retained-state-recovery-gate-local-037",
+  "activationStatus": "retained_state_cost_pause_bootstrap_plan_reviewer_ready",
+  "checkpoint": "M05-bootstrap-recovery-plan-reviewer-local-038",
   "currentExecution": {
     "azureAuthenticated": true,
     "azureReadOnlyInventoryExecuted": true,
@@ -16,6 +16,7 @@
     "providerRegistrationExecuted": true,
     "remoteBackendInitialized": true,
     "remoteBackendAvailable": false,
+    "recoveryPlanReviewerReady": true,
     "standingMeteredResourceCount": 0,
     "terraformMutationExecuted": true
   },
@@ -79,6 +80,11 @@
       "evidence": "config/azure-retained-state-recovery-gate.v1.json",
       "id": "retained-state-cost-pause-and-recovery-gate",
       "proofClass": "local_contract_and_private_backup_binding"
+    },
+    {
+      "evidence": "config/azure-retained-state-recovery-plan-review.v1.json",
+      "id": "bootstrap-recovery-saved-plan-independent-reviewer",
+      "proofClass": "local_plan_json_reviewer_with_synthetic_fixture"
     }
   ],
   "machineContracts": [
@@ -159,6 +165,12 @@
       "checkpoint": "M05-retained-state-recovery-gate-local-037",
       "command": "node scripts/validate-azure-retained-state-recovery-gate.mjs",
       "path": "config/azure-retained-state-recovery-gate.v1.json"
+    },
+    {
+      "activationStatus": "bootstrap_recovery_plan_reviewer_local_only",
+      "checkpoint": "M05-bootstrap-recovery-plan-reviewer-local-038",
+      "command": "node scripts/review-azure-retained-state-recovery-plan.mjs",
+      "path": "config/azure-retained-state-recovery-plan-review.v1.json"
     }
   ],
   "milestoneComplete": false,
@@ -196,7 +208,10 @@
     "scripts/validate-azure-workload-provider-registration-tool.mjs",
     "config/azure-retained-state-recovery-gate.v1.json",
     "docs/operations/azure-retained-state-recovery.md",
-    "scripts/validate-azure-retained-state-recovery-gate.mjs"
+    "scripts/validate-azure-retained-state-recovery-gate.mjs",
+    "config/azure-retained-state-recovery-plan-review.v1.json",
+    "docs/operations/azure-retained-state-recovery-plan-review.md",
+    "scripts/review-azure-retained-state-recovery-plan.mjs"
   ],
   "externalGates": [
     {
@@ -352,6 +367,7 @@
     "provider-registration-erased",
     "remote-backend-history-erased",
     "remote-backend-availability-overclaimed",
+    "recovery-plan-reviewer-erased",
     "standing-metered-resource-overclaimed",
     "terraform-mutation-erased",
     "missing-machine-contract",

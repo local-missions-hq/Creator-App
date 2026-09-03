@@ -106,7 +106,10 @@
     }
   ],
   "restorePlanAllowlist": {
-    "bootstrapCreatesOnly": ["azurerm_storage_account.state", "azurerm_storage_container.state"],
+    "bootstrapCreatesOnly": [
+      "azurerm_storage_account.state[0]",
+      "azurerm_storage_container.state[0]"
+    ],
     "controlPlaneCreatesOnly": ["azurerm_role_assignment.state_backend[0..2]"],
     "maximumStandingMeteredResourceCountAfterRestore": 1,
     "maximumRetainedMonthlyCeilingUsd": 1,

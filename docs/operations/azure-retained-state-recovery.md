@@ -19,6 +19,8 @@ Static contract validation contacts neither Azure nor Terraform:
 node scripts/validate-azure-retained-state-recovery-gate.mjs
 ```
 
+The future bootstrap recovery plan must also pass the independent [saved-plan reviewer](./azure-retained-state-recovery-plan-review.md). It is local-only and does not authorize plan generation, apply, role assignment, state upload, or workload planning.
+
 The owner may separately authorize read-only verification of the private bytes. Supply the absolute directory through the process environment; the validator prints no state values, identifiers, IP addresses, or secrets:
 
 ```sh

@@ -110,7 +110,7 @@ function validate(candidate) {
   const allowlist = candidate.restorePlanAllowlist;
   assert(
     JSON.stringify(allowlist.bootstrapCreatesOnly) ===
-      JSON.stringify(['azurerm_storage_account.state', 'azurerm_storage_container.state']) &&
+      JSON.stringify(['azurerm_storage_account.state[0]', 'azurerm_storage_container.state[0]']) &&
       JSON.stringify(allowlist.controlPlaneCreatesOnly) ===
         JSON.stringify(['azurerm_role_assignment.state_backend[0..2]']) &&
       allowlist.maximumStandingMeteredResourceCountAfterRestore === 1 &&

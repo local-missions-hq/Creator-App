@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "activationStatus": "bootstrap_recovery_plan_reviewer_local_only",
+  "checkpoint": "M05-bootstrap-recovery-plan-reviewer-local-038",
+  "status": "reviewer_ready_no_plan_generated",
+  "operation": "bootstrap-retained-state-recovery",
+  "terraformRoot": "infra/terraform/bootstrap",
+  "terraformVersion": "1.15.7",
+  "providerLockPath": "infra/terraform/bootstrap/.terraform.lock.hcl",
+  "privateStateBinding": {
+    "logicalRoot": "bootstrap",
+    "backendKey": "local-missions/bootstrap.tfstate",
+    "sha256": "47b089ac5fbe51dd156a06e2447b7caa51c7d9145a6fc221369bc2af35654125",
+    "bytes": 21838,
+    "requiredFileMode": "0600"
+  },
+  "sourceDigest": {
+    "algorithm": "sha256-of-sorted-path-null-file-sha256-newline-records",
+    "trackedRoot": "infra/terraform/bootstrap",
+    "providerLockSeparatelyBound": true,
+    "fullCommitRequired": true
+  },
+  "planArtifactContract": {
+    "planBinaryOutsideRepository": true,
+    "planJsonOutsideRepository": true,
+    "contextOutsideRepository": true,
+    "regularFilesOnly": true,
+    "symlinksAllowed": false,
+    "requiredFileMode": "0600",
+    "maximumAgeHours": 8,
+    "requiredTimeZone": "America/New_York",
+    "cutoffHour": 23,
+    "planMode": "normal",
+    "artifactSha256Required": true,
+    "planJsonSha256Required": true,
+    "contextSha256Required": true
+  },
+  "expectedPlan": {
+    "plannedCreates": 2,
+    "plannedUpdates": 0,
+    "plannedDeletes": 0,
+    "plannedReplacements": 0,
+    "plannedNoOps": 1,
+    "resourceChanges": [
+      {
+        "actions": ["no-op"],
+        "address": "azurerm_resource_group.state[0]",
+        "type": "azurerm_resource_group"
+      },
+      {
+        "actions": ["create"],
+        "address": "azurerm_storage_account.state[0]",
+        "type": "azurerm_storage_account"
+      },
+      {
+        "actions": ["create"],
+        "address": "azurerm_storage_container.state[0]",
+        "type": "azurerm_storage_container"
+      }
+    ],
+    "expectedExternalDrift": [
+      {
+        "actions": ["delete"],
+        "address": "azurerm_storage_account.state[0]",
+        "type": "azurerm_storage_account"
+      },
+      {
+        "actions": ["delete"],
+        "address": "azurerm_storage_container.state[0]",
+        "type": "azurerm_storage_container"
+      }
+    ],
+    "outputChangesAllowed": true,
+    "containerAppsAllowed": 0,
+    "disposableWorkloadResourcesAllowed": 0
+  },
+  "plannedValueSafeguards": {
+    "resourceGroupName": "rg-local-missions-state-eus2-001",
+    "storageAccountName": "stlmtfse2001",
+    "containerName": "tfstate",
+    "location": "eastus2",
+    "storageAccountKind": "StorageV2",
+    "storageTier": "Standard",
+    "storageReplication": "LRS",
+    "accessTier": "Hot",
+    "defaultNetworkAction": "Deny",
+    "networkBypass": ["None"],
+    "exactCurrentIpv4RuleCount": 1,
+    "anonymousAccessAllowed": false,
+    "sharedKeyAllowed": false,
+    "localUsersAllowed": false,
+    "publicNetworkEndpointEnabled": true,
+    "httpsOnly": true,
+    "minimumTlsVersion": "TLS1_2",
+    "infrastructureEncryption": true,
+    "crossTenantReplication": false,
+    "versioning": true,
+    "changeFeed": true,
+    "blobDeleteRetentionDays": 30,
+    "containerDeleteRetentionDays": 30,
+    "containerAccessType": "private",
+    "monthlyCostCeilingUsd": 1,
+    "preventDestroyRequiredInSource": true
+  },
+  "sanitizedContextRequiredFields": [
+    "artifactSha256",
+    "bootstrapStateSha256",
+    "contextSha256",
+    "createdAt",
+    "currentIpv4Sha256",
+    "expiresAt",
+    "fileMode",
+    "operation",
+    "planJsonSha256",
+    "planJsonDerivedFromArtifact",
+    "providerLockSha256",
+    "sourceCommitSha",
+    "sourceDigestSha256",
+    "subscriptionResolutionProofSha256",
+    "terraformRoot",
+    "terraformVersion",
+    "variableValuesSha256"
+  ],
+  "currentAuthorization": {
+    "localFixtureValidationAllowed": true,
+    "privateArtifactReviewAllowedAfterPlanGenerationApproval": true,
+    "azureReadOnlyPreflightApproved": false,
+    "terraformPlanGenerationApproved": false,
+    "terraformApplyApproved": false,
+    "azureMutationApproved": false,
+    "stateUploadApproved": false,
+    "workloadPlanApproved": false
+  }
+}

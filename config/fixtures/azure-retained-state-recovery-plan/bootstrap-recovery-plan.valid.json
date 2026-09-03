@@ -1,0 +1,234 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.15.7",
+  "resource_changes": [
+    {
+      "address": "azurerm_resource_group.state[0]",
+      "mode": "managed",
+      "type": "azurerm_resource_group",
+      "name": "state",
+      "index": 0,
+      "change": {
+        "actions": ["no-op"],
+        "before": {
+          "location": "eastus2",
+          "name": "rg-local-missions-state-eus2-001"
+        },
+        "after": {
+          "location": "eastus2",
+          "name": "rg-local-missions-state-eus2-001"
+        },
+        "after_unknown": {}
+      }
+    },
+    {
+      "address": "azurerm_storage_account.state[0]",
+      "mode": "managed",
+      "type": "azurerm_storage_account",
+      "name": "state",
+      "index": 0,
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "stlmtfse2001"
+        },
+        "after_unknown": {
+          "id": true
+        }
+      }
+    },
+    {
+      "address": "azurerm_storage_container.state[0]",
+      "mode": "managed",
+      "type": "azurerm_storage_container",
+      "name": "state",
+      "index": 0,
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "tfstate"
+        },
+        "after_unknown": {
+          "id": true
+        }
+      }
+    }
+  ],
+  "resource_drift": [
+    {
+      "address": "azurerm_storage_account.state[0]",
+      "mode": "managed",
+      "type": "azurerm_storage_account",
+      "name": "state",
+      "index": 0,
+      "change": {
+        "actions": ["delete"],
+        "before": {
+          "name": "stlmtfse2001"
+        },
+        "after": null,
+        "after_unknown": false
+      }
+    },
+    {
+      "address": "azurerm_storage_container.state[0]",
+      "mode": "managed",
+      "type": "azurerm_storage_container",
+      "name": "state",
+      "index": 0,
+      "change": {
+        "actions": ["delete"],
+        "before": {
+          "name": "tfstate"
+        },
+        "after": null,
+        "after_unknown": false
+      }
+    }
+  ],
+  "planned_values": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "azurerm_resource_group.state[0]",
+          "mode": "managed",
+          "type": "azurerm_resource_group",
+          "name": "state",
+          "index": 0,
+          "values": {
+            "location": "eastus2",
+            "name": "rg-local-missions-state-eus2-001",
+            "tags": {
+              "application": "local-missions",
+              "application_code": "lm",
+              "environment": "development",
+              "lifecycle": "retained",
+              "managed_by": "terraform",
+              "owner": "synthetic-owner",
+              "purpose": "terraform-state-and-locking",
+              "region": "eastus2",
+              "terraform_root": "bootstrap"
+            }
+          }
+        },
+        {
+          "address": "azurerm_storage_account.state[0]",
+          "mode": "managed",
+          "type": "azurerm_storage_account",
+          "name": "state",
+          "index": 0,
+          "values": {
+            "access_tier": "Hot",
+            "account_kind": "StorageV2",
+            "account_replication_type": "LRS",
+            "account_tier": "Standard",
+            "allow_nested_items_to_be_public": false,
+            "blob_properties": [
+              {
+                "change_feed_enabled": true,
+                "container_delete_retention_policy": [
+                  {
+                    "days": 30
+                  }
+                ],
+                "delete_retention_policy": [
+                  {
+                    "days": 30,
+                    "permanent_delete_enabled": false
+                  }
+                ],
+                "versioning_enabled": true
+              }
+            ],
+            "cross_tenant_replication_enabled": false,
+            "default_to_oauth_authentication": true,
+            "https_traffic_only_enabled": true,
+            "infrastructure_encryption_enabled": true,
+            "local_user_enabled": false,
+            "location": "eastus2",
+            "min_tls_version": "TLS1_2",
+            "name": "stlmtfse2001",
+            "network_rules": [
+              {
+                "bypass": ["None"],
+                "default_action": "Deny",
+                "ip_rules": ["198.51.100.10"]
+              }
+            ],
+            "public_network_access_enabled": true,
+            "resource_group_name": "rg-local-missions-state-eus2-001",
+            "shared_access_key_enabled": false,
+            "tags": {
+              "application": "local-missions",
+              "application_code": "lm",
+              "environment": "development",
+              "lifecycle": "retained",
+              "managed_by": "terraform",
+              "owner": "synthetic-owner",
+              "purpose": "terraform-state-and-locking",
+              "region": "eastus2",
+              "terraform_root": "bootstrap"
+            }
+          }
+        },
+        {
+          "address": "azurerm_storage_container.state[0]",
+          "mode": "managed",
+          "type": "azurerm_storage_container",
+          "name": "state",
+          "index": 0,
+          "values": {
+            "container_access_type": "private",
+            "name": "tfstate"
+          }
+        }
+      ]
+    }
+  },
+  "output_changes": {
+    "resource_inventory": {
+      "actions": ["update"],
+      "before": {
+        "enabled": true,
+        "resource_group": 1,
+        "storage_account": 1,
+        "storage_container": 1,
+        "total": 3
+      },
+      "after": {
+        "enabled": true,
+        "resource_group": 1,
+        "storage_account": 1,
+        "storage_container": 1,
+        "total": 3
+      },
+      "after_unknown": false
+    }
+  },
+  "configuration": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "azurerm_resource_group.state",
+          "mode": "managed",
+          "type": "azurerm_resource_group",
+          "name": "state"
+        },
+        {
+          "address": "azurerm_storage_account.state",
+          "mode": "managed",
+          "type": "azurerm_storage_account",
+          "name": "state"
+        },
+        {
+          "address": "azurerm_storage_container.state",
+          "mode": "managed",
+          "type": "azurerm_storage_container",
+          "name": "state"
+        }
+      ]
+    }
+  }
+}
