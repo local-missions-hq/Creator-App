@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "57.0.13",
-    "@expo/vector-icons": "15.0.3",
+    "@expo/vector-icons": "15.1.1",
     "@local-missions/api-client": "workspace:*",
     "expo": "57.0.16",
     "expo-auth-session": "~57.0.10",
